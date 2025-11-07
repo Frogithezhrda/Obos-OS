@@ -1,14 +1,13 @@
 
 
 ; i used this as a reference https://wiki.osdev.org/GDT_Tutorial
-GDTTable:
+LoadGDT:
     
-    GDTNull:
+    NullGDT:
         db 0x0000
         db 0x0000
 
-
-    GDTCode:
+    CodeGDT:
         dw 0xFFFF   ; Limit
         dw 0x0000   ; Base
         db 0x00     ; Base
@@ -16,8 +15,7 @@ GDTTable:
         db 0xC      ; Flags
         db 0x00     ; Base
 
-
-    GDTData:
+    DataGDT:
         dw 0xFFFF   ; Limit
         dw 0x0000   ; Base
         db 0x00     ; Base
@@ -25,13 +23,11 @@ GDTTable:
         db 0xC      ; Flags
         db 0x00     ; Base
 
-    GDTEnd:
-
-
+    EndGDT:
 
 GDTDescriptor:
-    dw GDTEnd - GDTTable - 1
-    dd GDTTable
+    dw EndGDT - LoadGDT - 1
+    dd LoadGDT
 
 
 

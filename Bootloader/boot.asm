@@ -1,38 +1,39 @@
-[BITS 16]   ; Telling It 16 Bits
+[BITS 16]   ; Telling its 16 Bits
 
-org 0x7C00  ; Telling The Bootloader That It Starts at 0x7C00
+org 0x7C00  ; Telling the Bootloader that it starts at 0x7C00
 
 ; Data Segment
 bootDrive db 0
 
-; Code Segment(For More Convienece)
+; Code Segment(for more convienece)
 jmp Start
 
 Start:
-    cli             ; Remove Any External Hardware Interrupts
-    xor ax, ax      ; Setting All The Segments To 0x0000
+    cli             ; Remove any external hardware interrupts
+    
+    xor ax, ax      ; Setting all the segments to 0x0000
     mov ds, ax
     mov es, ax
     mov ss, ax
-    mov sp, 0xFFFF  ; Init The Stack Pointer to the top
+    mov sp, 0xFFFF  ; Init the stack pointer to the top
 
-    sti             ; Enable Back Interrupts    
+    sti             ; Enable back interrupts    
     
-    jmp LoadGDTTable; Jump To Loading The GDT Table
-    
+    jmp LoadGDTl    ; Load GDT
 
-LoadGDTTable:
-    cli
-    lgdt[GDTTable]
-    mov eax, cr0
-    or al, 0x01
-    mov cr0, eax
-    jmp 0x0008:ProtectedMode ; Far Jump To Protected Mode
+LoadGDTl:
+    cli             ; Remove any external hardware interrupts
 
+    lgdt[LoadGDT]   ; Load GDT
 
+    mov eax, cr0    ; Load cr0 curr config (cr0 is register who controls basic CPU operation)
+    or al, 0x01     ; Turn Protected Mode on
+    mov cr0, eax    ; Update cr0 for the CPU to run in Protected Mode
+
+    jmp 0x0008:ProtectedMode ; Far jump to protected mode
 
 %include "Bootloader/GDT.asm"
 %include "Bootloader/protectedMode.asm"
 
-times 510 - ($ - $$) db 0   ; Getting The Rest Of The 512 Bytes(Padding)
+times 510 - ($ - $$) db 0   ; Fill the rest of the 512 Bytes(padding)
 dw 0xAA55           ; Signature
