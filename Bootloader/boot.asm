@@ -8,7 +8,6 @@ bootDrive db 0
 ; Code Segment(For More Convienece)
 jmp Start
 
-
 Start:
     cli             ; Remove Any External Hardware Interrupts
     xor ax, ax      ; Setting All The Segments To 0x0000
@@ -20,8 +19,7 @@ Start:
     sti             ; Enable Back Interrupts    
     
     jmp LoadGDTTable; Jump To Loading The GDT Table
-
-
+    
 
 LoadGDTTable:
     cli
