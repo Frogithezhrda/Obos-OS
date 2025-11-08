@@ -6,7 +6,8 @@ LoadGDT:
     NullGDT:
         db 0x0000
         db 0x0000
-
+        
+    ; Flat
     CodeGDT:
         dw 0xFFFF   ; Limit
         dw 0x0000   ; Base
