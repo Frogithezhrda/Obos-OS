@@ -1,41 +1,22 @@
 [BITS 32]
-
-; Data Segment
-DATA_OFFSET equ 0x0010
-
-; Code Segment
-ProtectedMode:
-    mov ax, DATA_OFFSET ; Data Offset 0x0011|FFFF
+ProtectedModeEntry:
+    mov ax, DATA_OFFSET
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov ss, ax          
     mov gs, ax
-
-    mov ebp, 0x9C00     ; Starting The Stack At 9C00
-    mov esp, ebp        ; Stack Pointer To That Address
+    mov ebp, 0x9C00
+    mov esp, ebp
     
-    ; Enable The A20 If Activated It Doesn't Matter
-	mov ax, 2401h               
-	int 15h
+    ; Enable A20
+    in al, 0x92
+    or al, 2
+    out 0x92, al
 
-LoadKernel:
-    ; Printing “Booting…” to the screen
-    mov ah, 0x0E     ; Function: teletype output
-    mov al, 0x42     ; 'B'
-    int 0x10
-    mov al, 0x6F     ; 'o'
-    int 0x10
-    int 0x10
-    mov al, 0x74     ; 't'
-    int 0x10
-    mov al, 0x69     ; 'i'
-    int 0x10
-    mov al, 0x6E     ; 'n'
-    int 0x10
-    mov al, 0x67     ; 'g'
-    int 0x10
-    mov al, 0x2E     ; '.'
-    int 0x10
-    int 0x10
-    int 0x10
+    mov byte [0xB8000], 'X'      ; Character
+    mov byte [0xB8001], 0x0F     ; Attribute (white on black)
+    ; IT WILL SHOW THE X IN THE TOP LEFT OF THE SCREEN BECAUSE WE ARE IN VGA
+Halt:
+    hlt
+    jmp Halt

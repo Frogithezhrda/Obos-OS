@@ -1,6 +1,8 @@
 DISK_IMAGE_FILE_PATH = Disk/obos.img
 BOOT_BIN = Bootloader/boot.bin
 BOOT_SRC = Bootloader/boot.asm
+PROT_BIN = Bootloader/protected.bin
+PROT_SRC = Bootloader/protectedMode.asm
 
 all: $(DISK_IMAGE_FILE_PATH)
 
@@ -14,7 +16,7 @@ $(DISK_IMAGE_FILE_PATH): $(BOOT_BIN)
 		qemu-img create -f raw "$(DISK_IMAGE_FILE_PATH)" 1G; \
 	fi
 
-	@dd if=$(BOOT_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=1 conv=notrunc
+	@dd if=$(BOOT_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=0 conv=notrunc
 
 $(BOOT_BIN): $(BOOT_SRC)
 	@echo "------ Assembling bootloader ------"
