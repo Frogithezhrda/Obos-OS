@@ -1,6 +1,0 @@
-# CI disabled for this project
-# This file intentionally prevents all pipelines from running.
-
-default:
-  rules:
-    - when: never
