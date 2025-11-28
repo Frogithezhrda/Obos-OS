@@ -18,7 +18,7 @@ ProtectedModeEntry:
     mov byte [0xB8001], 0x0F     ; Attribute (white on black)
     ; IT WILL SHOW THE X IN THE TOP LEFT OF THE SCREEN BECAUSE WE ARE IN VGA
 
-    jmp 0x10000
+    jmp CODE_OFFSET::0x100000
 
 Halt:
     hlt
