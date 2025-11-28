@@ -19,7 +19,7 @@ $(DISK_IMAGE_FILE_PATH): $(BOOT_BIN) $(KERNEL_BIN)
 	fi
 
 	@dd if=$(BOOT_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=0 conv=notrunc
-	@dd if=$(KERNEL_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=1024 seek=1 conv=notrunc
+	@dd if=$(KERNEL_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=1 conv=notrunc
 
 $(BOOT_BIN): $(BOOT_SRC)
 	@echo "------ Assembling bootloader ------"

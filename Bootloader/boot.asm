@@ -2,16 +2,16 @@
 org 0x7C00
 
 bootDrive db 0
-
 CODE_OFFSET equ 0x08
 DATA_OFFSET equ 0x10
 
-KERNEL_LOAD_SEG equ 0x1000
-KERNEL_START_ADDR equ 0x100000
-
-DAP_ADDRESS equ 0x0600
-
+KERNEL_TEMP_ADDR equ 0x7E00 ; temporary address for the kernel
+KERNEL_START_ADDR equ 0x00100000
+DAP_ADDRESS        equ 0x0600
+KERNEL_SECTORS     equ 1 ; change according to the current Kernel size(sectors)
+SEGMENT_SIZE equ 512
 jmp Start
+
 
 Start:
     cli
@@ -25,26 +25,25 @@ Start:
     
 
 CreateDAP:
-    mov byte [DAP_ADDRESS], 16       ;DAP sizeA
-    mov byte [DAP_ADDRESS + 1], 0    ;Reserved
-
-    mov word [DAP_ADDRESS + 2], 1    ;Number od secttors to read
-
-    mov word [DAP_ADDRESS + 4], 0        ;Dest offset
-    mov word [DAP_ADDRESS + 6], 0x1000   ;Dest segment
-
-    mov dword [DAP_ADDRESS + 8], 1    ;LBA low
-    mov dword [DAP_ADDRESS + 12], 0   ;LBA high
-    
+    mov byte [DAP_ADDRESS + 0], 16
+    mov byte [DAP_ADDRESS + 1], 0
+    mov word [DAP_ADDRESS + 2], KERNEL_SECTORS
+    mov word [DAP_ADDRESS + 4], KERNEL_TEMP_ADDR  ; temporary address
+    mov word [DAP_ADDRESS + 6], 0x0000             ; segment
+    mov dword [DAP_ADDRESS + 8], 1
+    mov dword [DAP_ADDRESS + 12], 0
+    ; Enable A20
+EnableA20:
+    in al, 0x92
+    or al, 2
+    out 0x92, al
 
 LoadKernelWithINT13:
-    mov ah, 0x42 ;Extended Read
-
-    mov dl, 0x80 ;HardDisk0
-    mov si, DAP_ADDRESS
     mov ax, 0x0000
     mov es, ax
-
+    mov si, DAP_ADDRESS
+    mov ah, 0x42 ;Extended Read
+    mov dl, 0x80 ;HardDisk0
     int 0x13
 
 LoadGDTl:
@@ -59,7 +58,6 @@ SwitchToProtectedMode:
 
 %include "Bootloader/GDT.asm"
 %include "Bootloader/protectedMode.asm"
-
 
 times 510 - ($ - $$) db 0
 dw 0xAA55
