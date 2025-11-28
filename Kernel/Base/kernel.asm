@@ -1,5 +1,15 @@
 [BITS 32]
-org 0x00100000
-mov word [0xB8000], 0x0F4C  ; 'K'
-hlt
-jmp $
+
+EXTERN obos_main
+
+section .text
+
+global _start
+
+
+_start:
+    call obos_main
+
+    Halt:
+        hlt
+        jmp Halt
