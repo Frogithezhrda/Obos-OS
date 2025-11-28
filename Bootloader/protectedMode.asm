@@ -9,14 +9,14 @@ ProtectedModeEntry:
     mov ebp, 0x9C00
     mov esp, ebp
     
-    ; Enable A20
-    in al, 0x92
-    or al, 2
-    out 0x92, al
 
-    mov byte [0xB8000], 'X'      ; Character
-    mov byte [0xB8001], 0x0F     ; Attribute (white on black)
-    ; IT WILL SHOW THE X IN THE TOP LEFT OF THE SCREEN BECAUSE WE ARE IN VGA
+
+    mov esi, 0x7E00              ; source (temp location)
+    mov edi, KERNEL_START_ADDR   ; destination (1MB)
+    mov ecx, SEGMENT_SIZE         ; size in bytes (1 sector)
+    rep movsb
+    jmp KERNEL_START_ADDR
+
 Halt:
     hlt
     jmp Halt
