@@ -1,6 +1,6 @@
 #ifdef KERNEL_H
 #define KERNEL_H
 
-void kernel_main();
+void obos_main();
 
 #endif
