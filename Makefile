@@ -8,13 +8,13 @@ BOOT_BIN = $(COMPONENTS_DIR)/boot.bin
 KERNEL_BIN = $(COMPONENTS_DIR)/kernel.bin
 KERNEL_ASM_OBJ = $(COMPONENTS_DIR)/kernel_asm.o
 KERNEL_C_OBJ = $(COMPONENTS_DIR)/kernel_c.o
-
+CONSOLE_DRIVER_OBJ = $(COMPONENTS_DIR)/consoleDriver.o
 # source files
 BOOT_SRC = Bootloader/boot.asm
 KERNEL_ASM = Kernel/Base/kernel.asm
 KERNEL_C = Kernel/Base/kernel.c
 LINKER_SCRIPT = obosLinker.ld
-
+CONSOLE_DRIVER_C = Kernel/Drivers/consoleDriver.c
 # compiler flags
 CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector -nostdlib -nodefaultlibs -Wall -Wextra
 
@@ -44,10 +44,17 @@ $(KERNEL_C_OBJ): $(KERNEL_C)
 	@mkdir -p $(COMPONENTS_DIR)
 	@gcc $(CFLAGS) -c $(KERNEL_C) -o $(KERNEL_C_OBJ)
 
-$(KERNEL_BIN): $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJ) $(LINKER_SCRIPT)
+$(CONSOLE_DRIVER_OBJ): $(CONSOLE_DRIVER_C)
+	@echo "------ Compiling console driver ------"
+	@mkdir -p $(COMPONENTS_DIR)
+	@gcc $(CFLAGS) -c $(CONSOLE_DRIVER_C) -o $(CONSOLE_DRIVER_OBJ)
+
+$(KERNEL_BIN): $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJ) $(CONSOLE_DRIVER_OBJ) $(LINKER_SCRIPT)
 	@echo "------ Linking kernel ------"
 	@mkdir -p $(COMPONENTS_DIR)
-	@ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJ)
+	@ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJ) $(CONSOLE_DRIVER_OBJ)
+
+
 
 clean:
 	@echo "------ Cleaning up ------"

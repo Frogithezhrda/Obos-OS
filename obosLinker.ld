@@ -4,7 +4,7 @@ ENTRY(_start)
 
 SECTIONS
 {
-    . = 0x10000;
+    . = 0x100000;
     
     .text : ALIGN(512)
     {
@@ -14,6 +14,7 @@ SECTIONS
     .rodata : ALIGN(512)
     {
         *(.rodata)
+        *(.rodata.*)
     }
     
     .data : ALIGN(512)

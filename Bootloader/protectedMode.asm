@@ -11,9 +11,12 @@ ProtectedModeEntry:
     
 
 
-    mov esi, 0x7E00              ; source (temp location)
+    mov esi, KERNEL_TEMP_ADDR              ; source (temp location)
     mov edi, KERNEL_START_ADDR   ; destination (1MB)
-    mov ecx, SEGMENT_SIZE         ; size in bytes (1 sector)
+    mov eax, KERNEL_SECTORS
+    mov ebx, SEGMENT_SIZE
+    mul ebx
+    mov ecx, eax         ; size in bytes (1 sector)
     rep movsb
     jmp KERNEL_START_ADDR
 
