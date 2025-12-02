@@ -1,17 +1,15 @@
 [BITS 16]
 org 0x7C00
 
-bootDrive db 0
 CODE_OFFSET equ 0x08
 DATA_OFFSET equ 0x10
 
-KERNEL_TEMP_ADDR equ 0x7E00 ; temporary address for the kernel
+KERNEL_TEMP_ADDR equ 0x1000 ; temporary address for the kernel
 KERNEL_START_ADDR equ 0x00100000
 DAP_ADDRESS        equ 0x0600
-KERNEL_SECTORS     equ 1 ; change according to the current Kernel size(sectors)
+KERNEL_SECTORS     equ 3 ; change according to the current Kernel size(sectors)
 SEGMENT_SIZE equ 512
 jmp Start
-
 
 Start:
     cli
@@ -23,13 +21,12 @@ Start:
     sti
     cld
     
-
 CreateDAP:
     mov byte [DAP_ADDRESS + 0], 16
     mov byte [DAP_ADDRESS + 1], 0
     mov word [DAP_ADDRESS + 2], KERNEL_SECTORS
     mov word [DAP_ADDRESS + 4], KERNEL_TEMP_ADDR  ; temporary address
-    mov word [DAP_ADDRESS + 6], 0x0000             ; segment
+    mov word [DAP_ADDRESS + 6], 0x0000            ; segment
     mov dword [DAP_ADDRESS + 8], 1
     mov dword [DAP_ADDRESS + 12], 0
     ; Enable A20
