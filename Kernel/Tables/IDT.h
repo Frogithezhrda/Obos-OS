@@ -1,6 +1,8 @@
 #ifndef IDT_H
 #define IDT_H
 
+#include "../SystemLib/obosMemory.h"
+
 #define IDT_SIZE 256
 
 enum {

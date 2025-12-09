@@ -8,13 +8,18 @@ BOOT_BIN = $(COMPONENTS_DIR)/boot.bin
 KERNEL_BIN = $(COMPONENTS_DIR)/kernel.bin
 KERNEL_ASM_OBJ = $(COMPONENTS_DIR)/kernel_asm.o
 KERNEL_C_OBJ = $(COMPONENTS_DIR)/kernel_c.o
+IDT_OBJECT = $(COMPONENTS_DIR)/IDT.o
 CONSOLE_DRIVER_OBJ = $(COMPONENTS_DIR)/consoleDriver.o
+OBOS_MEMORY_OBJ = $(COMPONENTS_DIR)/obosMemory.o
+
 # source files
 BOOT_SRC = Bootloader/boot.asm
 KERNEL_ASM = Kernel/Base/kernel.asm
 KERNEL_C = Kernel/Base/kernel.c
 LINKER_SCRIPT = obosLinker.ld
 CONSOLE_DRIVER_C = Kernel/Drivers/consoleDriver.c
+IDT_C = Kernel/Tables/IDT.c
+OBOS_MEMORY_C = Kernel/SystemLib/obosMemory.c
 # compiler flags
 CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector -nostdlib -nodefaultlibs -Wall -Wextra
 
@@ -49,10 +54,20 @@ $(CONSOLE_DRIVER_OBJ): $(CONSOLE_DRIVER_C)
 	@mkdir -p $(COMPONENTS_DIR)
 	@gcc $(CFLAGS) -c $(CONSOLE_DRIVER_C) -o $(CONSOLE_DRIVER_OBJ)
 
-$(KERNEL_BIN): $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJ) $(CONSOLE_DRIVER_OBJ) $(LINKER_SCRIPT)
+$(OBOS_MEMORY_OBJ): $(OBOS_MEMORY_C)
+	@echo "------ Compiling obos memory driver driver ------"
+	@mkdir -p $(COMPONENTS_DIR)
+	@gcc $(CFLAGS) -c $(OBOS_MEMORY_C) -o $(OBOS_MEMORY_OBJ)
+	
+$(IDT_OBJECT): $(IDT_C)
+	@echo "------ Compiling idt ------"
+	@mkdir -p $(COMPONENTS_DIR)
+	@gcc $(CFLAGS) -c $(IDT_C) -o $(IDT_OBJECT)
+
+$(KERNEL_BIN): $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJ) $(CONSOLE_DRIVER_OBJ) $(LINKER_SCRIPT) $(IDT_OBJECT) $(OBOS_MEMORY_OBJ)
 	@echo "------ Linking kernel ------"
 	@mkdir -p $(COMPONENTS_DIR)
-	@ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJ) $(CONSOLE_DRIVER_OBJ)
+	@ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJ) $(CONSOLE_DRIVER_OBJ) $(IDT_OBJECT) $(OBOS_MEMORY_OBJ)
 
 
 
