@@ -7,21 +7,21 @@ DISK_IMAGE_FILE_PATH = $(DISK_DIR)/obos.img
 BOOT_BIN = $(COMPONENTS_DIR)/boot.bin
 KERNEL_BIN = $(COMPONENTS_DIR)/kernel.bin
 KERNEL_ASM_OBJ = $(COMPONENTS_DIR)/kernel_asm.o
-KERNEL_C_OBJ = $(COMPONENTS_DIR)/kernel_c.o
-IDT_OBJECT = $(COMPONENTS_DIR)/IDT.o
-CONSOLE_DRIVER_OBJ = $(COMPONENTS_DIR)/consoleDriver.o
-OBOS_MEMORY_OBJ = $(COMPONENTS_DIR)/obosMemory.o
 
 # source files
 BOOT_SRC = Bootloader/boot.asm
 KERNEL_ASM = Kernel/Base/kernel.asm
-KERNEL_C = Kernel/Base/kernel.c
 LINKER_SCRIPT = obosLinker.ld
-CONSOLE_DRIVER_C = Kernel/Drivers/consoleDriver.c
-IDT_C = Kernel/Tables/IDT.c
-OBOS_MEMORY_C = Kernel/SystemLib/obosMemory.c
+
+# automatically find all C files in Kernel directory
+KERNEL_C_SOURCES = $(shell find Kernel -name '*.c')
+KERNEL_C_OBJECTS = $(patsubst %.c,$(COMPONENTS_DIR)/%.o,$(notdir $(KERNEL_C_SOURCES)))
+
 # compiler flags
 CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector -nostdlib -nodefaultlibs -Wall -Wextra
+
+# search paths for source files
+vpath %.c Kernel/Base Kernel/Drivers Kernel/Tables Kernel/SystemLib
 
 all: $(DISK_IMAGE_FILE_PATH)
 
@@ -44,33 +44,19 @@ $(KERNEL_ASM_OBJ): $(KERNEL_ASM)
 	@mkdir -p $(COMPONENTS_DIR)
 	@nasm -f elf32 $(KERNEL_ASM) -o $(KERNEL_ASM_OBJ)
 
-$(KERNEL_C_OBJ): $(KERNEL_C)
-	@echo "------ Compiling C kernel ------"
+# generic rule for compiling any C file
+$(COMPONENTS_DIR)/%.o: %.c
+	@echo "------ Compiling $< ------"
 	@mkdir -p $(COMPONENTS_DIR)
-	@gcc $(CFLAGS) -c $(KERNEL_C) -o $(KERNEL_C_OBJ)
+	@gcc $(CFLAGS) -c $< -o $@
 
-$(CONSOLE_DRIVER_OBJ): $(CONSOLE_DRIVER_C)
-	@echo "------ Compiling console driver ------"
-	@mkdir -p $(COMPONENTS_DIR)
-	@gcc $(CFLAGS) -c $(CONSOLE_DRIVER_C) -o $(CONSOLE_DRIVER_OBJ)
-
-$(OBOS_MEMORY_OBJ): $(OBOS_MEMORY_C)
-	@echo "------ Compiling obos memory driver driver ------"
-	@mkdir -p $(COMPONENTS_DIR)
-	@gcc $(CFLAGS) -c $(OBOS_MEMORY_C) -o $(OBOS_MEMORY_OBJ)
-	
-$(IDT_OBJECT): $(IDT_C)
-	@echo "------ Compiling idt ------"
-	@mkdir -p $(COMPONENTS_DIR)
-	@gcc $(CFLAGS) -c $(IDT_C) -o $(IDT_OBJECT)
-
-$(KERNEL_BIN): $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJ) $(CONSOLE_DRIVER_OBJ) $(LINKER_SCRIPT) $(IDT_OBJECT) $(OBOS_MEMORY_OBJ)
+$(KERNEL_BIN): $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJECTS) $(LINKER_SCRIPT)
 	@echo "------ Linking kernel ------"
 	@mkdir -p $(COMPONENTS_DIR)
-	@ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJ) $(CONSOLE_DRIVER_OBJ) $(IDT_OBJECT) $(OBOS_MEMORY_OBJ)
-
-
+	@ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJECTS)
 
 clean:
 	@echo "------ Cleaning up ------"
 	@rm -rf $(COMPONENTS_DIR)
+
+.PHONY: all clean
