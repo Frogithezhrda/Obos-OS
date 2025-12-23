@@ -26,5 +26,8 @@ typedef struct IDTPointer {
 void setupIDT(void);
 void loadIDT(void);
 void createIDTGate(const char index, const int address, const short select, const char attr);
+void registerInterruptHandler(const char interruptNumber, void (*handler)(), const short selector, const char typeAttr);
+void disableInterrupts();
+void enableInterrupts();
 
 #endif
