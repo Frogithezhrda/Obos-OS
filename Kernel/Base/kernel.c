@@ -2,8 +2,13 @@
 
 void obos_main()
 {
+        disableInterrupts();
         setupIDT();
+        initalizeException();
+        loadIDT();
+        //enableInterrupts();
         clearScreen();
-        print("Ron is the king                                                        adadadsad\n");
+        print("OBOS");
+
         while(1);
 }

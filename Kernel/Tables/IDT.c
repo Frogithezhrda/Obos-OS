@@ -8,7 +8,6 @@ void setupIDT(void)
     idtPointer.limit = sizeof(IDTEntry) * IDT_SIZE - 1;
     memset(idt, 0, sizeof(IDTEntry) * IDT_SIZE);
     idtPointer.offset = (unsigned int)&idt;
-    loadIDT();
 }
 
 void loadIDT(void)

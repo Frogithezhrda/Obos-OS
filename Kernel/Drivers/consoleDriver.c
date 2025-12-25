@@ -1,5 +1,6 @@
 #include "consoleDriver.h"
 
+
 void clearScreen()
 {
     char* video = (char*)VIDEO_LOCATION;
