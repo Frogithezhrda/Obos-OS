@@ -37,7 +37,10 @@ $(DISK_IMAGE_FILE_PATH): $(BOOT_BIN) $(KERNEL_BIN)
 $(BOOT_BIN): $(BOOT_SRC)
 	@echo "------ Assembling bootloader ------"
 	@mkdir -p $(COMPONENTS_DIR)
-	@nasm -f bin $(BOOT_SRC) -o $(BOOT_BIN)
+	@KERNEL_SIZE=$$($(STAT_CMD) $(KERNEL_BIN)); \
+	KERNEL_SECTORS=$$(( ($$KERNEL_SIZE + 511) / 512 )); \
+	nasm -f bin $(BOOT_SRC) -o $(BOOT_BIN)
+
 
 $(KERNEL_ASM_OBJ): $(KERNEL_ASM)
 	@echo "------ Assembling kernel entry ------"

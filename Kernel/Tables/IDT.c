@@ -17,7 +17,7 @@ void loadIDT(void)
 }
 
 void disableInterrupts()
-{
+{   
     asm volatile ("cli");
 }
 
@@ -36,11 +36,10 @@ void registerInterruptHandler(const char interruptNumber, void (*handler)(), con
     idt[interruptNumber].offsetHigh = (short)((address >> 16) & 0xFFFF);
 }
 
-void createIDTGate(const char index, const int address, const short select, const char attr)
+void initalizeException()
 {
-  idt[index].typeAttr = attr;
-  idt[index].offsetLow = (short)(address & 0xFFFF); 
-  idt[index].offsetHigh = (short)(address >> 16);
-  idt[index].selector = select;
-  idt[index].zero = 0;
-} 
+    for(char interruptNumber = 0; interruptNumber < 32; interruptNumber++)
+    {
+        registerInterruptHandler(interruptNumber, exceptionHandler, CODE_SEGMENT, GATE);
+    }
+}
