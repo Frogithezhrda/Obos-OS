@@ -1,5 +1,7 @@
 #include "IDT.h"
 
+extern void* ExceptionHandlers[32];
+
 static IDTEntry idt[IDT_SIZE];
 static IDTPointer idtPointer;
 
@@ -34,11 +36,20 @@ void registerInterruptHandler(const char interruptNumber, void (*handler)(), con
     idt[interruptNumber].typeAttr  = typeAttr;
     idt[interruptNumber].offsetHigh = (short)((address >> 16) & 0xFFFF);
 }
-
+void maskAllInterrupts(void)
+{
+    asm volatile ("movb $0xFF, %%al; outb %%al, $0x21" ::: "al");  // Master PIC
+    asm volatile ("movb $0xFF, %%al; outb %%al, $0xA1" ::: "al");  // Slave PIC
+}
 void initalizeException()
 {
     for(char interruptNumber = 0; interruptNumber < 32; interruptNumber++)
     {
-        registerInterruptHandler(interruptNumber, exceptionHandler, CODE_SEGMENT, GATE);
+        registerInterruptHandler(interruptNumber, ExceptionHandlers[interruptNumber], CODE_SEGMENT, GATE);
+    }
+    if (idt[0].offsetLow == 0 && idt[0].offsetHigh == 0) 
+    {
+        print("ERROR: IDT entry 0 is empty!");
+        while(1);
     }
 }

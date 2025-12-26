@@ -10,7 +10,7 @@ enum {
     GATE = 0x8E,
     CODE_SEGMENT = 0x08
 };
-typedef struct IDTEntry 
+typedef struct __attribute__((packed))
 {
     short offsetLow;    // first 16 bit offset
     short selector;     // code segment in GDT
@@ -19,8 +19,7 @@ typedef struct IDTEntry
     short offsetHigh;   // last 16 bits
 } IDTEntry;
 
-typedef struct IDTPointer {
-
+typedef struct __attribute__((packed)) {
     short limit;
     int offset;
 } IDTPointer;
@@ -31,5 +30,6 @@ void registerInterruptHandler(const char interruptNumber, void (*handler)(), con
 void disableInterrupts();
 void enableInterrupts();
 void initalizeException();
+void maskAllInterrupts(void);
 
 #endif

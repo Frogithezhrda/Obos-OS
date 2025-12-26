@@ -7,10 +7,11 @@ DISK_IMAGE_FILE_PATH = $(DISK_DIR)/obos.img
 BOOT_BIN = $(COMPONENTS_DIR)/boot.bin
 KERNEL_BIN = $(COMPONENTS_DIR)/kernel.bin
 KERNEL_ASM_OBJ = $(COMPONENTS_DIR)/kernel_asm.o
-
+ISR_ASM_OBJ = $(COMPONENTS_DIR)/isr.o 
 # source files
 BOOT_SRC = Bootloader/boot.asm
 KERNEL_ASM = Kernel/Base/kernel.asm
+ISR_ASM = Kernel/Tables/isr.asm
 LINKER_SCRIPT = obosLinker.ld
 
 # automatically find all C files in Kernel directory
@@ -25,7 +26,7 @@ vpath %.c Kernel/Base Kernel/Drivers Kernel/Tables Kernel/SystemLib
 
 all: $(DISK_IMAGE_FILE_PATH)
 
-$(DISK_IMAGE_FILE_PATH): $(BOOT_BIN) $(KERNEL_BIN)
+$(DISK_IMAGE_FILE_PATH): $(BOOT_BIN) $(KERNEL_BIN) $(ISR_ASM_OBJ)
 	@echo "------ Creating/Updating image ------"
 	@mkdir -p $(DISK_DIR)
 	@if [ ! -f "$(DISK_IMAGE_FILE_PATH)" ]; then \
@@ -37,10 +38,12 @@ $(DISK_IMAGE_FILE_PATH): $(BOOT_BIN) $(KERNEL_BIN)
 $(BOOT_BIN): $(BOOT_SRC)
 	@echo "------ Assembling bootloader ------"
 	@mkdir -p $(COMPONENTS_DIR)
-	@KERNEL_SIZE=$$($(STAT_CMD) $(KERNEL_BIN)); \
-	KERNEL_SECTORS=$$(( ($$KERNEL_SIZE + 511) / 512 )); \
 	nasm -f bin $(BOOT_SRC) -o $(BOOT_BIN)
 
+$(ISR_ASM_OBJ): $(ISR_ASM)
+	@echo "------ Assembling ISR handlers ------"
+	@mkdir -p $(COMPONENTS_DIR)
+	@nasm -f elf32 $(ISR_ASM) -o $(ISR_ASM_OBJ)
 
 $(KERNEL_ASM_OBJ): $(KERNEL_ASM)
 	@echo "------ Assembling kernel entry ------"
@@ -53,11 +56,10 @@ $(COMPONENTS_DIR)/%.o: %.c
 	@mkdir -p $(COMPONENTS_DIR)
 	@gcc $(CFLAGS) -c $< -o $@
 
-$(KERNEL_BIN): $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJECTS) $(LINKER_SCRIPT)
+$(KERNEL_BIN): $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJECTS) $(LINKER_SCRIPT) $(ISR_ASM_OBJ)
 	@echo "------ Linking kernel ------"
 	@mkdir -p $(COMPONENTS_DIR)
-	@ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJECTS)
-
+	@ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(ISR_ASM_OBJ) $(KERNEL_C_OBJECTS)
 clean:
 	@echo "------ Cleaning up ------"
 	@rm -rf $(COMPONENTS_DIR)
