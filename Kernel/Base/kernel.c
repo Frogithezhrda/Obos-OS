@@ -10,7 +10,7 @@ void obos_main()
         enableInterrupts();
         clearScreen();
         print("OBOS");
-        int i = 0;
+        int i = 2;
         float ravos = 1 / i;
         while(1);
 }

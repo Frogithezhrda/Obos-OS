@@ -36,11 +36,7 @@ void registerInterruptHandler(const char interruptNumber, void (*handler)(), con
     idt[interruptNumber].typeAttr  = typeAttr;
     idt[interruptNumber].offsetHigh = (short)((address >> 16) & 0xFFFF);
 }
-void maskAllInterrupts(void)
-{
-    asm volatile ("movb $0xFF, %%al; outb %%al, $0x21" ::: "al");  // Master PIC
-    asm volatile ("movb $0xFF, %%al; outb %%al, $0xA1" ::: "al");  // Slave PIC
-}
+
 void initalizeException()
 {
     for(char interruptNumber = 0; interruptNumber < 32; interruptNumber++)

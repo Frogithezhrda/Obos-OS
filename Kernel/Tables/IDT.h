@@ -30,6 +30,5 @@ void registerInterruptHandler(const char interruptNumber, void (*handler)(), con
 void disableInterrupts();
 void enableInterrupts();
 void initalizeException();
-void maskAllInterrupts(void);
 
 #endif
