@@ -15,19 +15,19 @@ unsigned char inb(const unsigned short port)
 void maskAllInterrupts(void)
 {
     //this just stops all the hardware! interrutpts
-    outb(0x21, 0xFF);  // Master PIC
-    outb(0xA1, 0xFF);  // Slave PIC
+    outb(MASTER, ALL_MASKED);  // Master PIC
+    outb(SLAVE, ALL_MASKED);  // Slave PIC
 }
 
 void initializePIC()
 {
     //only enabling keyboard and timer interrupts for now
-    outb(0x21, 0xFC);
-    outb(0xA1, 0xFF);
+    outb(MASTER, KEYBOARD_TIMER_MASK);
+    outb(SLAVE, ALL_MASKED);
 }
 
 void unmaskAllInterrupts()
 {
-    outb(0x21, 0x00);  // Master PIC
-    outb(0xA1, 0x00);  // Slave PIC
+    outb(MASTER, NONE_MASKED);  // Master PIC
+    outb(SLAVE, NONE_MASKED);  // Slave PIC
 }

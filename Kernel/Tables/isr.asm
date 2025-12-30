@@ -4,7 +4,7 @@ extern exceptionHandler
 section .text
 %macro ISR_NOERR 1
 isr%1:
-    push byte 0        
+    push byte 0  
     push byte %1       
     jmp IsrCommon
 %endmacro
