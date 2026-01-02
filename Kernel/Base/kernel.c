@@ -5,8 +5,11 @@ void obos_main()
         disableInterrupts();
         setupIDT();
         initalizeException();
-        maskAllInterrupts();
+        initializePIC();
         loadIDT();
+        initializeTimer();
+        initializeKeyboard(); 
+        // maskAllInterrupts();
         enableInterrupts();
         clearScreen();
         print("OBOS");

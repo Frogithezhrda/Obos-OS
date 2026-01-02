@@ -3,8 +3,15 @@
 
 #include "../SystemLib/obosMemory.h"
 #include "../SystemLib/errors.h"
+#include "../Drivers/keyboardDriver.h"
+#include "../Drivers/timerDriver.h"
 
 #define IDT_SIZE 256
+#define CPU_EXCEPTION_COUNT 32
+#define HARDWARE_INTERRUPT_COUNT 48
+
+#define TIMER_INTERRUPT_VECTOR 32
+#define KEYBOARD_INTERRUPT_VECTOR 33
 
 enum {
     GATE = 0x8E,

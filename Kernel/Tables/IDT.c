@@ -39,10 +39,16 @@ void registerInterruptHandler(const char interruptNumber, void (*handler)(), con
 
 void initalizeException()
 {
-    for(char interruptNumber = 0; interruptNumber < 32; interruptNumber++)
+    //registering first 32 exception handlers
+    for(char interruptNumber = 0; interruptNumber < CPU_EXCEPTION_COUNT; interruptNumber++)
     {
         registerInterruptHandler(interruptNumber, ExceptionHandlers[interruptNumber], CODE_SEGMENT, GATE);
     }
+    //registering hardware interrupts currently only timer and keyboard
+    registerInterruptHandler(TIMER_INTERRUPT_VECTOR, ExceptionHandlers[TIMER_INTERRUPT_VECTOR], CODE_SEGMENT, GATE);
+    registerInterruptHandler(KEYBOARD_INTERRUPT_VECTOR, ExceptionHandlers[KEYBOARD_INTERRUPT_VECTOR], CODE_SEGMENT, GATE);
+
+
     if (idt[0].offsetLow == 0 && idt[0].offsetHigh == 0) 
     {
         print("ERROR: IDT entry 0 is empty!");
