@@ -17,6 +17,7 @@ void obos_main()
         printChar('B', WHITE);
         printChar('C', WHITE);
         printNumber(1242, WHITE);
+        printCurrentTime();
         int i = 0;
         //float ravos = 1 / i;
         while(1); 

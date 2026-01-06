@@ -7,7 +7,7 @@ DATA_OFFSET equ 0x10
 KERNEL_TEMP_ADDR equ 0x1000 ; temporary address for the kernel
 KERNEL_START_ADDR equ 0x00100000
 DAP_ADDRESS        equ 0x0600
-KERNEL_SECTORS     equ 10 ; change according to the current Kernel size(sectors)
+KERNEL_SECTORS     equ 20 ; change according to the current Kernel size(sectors)
 SEGMENT_SIZE equ 512
 jmp Start
 
