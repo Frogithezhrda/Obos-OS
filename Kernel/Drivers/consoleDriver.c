@@ -17,7 +17,10 @@ void clearScreen()
 
 void printChar(const char character, const int color)
 {
-    print(&character, color); 
+    char buffer[2];
+    buffer[0] = character;
+    buffer[1] = '\0';
+    print(buffer, color);
 }
 
 void printLine(const char* string, const int color)
@@ -26,9 +29,27 @@ void printLine(const char* string, const int color)
     print("\n", color); 
 }
 
-void printNumber(const int number, const int color)
+void printNumber(int number, const int color)
 {
-
+    int isNegative = 0;
+    char buffer[12]; //enough for int
+    int i = 0;
+    while (number > 0)
+    {
+        buffer[i] = (number % 10) + '0';
+        i++;
+        number /= 10;
+    }
+    if (isNegative) 
+    {
+        buffer[i] = '-';
+        i++;
+    }
+    //printing in reverse for that
+    for (int j = i - 1; j >= 0; j--) 
+    {
+        printChar(buffer[j], color);
+    }
 }
 
 

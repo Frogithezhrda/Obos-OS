@@ -31,7 +31,7 @@ void clearScreen();
 void print(const char* string, const int color);
 void printChar(const char character, const int color);
 void printLine(const char* string, const int color);
-void printNumber(const int number, const int color);
+void printNumber(int number, const int color);
 void updateCursor(const int cursorPos);
 
 #endif

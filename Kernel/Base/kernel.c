@@ -13,6 +13,10 @@ void obos_main()
         clearScreen();
         printLine("OBOS", WHITE);
         printLine("OBOS Works with \\n", WHITE);
+        printChar('A', WHITE);
+        printChar('B', WHITE);
+        printChar('C', WHITE);
+        printNumber(1242, WHITE);
         int i = 0;
         //float ravos = 1 / i;
         while(1); 
