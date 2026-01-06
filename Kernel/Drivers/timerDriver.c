@@ -14,5 +14,9 @@ void timerISR(void)
 
 void initializeTimer(void)
 {
-    //**TODO**//
+    unsigned int frequency = 100;
+    unsigned int divisor = BASE_FREQUENCY / frequency;
+    outb(COMMAND_PORT, 0x36); 
+    outb(CHANNEL_0_PORT, (unsigned char)(divisor & 0xFF)); 
+    outb(CHANNEL_0_PORT, (unsigned char)((divisor >> 8) & 0xFF)); 
 }
