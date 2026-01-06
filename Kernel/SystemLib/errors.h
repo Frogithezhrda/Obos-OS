@@ -5,7 +5,7 @@
 
 #define EXCEPTION_COUNT 32
 
-void exceptionHandler(const char id);
+void exceptionHandler(const unsigned char id);
 
 void kernelPanic(const char* kernel);
 

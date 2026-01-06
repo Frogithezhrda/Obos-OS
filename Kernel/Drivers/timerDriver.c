@@ -7,7 +7,7 @@ void timerISR(void)
     tickCounter++;
     if (tickCounter % 100 == 0) 
     {
-        print(".");
+        print(".", WHITE);
     }
     endOfInterrupt(0); //IRQ0 is timer
 }

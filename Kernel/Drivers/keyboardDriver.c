@@ -1,7 +1,7 @@
 #include "keyboardDriver.h"
 
 //keys table
-static const char scancodeToASCII[84] = 
+static const char scancodeToASCII[LAST_SCAN_CODE] = 
 {
     0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
     '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
@@ -10,7 +10,7 @@ static const char scancodeToASCII[84] =
     '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'
 };
-static const char scancodeToASCIIShift[84] = 
+static const char scancodeToASCIIShift[LAST_SCAN_CODE] = 
 {
     0, 0, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b',
     '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '\n',
@@ -27,14 +27,14 @@ static unsigned char shiftPressed = 0; //flag for shift pressed
 void keyboardISR(void)
 {
     unsigned char asciiChar;
-    unsigned char scanCode = inb(0x60); // reading from keyboard data port
-    if (!(scanCode & 0b10000000)) //key press event
+    unsigned char scanCode = inb(KEYBOARD_SCAN_CODE_PORT); // reading from keyboard data port
+    if (!(scanCode & KEYPRESS_MASK)) //key press event
     {
-        if(scanCode == 42 || scanCode == 54) 
+        if(scanCode == SHIFT_LEFT_PRESS || scanCode == SHIFT_RIGHT_PRESS) 
         {
             shiftPressed = 1;
         }
-        else if (scanCode < 84) //valid scan code
+        else if (scanCode < LAST_SCAN_CODE) //valid scan code
         {
             if (shiftPressed)
             {
@@ -54,12 +54,13 @@ void keyboardISR(void)
                 keyboardBuffer[bufferIndex] = '\0'; //null-terminate the string
                 //printing the char
             }
-            print(keyboardBuffer);
+            clearScreen();
+            print(keyboardBuffer, WHITE);
         }
     }
     else 
     {
-        if (scanCode == 170 || scanCode == 182)
+        if (scanCode == SHIFT_LEFT_RELEASE || scanCode == SHIFT_RIGHT_RELEASE)
         {
             shiftPressed = 0;
         }
@@ -77,10 +78,7 @@ void deleteChar(void)
         keyboardBuffer[bufferIndex] = ' ';
         keyboardBuffer[bufferIndex + 1] = '\0';
         //printing the updated buffer
-        print(keyboardBuffer);
+        clearScreen();
+        print(keyboardBuffer, WHITE);
     }
-}
-void initializeKeyboard(void)
-{
-    //**TODO**//
 }

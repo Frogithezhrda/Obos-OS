@@ -51,7 +51,7 @@ void initalizeException()
 
     if (idt[0].offsetLow == 0 && idt[0].offsetHigh == 0) 
     {
-        print("ERROR: IDT entry 0 is empty!");
+        print("ERROR: IDT entry 0 is empty!", RED);
         while(1);
     }
 }
