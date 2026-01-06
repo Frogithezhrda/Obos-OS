@@ -34,8 +34,8 @@ void initializePIC()
     outb(MASTER_PIC_DATA_PORT, ICW4_8086);
     outb(SLAVE_PIC_DATA_PORT, ICW4_8086);
     //only enabling keyboard and timer interrupts for now
-    outb(MASTER_PIC_DATA_PORT, KEYBOARD_TIMER_MASK);
-    outb(SLAVE_PIC_DATA_PORT, ALL_MASKED);
+    outb(MASTER_PIC_DATA_PORT, KEYBOARD_TIMER_CASCADE_MASK);
+    outb(SLAVE_PIC_DATA_PORT, RTC_MASK);
 }
 
 void unmaskAllInterrupts()

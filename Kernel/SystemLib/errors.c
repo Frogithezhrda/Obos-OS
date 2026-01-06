@@ -13,7 +13,7 @@
         "Coprocessor Segment Overrun",
         "Unknown Exception",
         "Segment Not Avilable",
-        "Stack Fault",
+        "Stack Fault",  
         "General Protection Fault",
         "Page Fault",
         "Reserved",
@@ -35,7 +35,7 @@
         "Unknown Exception"
     };
 
-    void exceptionHandler(const char id)
+    void exceptionHandler(const unsigned char id)
     {
         kernelPanic(exceptionNames[id]);
     }
@@ -44,7 +44,7 @@
     void kernelPanic(const char* kernel)
     {
         clearScreen();
-        print("KERNEL PANIC! ! !: ");
-        print(kernel);
+        print("KERNEL PANIC! ! !: ", RED);
+        printLine(kernel, LIGHT_RED);
         while(1) asm volatile ("hlt");
     }

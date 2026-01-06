@@ -10,6 +10,8 @@
 #define NONE_MASKED 0x00
 #define ALL_MASKED 0xFF
 #define KEYBOARD_TIMER_MASK 0xFC
+#define KEYBOARD_TIMER_CASCADE_MASK 0xF8
+#define RTC_MASK 0xFE
 
 #define EOI 0x20 //EOI - end of interrupt
 #define ICW1 0x11

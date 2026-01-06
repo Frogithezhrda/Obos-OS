@@ -6,14 +6,19 @@ void obos_main()
         setupIDT();
         initalizeException();
         initializePIC();
-        loadIDT();
+        loadIDT();      
         initializeTimer();
-        initializeKeyboard(); 
-        // maskAllInterrupts();
+        // maskAllInterrupts(); //no need to maksk interrupts here
         enableInterrupts();
         clearScreen();
-        print("OBOS");
-        int i = 2;
-        float ravos = 1 / i;
-        while(1);
+        printLine("OBOS", WHITE);
+        printLine("OBOS Works with \\n", WHITE);
+        printChar('A', WHITE);
+        printChar('B', WHITE);
+        printChar('C', WHITE);
+        printNumber(1242, WHITE);
+        printCurrentTime();
+        int i = 0;
+        //float ravos = 1 / i;
+        while(1); 
 }
