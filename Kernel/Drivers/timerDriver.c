@@ -35,12 +35,12 @@ unsigned int getSeconds(void)
 void initializeRTC(void)
 {
     unsigned char prev = 0;
-    outb(0x70, 0x8B);
-    prev = inb(0x71);
-    outb(0x70, 0x8B);
-    outb(0x71, prev | 0x40);
-    outb(0x70, 0x0C);
-    inb(0x71);
+    outb(REAL_TIME_PORT, 0x8B);
+    prev = inb(REAL_TIME_DATA_PORT);
+    outb(REAL_TIME_PORT, 0x8B);
+    outb(REAL_TIME_DATA_PORT, prev | 0x40);
+    outb(REAL_TIME_PORT, 0x0C);
+    inb(REAL_TIME_DATA_PORT);
 }
 
 unsigned char readRTC(unsigned char realTimeReg)
