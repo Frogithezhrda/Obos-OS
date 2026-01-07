@@ -9,6 +9,7 @@ KERNEL_BIN = $(COMPONENTS_DIR)/kernel.bin
 KERNEL_ASM_OBJ = $(COMPONENTS_DIR)/kernel_asm.o
 ISR_ASM_OBJ = $(COMPONENTS_DIR)/isr.o 
 # source files
+ATA_SRC = Bootloader/ata.asm
 BOOT_SRC = Bootloader/boot.asm
 KERNEL_ASM = Kernel/Base/kernel.asm
 ISR_ASM = Kernel/Tables/isr.asm
@@ -35,7 +36,7 @@ $(DISK_IMAGE_FILE_PATH): $(BOOT_BIN) $(KERNEL_BIN) $(ISR_ASM_OBJ)
 	@dd if=$(BOOT_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=0 conv=notrunc
 	@dd if=$(KERNEL_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=1 conv=notrunc
 
-$(BOOT_BIN): $(BOOT_SRC)
+$(BOOT_BIN): $(BOOT_SRC) $(ATA_SRC) 
 	@echo "------ Assembling bootloader ------"
 	@mkdir -p $(COMPONENTS_DIR)
 	nasm -f bin $(BOOT_SRC) -o $(BOOT_BIN)

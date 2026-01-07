@@ -1,4 +1,5 @@
 [BITS 32]
+
 ProtectedModeEntry:
     mov ax, DATA_OFFSET
     mov ds, ax
@@ -9,17 +10,29 @@ ProtectedModeEntry:
     mov ebp, 0x9C00
     mov esp, ebp
     
+    mov bl, KERNEL_SECTORS
+    mov edi, KERNEL_START_ADDR
+    mov ecx, 1
+    call ataReadSectors
 
-
-    mov esi, KERNEL_TEMP_ADDR              ; source (temp location)
-    mov edi, KERNEL_START_ADDR   ; destination (1MB)
-    mov eax, KERNEL_SECTORS
-    mov ebx, SEGMENT_SIZE
-    mul ebx
-    mov ecx, eax         ; size in bytes (1 sector)
-    rep movsb
+    
+    ; mov esi, KERNEL_TEMP_ADDR
+    ; mov edi, KERNEL_START_ADDR
+    ; mov eax, KERNEL_SECTORS
+    ; mov ebx, SEGMENT_SIZE
+    ; mul ebx
+    ; mov ecx, eax
+    ; rep movsb
+    
     jmp KERNEL_START_ADDR
+
+LoadError:
+    cli
+    hlt
+    jmp LoadError
 
 Halt:
     hlt
     jmp Halt
+
+%include "Bootloader/ata.asm"

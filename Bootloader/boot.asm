@@ -21,27 +21,10 @@ Start:
     sti
     cld
     
-CreateDAP:
-    mov byte [DAP_ADDRESS + 0], 16
-    mov byte [DAP_ADDRESS + 1], 0
-    mov word [DAP_ADDRESS + 2], KERNEL_SECTORS
-    mov word [DAP_ADDRESS + 4], KERNEL_TEMP_ADDR  ; temporary address
-    mov word [DAP_ADDRESS + 6], 0x0000            ; segment
-    mov dword [DAP_ADDRESS + 8], 1
-    mov dword [DAP_ADDRESS + 12], 0
-    ; Enable A20
 EnableA20:
     in al, 0x92
     or al, 2
     out 0x92, al
-
-LoadKernelWithINT13:
-    mov ax, 0x0000
-    mov es, ax
-    mov si, DAP_ADDRESS
-    mov ah, 0x42 ;Extended Read
-    mov dl, 0x80 ;HardDisk0
-    int 0x13
 
 LoadGDTl:
     cli
