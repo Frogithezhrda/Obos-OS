@@ -11,6 +11,8 @@ void obos_main()
         // maskAllInterrupts(); //no need to maksk interrupts here
         enableInterrupts();
         clearScreen();
+        initializeMemoryManager();
+        printMemoryManagerInfo();
         printLine("OBOS", WHITE);
         printLine("OBOS Works with \\n", WHITE);
         printChar('A', WHITE);

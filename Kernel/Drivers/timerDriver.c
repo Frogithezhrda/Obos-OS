@@ -57,6 +57,7 @@ void rtcISR(void)
     inb(0x71);
     endOfInterrupt(8); // send EOI to PIC
 }
+
 Time getRTCTime(void)
 {
     Time t;

@@ -9,10 +9,8 @@ global _start
 
 _start:
 
-
     call obos_main
 
     Halt:
         hlt
         jmp Halt
-
