@@ -188,3 +188,15 @@ void settingReservedFrames()
         }
     }
 }
+
+void allocateFrame(unsigned long long address)
+{
+    unsigned long long frameIndex = address / FRAME_SIZE;
+    frames[frameIndex].isFree = FALSE;
+}
+
+void freeFrame(unsigned long long address)
+{
+    unsigned long long frameIndex = address / FRAME_SIZE;
+    frames[frameIndex].isFree = TRUE;
+}
