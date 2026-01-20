@@ -7,6 +7,12 @@
 #define MEMORY_MAP_ADDRESS 0x8004
 #define MEMORY_MAP_ENTTRY_COUNT_ADDRESS 0x8000
 #define MB 1024 * 1024
+#define FRAME_SIZE 4096 //4KB
+#define TOTAL_FRAMES 1048576 //4GB / 4KB
+
+#define TRUE 1
+#define FALSE 0
+
 enum RegionType 
 {
     MEMORY_TYPE_AVAILABLE = 1,
@@ -34,6 +40,15 @@ typedef struct MemoryRegion
 } MemoryRegion;
 
 
+
+//each frame is 4KB
+//so address is the starting address of the frame
+typedef struct Frame
+{
+    unsigned long long address;
+    unsigned int isFree;
+} Frame;
+
 typedef struct MemoryManager 
 {
     MemoryRegion regions[REGION_COUNT];
@@ -43,10 +58,15 @@ typedef struct MemoryManager
 } MemoryManager;
 
 
-void parseMemoryMap(const unsigned short entryCount, MemoryMapEntry* memoryMap);
 void initializeMemoryManager(void);
+
+
+void parseMemoryMap(const unsigned short entryCount, MemoryMapEntry* memoryMap);
 void printMemoryManagerInfo(void);
-void printEntries();
+void printEntries(void);
 void reserveKernelRegions(void);
+
+void initializeFrames(void);
+void settingReservedFrames(void);
 
 #endif
