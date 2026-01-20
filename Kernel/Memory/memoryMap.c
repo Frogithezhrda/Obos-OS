@@ -189,14 +189,24 @@ void settingReservedFrames()
     }
 }
 
-void allocateFrame(unsigned long long address)
+int allocateFrame(unsigned long long address)
 {
     unsigned long long frameIndex = address / FRAME_SIZE;
+    if (!frames[frameIndex].isFree) 
+    {
+        printLine("Error: Frame already allocated!", RED);
+        return ERROR;
+    }
     frames[frameIndex].isFree = FALSE;
 }
 
-void freeFrame(unsigned long long address)
+int freeFrame(unsigned long long address)
 {
     unsigned long long frameIndex = address / FRAME_SIZE;
+    if (frames[frameIndex].isFree) 
+    {
+        printLine("Error: Frame is not allocated!", RED);
+        return ERROR;
+    }
     frames[frameIndex].isFree = TRUE;
 }

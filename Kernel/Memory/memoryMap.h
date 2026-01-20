@@ -12,6 +12,7 @@
 
 #define TRUE 1
 #define FALSE 0
+#define ERROR -1
 
 enum RegionType 
 {
@@ -68,7 +69,7 @@ void reserveKernelRegions(void);
 
 void initializeFrames(void);
 void settingReservedFrames(void);
-void allocateFrame(unsigned long long address);
-void freeFrame(unsigned long long address);
+int allocateFrame(unsigned long long address);
+int freeFrame(unsigned long long address);
 
 #endif
