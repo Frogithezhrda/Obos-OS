@@ -6,7 +6,7 @@
 #define REGION_COUNT 128
 #define MEMORY_MAP_ADDRESS 0x8004
 #define MEMORY_MAP_ENTTRY_COUNT_ADDRESS 0x8000
-
+#define MB 1024 * 1024
 enum RegionType 
 {
     MEMORY_TYPE_AVAILABLE = 1,
@@ -46,6 +46,7 @@ typedef struct MemoryManager
 void parseMemoryMap(const unsigned short entryCount, MemoryMapEntry* memoryMap);
 void initializeMemoryManager(void);
 void printMemoryManagerInfo(void);
-void printEntries(unsigned short entryCount, MemoryMapEntry* memoryMap);
+void printEntries();
+void reserveKernelRegions(void);
 
 #endif

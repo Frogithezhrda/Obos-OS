@@ -10,36 +10,36 @@ void initializeMemoryManager()
     
     printNumber(entryCount, WHITE);
     if(!entryCount) printLine("no Memory map entries found..", WHITE);
-    printEntries(entryCount, memoryMap);
     parseMemoryMap(entryCount, memoryMap);
-    
+    reserveKernelRegions();
+    printEntries(entryCount, memoryMap);    
 }
 
-void printEntries(unsigned short entryCount, MemoryMapEntry* memoryMap)
+void printEntries()
 {
-    for (unsigned int i = 0; i < entryCount; i++) 
+    for (unsigned int i = 0; i < memoryManager.regionCount; i++) 
     {
         print("Memory Region: Base = ", WHITE);
-        printNumber((unsigned int)memoryMap[i].base, WHITE);
+        printNumber((unsigned int)memoryManager.regions[i].start, WHITE);
         print(", Length = ", WHITE);
-        printNumber((unsigned int)memoryMap[i].length, WHITE);
+        printNumber((unsigned int)(memoryManager.regions[i].end - memoryManager.regions[i].start), WHITE);
         print(", Type = ", WHITE);
-        printNumber(memoryMap[i].type, WHITE);
+        printNumber(memoryManager.regions[i].type, WHITE);
         print("\n", WHITE);
     }
 }
 
 void printMemoryManagerInfo()
 {
-    unsigned int usableMB = (unsigned int)(memoryManager.totalUsable / (1024 * 1024));
-    unsigned int reservedMB = (unsigned int)(memoryManager.totalReserved / (1024 * 1024));
-     print("Total Usable Memory: ", WHITE);
+    unsigned int usableMB = (unsigned int)(memoryManager.totalUsable / (MB));
+    unsigned int reservedMB = (unsigned int)(memoryManager.totalReserved / (MB));
+    print("Total Usable Memory: ", WHITE);
     printNumber(usableMB, WHITE);
-    print(" MB\n", WHITE);
+    printLine(" MB", WHITE);
     
     print("Total Reserved Memory: ", WHITE);
     printNumber(reservedMB, WHITE);
-    print(" MB\n", WHITE);
+    printLine(" MB", WHITE);
 }
 
 
@@ -69,7 +69,7 @@ void parseMemoryMap(const unsigned short entryCount, MemoryMapEntry* memoryMap)
         }
         else
         {
-            print("Warning: Memory region count exceeded!\n", RED);
+            printLine("Warning: Memory region count exceeded!", RED);
             continue;
         }
 
@@ -90,4 +90,44 @@ void parseMemoryMap(const unsigned short entryCount, MemoryMapEntry* memoryMap)
             region.isFree = 0;
         }
     }
+}
+
+/*
+0x100000 - 0x104000 (Kernel Size 16384 bytes)
+0x200000 - 0x1FFC00 (Stack Size 16KB)
+0x104000 - 0x204000 (Heap Size 1MB)
+0x100000
+Kernel ->
+
+0x104000
+Heap ->
+
+
+
+<- Stack
+0x200000
+*/
+void reserveKernelRegions(void)
+{
+    MemoryRegion region;
+
+    region.start = 0x100000; //1MB
+    region.end = 0x104000;   //1MB + Kernel Size (16384 bytes)
+    region.type = MEMORY_TYPE_RESERVED;
+    region.isFree = 0;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+    //IMPORTANT NOTE: Stack grows downwards
+    //so the stack region is from 0x1FFC00 to 0x200000 - but it starts at 0x200000 and grows downwards
+    region.start = 0x1FFC00; //2MB
+    region.end = 0x200000;   //2MB - Stack Size (16KB)
+    region.type = MEMORY_TYPE_RESERVED;
+    region.isFree = 0;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+    region.start = 0x104000; //1MB + Kernel Size
+    region.end = 0x200000;   //1MB + Kernel Size + Heap Size (1MB)
+    region.type = MEMORY_TYPE_RESERVED;
+    region.isFree = 0;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+    memoryManager.totalReserved += (0x200000 - 0x100000); //Kernel Size + Stack Size + Heap Size
+
 }

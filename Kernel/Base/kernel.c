@@ -1,5 +1,21 @@
 #include "kernel.h"
 
+
+
+/*
+Few Things to do that in general i didnt do yet that i want to do
+Mark Warnings with
+Warning: <message> - yellow color
+Error: <message> - red color
+Info: <message> - light blue color
+Those are for messages
+
+
+*/
+
+
+
+
 void obos_main()
 {
         //basic initalization

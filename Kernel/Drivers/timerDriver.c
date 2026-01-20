@@ -68,7 +68,7 @@ Time getRTCTime(void)
     t.ms = 0;
     return t;
 }
-
+//binary time to decimal in short
 unsigned char bcdToDec(unsigned char bcd)
 {
     unsigned char tens  = (bcd >> 4) & 0x0F; 
