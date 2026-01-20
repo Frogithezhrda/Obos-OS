@@ -2,6 +2,7 @@
 
 void obos_main()
 {
+        //basic initalization
         disableInterrupts();
         setupIDT();
         initalizeException();
@@ -11,8 +12,14 @@ void obos_main()
         // maskAllInterrupts(); //no need to maksk interrupts here
         enableInterrupts();
         clearScreen();
+
+        
         initializeMemoryManager();
         printMemoryManagerInfo();
+
+
+        printNumber(0, WHITE);
+        //tests
         printLine("OBOS", WHITE);
         printLine("OBOS Works with \\n", WHITE);
         printChar('A', WHITE);

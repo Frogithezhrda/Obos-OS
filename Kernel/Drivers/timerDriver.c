@@ -80,10 +80,23 @@ void printCurrentTime(void)
 {
     Time currentTime = getRTCTime();
     print("Current Time: ", WHITE);
+    //quick fix for the missing 0 bug
+    if(currentTime.hours < 10)
+    {
+        print("0", WHITE);
+    }
     printNumber(currentTime.hours, WHITE);
     print(":", WHITE);
+    if(currentTime.minutes < 10)
+    {
+        print("0", WHITE);
+    }
     printNumber(currentTime.minutes, WHITE);
     print(":", WHITE);
+    if(currentTime.seconds < 10)
+    {
+        print("0", WHITE);
+    }
     printNumber(currentTime.seconds, WHITE);
     printLine("", WHITE);
 }

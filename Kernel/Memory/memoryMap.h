@@ -6,6 +6,7 @@
 #define REGION_COUNT 128
 #define MEMORY_MAP_ADDRESS 0x8004
 #define MEMORY_MAP_ENTTRY_COUNT_ADDRESS 0x8000
+
 enum RegionType 
 {
     MEMORY_TYPE_AVAILABLE = 1,
@@ -17,17 +18,17 @@ enum RegionType
 
 typedef struct MemoryMapEntry
 {
-    unsigned long base;
-    unsigned long length;
+    unsigned long long base;
+    unsigned long long length;
     unsigned int type;
     unsigned int acpi;
-} MemoryMapEntry;
+} __attribute__((packed)) MemoryMapEntry;
 
 
 typedef struct MemoryRegion 
 {
-    unsigned long start;
-    unsigned long end;
+    unsigned long long start;
+    unsigned long long end;
     unsigned int type;
     unsigned int isFree;
 } MemoryRegion;
@@ -37,12 +38,12 @@ typedef struct MemoryManager
 {
     MemoryRegion regions[REGION_COUNT];
     unsigned int regionCount;
-    unsigned long totalUsable;
-    unsigned long totalReserved;
+    unsigned long long totalUsable;
+    unsigned long long totalReserved;
 } MemoryManager;
 
 
-void parseMemoryMap(void);
+void parseMemoryMap(const unsigned short entryCount, MemoryMapEntry* memoryMap);
 void initializeMemoryManager(void);
 void printMemoryManagerInfo(void);
 void printEntries(unsigned short entryCount, MemoryMapEntry* memoryMap);
