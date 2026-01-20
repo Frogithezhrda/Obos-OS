@@ -71,5 +71,5 @@ void initializeFrames(void);
 void settingReservedFrames(void);
 int allocateFrame(unsigned long long address);
 int freeFrame(unsigned long long address);
-
+int allocateFreeFrame(void);
 #endif

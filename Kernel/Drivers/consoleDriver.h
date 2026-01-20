@@ -5,7 +5,7 @@
 #define VGA_DATA_PORT 0x3D5
 #define VIDEO_LOCATION 0xB8000
 #define SCREEN_WIDTH 80
-#define SCREEN_HEIGHT 25
+#define SCREEN_HEIGHT 90
 
 enum VGAColor 
 {

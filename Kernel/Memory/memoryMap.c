@@ -183,6 +183,7 @@ void settingReservedFrames()
             unsigned long long endFrame = memoryManager.regions[i].end / FRAME_SIZE;
             for(unsigned long long j = startFrame; j < endFrame; j++)
             {
+
                 frames[j].isFree = FALSE;
             }
         }
@@ -198,6 +199,7 @@ int allocateFrame(unsigned long long address)
         return ERROR;
     }
     frames[frameIndex].isFree = FALSE;
+    return frames[frameIndex].address;
 }
 
 int freeFrame(unsigned long long address)
@@ -209,4 +211,18 @@ int freeFrame(unsigned long long address)
         return ERROR;
     }
     frames[frameIndex].isFree = TRUE;
+    return frames[frameIndex].address;
+}
+
+int allocateFreeFrame()
+{
+    for(unsigned int i = 0; i < TOTAL_FRAMES; i++)
+    {
+        if(frames[i].isFree)
+        {
+            frames[i].isFree = FALSE;
+            return frames[i].address;
+        }
+    }
+    return ERROR; //no free frames available
 }
