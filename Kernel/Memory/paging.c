@@ -2,6 +2,7 @@
 
 PageTable* kernelPageTable;
 
+PageDirectory* kernelPageDirectory;
 
 /*
 TODO Create a Page Directory For CR3 Register
@@ -12,6 +13,19 @@ verify that paging is working correctly
 */
 void initializePaging(void)
 {
+    unsigned long long pageDirectoryAddress = allocateFreeFrame();
+
+
+    if(pageDirectoryAddress == ERROR) 
+    {
+        //allocation failed
+        //TODO throw kernel panic exception
+        printLine("Error: Out of memory while initializing kernel page directory!", RED);
+        return;
+    }
+
+    kernelPageDirectory = (PageDirectory*)pageDirectoryAddress;
+    
     for(unsigned int i = 0; i < PAGE_TABLE_COUNT; i++)
     {
         kernelPageTable->entries[i].isPresent = 1;
@@ -22,7 +36,6 @@ void initializePaging(void)
         kernelPageTable->entries[i].executeBit = 0;
         kernelPageTable->entries[i].kernelBit = 0;
     }
-
 
     enablePaging();
 }
@@ -112,10 +125,10 @@ void mapMemoryRegion(PageTable* pageTable,
         unsigned int index = address / PAGE_SIZE;
         pageTable->entries[index].isPresent = 1;
         pageTable->entries[index].permissionBits = READ_WRITE;
-        pageTable->entries[index].frameAddress = physicalAddress / PAGE_SIZE; // Map to physical frame
+        pageTable->entries[index].frameAddress = physicalAddress / PAGE_SIZE;
         pageTable->entries[index].accessedBit = 0;
         pageTable->entries[index].dirtyBit = 0;
-        pageTable->entries[index].executeBit = isExecutable; // Set executable flag
-        pageTable->entries[index].kernelBit = isKernel;      // Set kernel/user flag
+        pageTable->entries[index].executeBit = isExecutable;
+        pageTable->entries[index].kernelBit = isKernel;
     }
 }
