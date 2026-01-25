@@ -13,37 +13,34 @@ Those are for messages
 
 */
 
-
-
+static int test_data_var = 42;
+static int test_bss_var;
 
 void obos_main()
 {
-        //basic initalization
-        disableInterrupts();
-        setupIDT();
-        initalizeException();
-        initializePIC();
-        loadIDT();      
-        initializeTimer();
-        // maskAllInterrupts(); //no need to maksk interrupts here
-        enableInterrupts();
-        clearScreen();
+    //basic initalization
+    disableInterrupts();
+    setupIDT();
+    initalizeException();
+    initializePIC();
+    loadIDT();      
+    initializeTimer();
+    // maskAllInterrupts(); //no need to maksk interrupts here
+    enableInterrupts();
+    clearScreen();
 
         
-        initializeMemoryManager();
-        printMemoryManagerInfo();
+    initializeMemoryManager();
+    // printMemoryManagerInfo();
+    initializePaging();
 
+    enablePagingNow();
 
-        printNumber(0, WHITE);
-        //tests
-        printLine("OBOS", WHITE);
-        printLine("OBOS Works with \\n", WHITE);
-        printChar('A', WHITE);
-        printChar('B', WHITE);
-        printChar('C', WHITE);
-        printNumber(1242, WHITE);
-        printCurrentTime();
-        int i = 0;
-        //float ravos = 1 / i;
-        while(1); 
+    printLine("Paging enabled successfully!", GREEN);
+    print("Address of .data variable: ", WHITE);
+    printNumber((unsigned int)&test_data_var, WHITE);
+    print("\nAddress of .bss variable: ", WHITE);
+    printNumber((unsigned int)&test_bss_var, WHITE);
+    print("\n", WHITE);
+    while (1);
 }

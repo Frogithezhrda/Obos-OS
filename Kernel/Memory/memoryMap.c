@@ -13,9 +13,9 @@ void initializeMemoryManager()
     unsigned short entryCount = *((unsigned short*)MEMORY_MAP_ENTTRY_COUNT_ADDRESS);
 
     //printing memory map entry count
-    print("Memory Map Entry Count: ", WHITE);
-    printNumber(entryCount, WHITE);
-    print("\n", WHITE); 
+    // print("Memory Map Entry Count: ", WHITE);
+    // printNumber(entryCount, WHITE);
+    // print("\n", WHITE); 
 
     //checking if memory entries exist
     if(!entryCount) printLine("Warning: No memory map entries found..", LIGHT_BROWN);
@@ -23,7 +23,7 @@ void initializeMemoryManager()
     //parsing memory map entries
     parseMemoryMap(entryCount, memoryMap);
     reserveKernelRegions();
-    printEntries();    
+    // printEntries();    
 
     //handling frames
     initializeFrames();
@@ -103,8 +103,8 @@ void parseMemoryMap(const unsigned short entryCount, MemoryMapEntry* memoryMap)
         } 
         else
         {
-            printLine("Reserved Memory Region Found", RED);
-            printNumber((unsigned int)memoryManager.totalReserved, WHITE);
+            // printLine("Reserved Memory Region Found", RED);
+            // printNumber((unsigned int)memoryManager.totalReserved, WHITE);
             memoryManager.totalReserved += memoryMap[i].length;
         }
         //marking not free memory
@@ -135,7 +135,7 @@ void reserveKernelRegions(void)
     MemoryRegion region;
 
     region.start = 0x100000; //1MB
-    region.end = 0x104000;   //1MB + Kernel Size (16384 bytes)
+    region.end = 0x108000;   //1MB + Kernel Size (16384 bytes)
     region.type = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
@@ -146,13 +146,19 @@ void reserveKernelRegions(void)
     region.type = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
-    region.start = 0x104000; //1MB + Kernel Size
+    region.start = 0x108000; //1MB + Kernel Size
     region.end = 0x200000;   //1MB + Kernel Size + Heap Size (1MB)
     region.type = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
-    memoryManager.regions[memoryManager.regionCount++] = region;
-    memoryManager.totalReserved += (0x200000 - 0x100000); //Kernel Size + Stack Size + Heap Size
 
+    //Reserving 0x000000 to 0x100000 (First 1MB) used for initalizing the system
+    region.start = 0x000000; //1MB
+    region.end = 0x100000;   //1MB size
+    region.type = MEMORY_TYPE_RESERVED;
+    region.isFree = FALSE;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+    memoryManager.totalReserved += (0x200000 - 0x000000); //Kernel Size + Stack Size + Heap Size
 }
 
 
@@ -218,6 +224,7 @@ int allocateFreeFrame()
 {
     for(unsigned int i = 0; i < TOTAL_FRAMES; i++)
     {
+        unsigned long long frameAddress = frames[i].address;
         if(frames[i].isFree)
         {
             frames[i].isFree = FALSE;

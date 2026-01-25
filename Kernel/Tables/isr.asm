@@ -3,6 +3,7 @@ extern exceptionHandler
 extern timerISR
 extern keyboardISR
 extern rtcISR
+extern pageFaultHandler
 
 section .text
 %macro ISR_NOERR 1
@@ -53,6 +54,7 @@ ISR_NOERR 31
 global isr32
 global isr33
 global isr40
+global pageFaultISR
 
 isr32:
     cli
@@ -90,6 +92,32 @@ IsrCommon:
     popa
     add esp, 8
     iret
+
+pageFaultISR:
+    cli
+    pusha
+    push ds
+    push es
+    push fs
+    push gs
+
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    push dword [esp + 36]
+    call pageFaultHandler
+
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    popa
+    add esp, 4
+    sti
+    iret      
 
 section .data
 ExceptionHandlers:

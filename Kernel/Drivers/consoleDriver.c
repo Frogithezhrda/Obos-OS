@@ -32,7 +32,7 @@ void printLine(const char* string, const int color)
 void printNumber(int number, const int color)
 {
     int isNegative = 0;
-    char buffer[12]; //enough for long long unsinged
+    char buffer[12]; //enough for int
     int i = 0;
 
     if (number == 0) 

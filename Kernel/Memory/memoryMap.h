@@ -8,7 +8,14 @@
 #define MEMORY_MAP_ENTTRY_COUNT_ADDRESS 0x8000
 #define MB 1024 * 1024
 #define FRAME_SIZE 4096 //4KB
-#define TOTAL_FRAMES 1048576 //4GB / 4KB
+// #define TOTAL_FRAMES 1048576 //4GB / 4KB
+
+//we map only 32 MB of memory for now
+//because if we dont we will bloat the kernel size too much
+//and bss section will be too big
+//we can increase it later when we have a better memory management
+//by using a bitmap or linked list
+#define TOTAL_FRAMES (32 * MB) / FRAME_SIZE //mapping only 32 MB of memory for now
 
 #define TRUE 1
 #define FALSE 0
