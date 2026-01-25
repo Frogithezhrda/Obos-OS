@@ -7,31 +7,37 @@
 #include "../SystemLib/obosMemory.h"
 
 #define PAGE_SIZE 4096 //4KB
-#define PAGE_TABLE_COUNT 1024 //each page table has 512 entries
+#define PAGE_TABLE_COUNT 1024 //each page table has 1024 entries
+#define PAGE_DIRECTORY_SIZE  (4 * 1024 * 1024)
 #define MAPPED_MEMORY_MB_KERNEL 64
 #define NUM_PAGE_TABLES_KERNEL (MAPPED_MEMORY_MB_KERNEL / 4) 
 
-//THOSE ARE VIRTUAL ADDRESSES
-#define KERNEL_START_ADDRESS 0x000000
-#define KERNEL_END_ADDRESS 0x008000
+#define KERNEL_VIRTUAL_BASE         0xC0000000
 
-#define HEAP_START_ADDRESS 0x008000 
-#define HEAP_END_ADDRESS 0x100000
+#define KERNEL_START_ADDRESS        0xC0100000
+#define KERNEL_END_ADDRESS          0xC0108000
 
-#define STACK_END_ADDRESS 0x104000 
-#define STACK_START_ADDRESS 0x108000
+#define VGA_VIRTUAL_ADDRESS         0xC00B8000
 
-#define KERNEL_STACK_TOP 0x200000
+#define HEAP_START_ADDRESS          0xC0108000
+#define HEAP_END_ADDRESS            0xC0200000
 
-//PHYSICAL ADDRESSES
-#define KERNEL_PHYSICAL_START_ADDRESS 0x100000
-#define KERNEL_PHYSICAL_END_ADDRESS 0x108000
+#define STACK_START_ADDRESS         0xC01FFC00
+#define STACK_END_ADDRESS           0xC0200000
+#define KERNEL_STACK_TOP            0xC0200000
 
-#define HEAP_PHYSICAL_START_ADDRESS 0x108000 
-#define HEAP_PHYSICAL_END_ADDRESS 0x200000
 
-#define STACK_PHYSICAL_END_ADDRESS 0x200000
-#define STACK_PHYSICAL_START_ADDRESS 0x1FFC00
+
+#define KERNEL_PHYSICAL_START       0x00100000 
+#define KERNEL_PHYSICAL_END         0x00108000
+
+#define VGA_PHYSICAL_ADDRESS        0x000B8000
+
+#define HEAP_PHYSICAL_START         0x00108000
+#define HEAP_PHYSICAL_END           0x00200000
+
+#define STACK_PHYSICAL_START        0x001FFC00
+#define STACK_PHYSICAL_END          0x00200000
 
 
 enum PermissionBits
@@ -91,9 +97,11 @@ void enablePaging(void);
 void initializePaging(void);
 void initializeKernelPageTable(void);
 unsigned long long translateVirtualToPhysical(unsigned long long virtualAddress);
-void mapMemoryRegion(PageTable* pageTable, 
-                     const unsigned long long virtualStart, 
-                     const unsigned long long virtualEnd, 
+void mapMemoryRegion(const unsigned long long virtualStart, 
+                     const unsigned long long virtualSize, 
                      const unsigned long long physicalStart, 
                      const unsigned int isKernel);
+
+void mapPage(unsigned int virtualAddr, unsigned int physicalAddr, unsigned int isKernel);
+PageTable* getOrCreatePageTable(unsigned int virtualAddr);
 #endif  

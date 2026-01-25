@@ -3,7 +3,7 @@
 #include "../Drivers/consoleDriver.h"
 #include "../Tables/IDT.h"
 #include "../Tables/PIC.h"
-#include "../Memory/memoryMap.h"
+#include "../Memory/paging.h"
 void obos_main();
 
 #endif  

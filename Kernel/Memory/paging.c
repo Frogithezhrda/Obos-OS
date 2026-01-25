@@ -3,7 +3,6 @@
 PageDirectory* kernelPageDirectory;
 
 
-
 void initializePaging(void)
 {
     asm volatile("cli"); //turnin off hardware interrupts during setup
@@ -36,9 +35,28 @@ void initializePaging(void)
         kernelPageDirectory->entries[tableNum].userSupervisor = SUPERVISOR_ONLY;
         kernelPageDirectory->entries[tableNum].pageTableAddress = ptPhys / PAGE_SIZE;
     }
-        
+
+    mapMemoryRegion(VGA_VIRTUAL_ADDRESS, 
+                    PAGE_SIZE, 
+                    VGA_PHYSICAL_ADDRESS, 
+                    SUPERVISOR_ONLY);
+    
+    mapMemoryRegion(KERNEL_START_ADDRESS,
+                    KERNEL_PHYSICAL_END - KERNEL_PHYSICAL_START,
+                    KERNEL_PHYSICAL_START,
+                    SUPERVISOR_ONLY);
+    mapMemoryRegion(HEAP_START_ADDRESS,
+                    HEAP_PHYSICAL_END - HEAP_PHYSICAL_START,
+                    HEAP_PHYSICAL_START,
+                    SUPERVISOR_ONLY);
+    
+    mapMemoryRegion(STACK_START_ADDRESS,
+                    STACK_PHYSICAL_END - STACK_PHYSICAL_START,
+                    STACK_PHYSICAL_START,
+                    SUPERVISOR_ONLY);
     asm volatile("mov %0, %%cr3" :: "r"(pdPhys) : "memory");
 }
+
 
 void enablePagingNow(void)
 {
@@ -50,7 +68,7 @@ void enablePagingNow(void)
     asm volatile(
         "movl %[stack_top], %%esp\n\t"
         :
-        : [stack_top] "r" (KERNEL_STACK_TOP)
+        : [stack_top] "r" (STACK_PHYSICAL_END)
     );
     
     asm volatile("mov %%esp, %0" : "=r"(esp));
@@ -63,6 +81,7 @@ void enablePagingNow(void)
 
     asm volatile ("sti"); //enabling hardware interrupts after setup
     print("Paging Enabled!\n", GREEN);
+
 }
 
 unsigned long long translateVirtualToPhysical(unsigned long long virtualAddress)
@@ -70,11 +89,9 @@ unsigned long long translateVirtualToPhysical(unsigned long long virtualAddress)
     unsigned int va = (unsigned int)virtualAddress;
 
     //page directory index by getting bits 22-31
-    unsigned int pdIndex = (va >> 22) & (PAGE_TABLE_COUNT - 1);
-    //page table index by getting bits 12-21
-    unsigned int ptIndex = (va / PAGE_SIZE) & (PAGE_TABLE_COUNT - 1);
-    //offset within the page by getting bits 0-11
-    unsigned int offset  = va & 0xFFF;
+    unsigned int pdIndex = va / PAGE_DIRECTORY_SIZE;
+    unsigned int ptIndex = (va / PAGE_SIZE) % PAGE_TABLE_COUNT;
+    unsigned int offset = va % PAGE_SIZE;
 
     if (!kernelPageDirectory->entries[pdIndex].present)
     {
@@ -82,8 +99,7 @@ unsigned long long translateVirtualToPhysical(unsigned long long virtualAddress)
         return 0;
     }
 
-    PageTable* pt = (PageTable*)
-        (kernelPageDirectory->entries[pdIndex].pageTableAddress * PAGE_SIZE);
+    PageTable* pt = (PageTable*)(kernelPageDirectory->entries[pdIndex].pageTableAddress * PAGE_SIZE);
 
     if (!pt->entries[ptIndex].present)
     {
@@ -102,26 +118,54 @@ void pageFaultHandler(unsigned int errorCode)
     while (1);   // halt safely
 }
 
-void mapMemoryRegion(PageTable* pageTable, 
-                     const unsigned long long virtualStart, 
-                     const unsigned long long virtualEnd, 
+void mapMemoryRegion(const unsigned long long virtualStart, 
+                     const unsigned long long virtualSize, 
                      const unsigned long long physicalStart, 
                      const unsigned int isKernel)
 {
+    unsigned long long virtualStartLocal = virtualStart;
+    unsigned long long physicalStartLocal = physicalStart;
+    unsigned long long virtualEnd = virtualStart + virtualSize;
 
-    unsigned long long va = virtualStart;
-    unsigned long long pa = physicalStart;
-
-    while (va < virtualEnd) 
+    while (virtualStartLocal < virtualEnd) 
     {
-        unsigned int ptIndex = (va / PAGE_SIZE) & (PAGE_TABLE_COUNT - 1);
-
-        pageTable->entries[ptIndex].present = 1;
-        pageTable->entries[ptIndex].readWrite = READ_WRITE;
-        pageTable->entries[ptIndex].userSupervisor = isKernel ? SUPERVISOR_ONLY : USER_SUPERVISOR;
-        pageTable->entries[ptIndex].frameAddress = pa / PAGE_SIZE;
-
-        va += PAGE_SIZE;
-        pa += PAGE_SIZE;
+        mapPage(virtualStartLocal, physicalStartLocal, isKernel);
+        virtualStartLocal += PAGE_SIZE;
+        physicalStartLocal += PAGE_SIZE;
     }
+}
+
+PageTable* getOrCreatePageTable(unsigned int virtualAddr)
+{
+    unsigned int pdIndex = virtualAddr / PAGE_DIRECTORY_SIZE;
+    
+    if (!kernelPageDirectory->entries[pdIndex].present)
+    {
+        unsigned long long ptPhys = allocateFreeFrame();
+        PageTable* pt = (PageTable*)(unsigned int)ptPhys;
+        memset(pt, 0, PAGE_SIZE);
+        
+        kernelPageDirectory->entries[pdIndex].present = 1;
+        kernelPageDirectory->entries[pdIndex].readWrite = READ_WRITE;
+        kernelPageDirectory->entries[pdIndex].userSupervisor = SUPERVISOR_ONLY;
+        kernelPageDirectory->entries[pdIndex].pageTableAddress = ptPhys / PAGE_SIZE;
+        
+        return pt;
+    }
+    
+    //return existing page table
+    unsigned int ptPhys = kernelPageDirectory->entries[pdIndex].pageTableAddress * PAGE_SIZE;
+    return (PageTable*)ptPhys;
+}
+
+void mapPage(unsigned int virtualAddr, unsigned int physicalAddr, unsigned int isKernel)
+{
+    PageTable* pt = getOrCreatePageTable(virtualAddr);
+    
+    unsigned int ptIndex = (virtualAddr / PAGE_SIZE) % PAGE_TABLE_COUNT;
+    
+    pt->entries[ptIndex].present = 1;
+    pt->entries[ptIndex].readWrite = READ_WRITE;
+    pt->entries[ptIndex].userSupervisor = isKernel ? SUPERVISOR_ONLY : USER_SUPERVISOR;
+    pt->entries[ptIndex].frameAddress = physicalAddr / PAGE_SIZE;
 }
