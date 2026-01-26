@@ -15,7 +15,6 @@ Those are for messages
 
 */
 
-
 void obos_main()
 {
     //basic initalization
@@ -63,6 +62,5 @@ void obosVirtualMain(void)
     print("Address of dummy variable: ", LIGHT_BLUE);
     printNumber((unsigned int)&dummy, LIGHT_BLUE);
     print("\n", LIGHT_BLUE);
-
     while(1);
 }

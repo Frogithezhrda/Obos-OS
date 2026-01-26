@@ -9,7 +9,12 @@ void initializePaging(void)
     
     unsigned long long pdPhys = allocateFreeFrame();
     //4 page tables for the first 16MB for more just creating more page tables
-    
+    if(pdPhys == ERROR)
+    {
+        printLine("Error: Unable to allocate frame for Page Directory!", RED);
+        //todo throw kernel panic
+        while(1);
+    }
     kernelPageDirectory = (PageDirectory*)(unsigned int)pdPhys;
     
     memset(kernelPageDirectory, 0, PAGE_SIZE);
@@ -17,6 +22,12 @@ void initializePaging(void)
     for (unsigned int tableNum = 0; tableNum < NUM_PAGE_TABLES_KERNEL; tableNum++)
     {
         unsigned long long ptPhys = allocateFreeFrame();
+        if(ptPhys == ERROR)
+        {
+            printLine("Error: Unable to allocate frame for Page Table!", RED);
+            //todo throw kernel panic
+            while(1);
+        }
         PageTable* pt = (PageTable*)(unsigned int)ptPhys;
         memset(pt, 0, PAGE_SIZE);
         
@@ -110,12 +121,54 @@ unsigned long long translateVirtualToPhysical(unsigned long long virtualAddress)
     return ((unsigned long long)pt->entries[ptIndex].frameAddress * PAGE_SIZE) | offset;
 }
 
-void pageFaultHandler(unsigned int errorCode)
+ void pageFaultHandler(unsigned int errorCode)
 {
-    (void)errorCode;
-    printLine("Page Fault Detected!", RED);
+    unsigned int faultAddr;
+    asm volatile("mov %%cr2, %0" : "=r"(faultAddr));
+    
+    printLine("\n=== PAGE FAULT ===", RED);
+    
+    print("Faulting address: ", WHITE);
+    printNumber(faultAddr, WHITE);
+    printLine("", WHITE);
+    
+    print("Error code: ", WHITE);
+    printNumber(errorCode, WHITE);
+    printLine("", WHITE);
+    if (errorCode & 0x1)
+     {
+        printLine("  [P] Page was present (protection violation)", RED);
+    } else {
+        printLine("  [P] Page not present", LIGHT_BLUE);
+    }
+    
+    if (errorCode & 0x2)
+     {
+        printLine("  [W/R] Access was a WRITE", RED);
+    } else {
+        printLine("  [W/R] Access was a READ", LIGHT_BLUE);
+    }
+    
+    if (errorCode & 0x4) 
+    {
+        printLine("  [U/S] User mode access", LIGHT_BLUE);
+    } else {
+        printLine("  [U/S] Supervisor mode access", LIGHT_BLUE);
+    }
+    
+    if (errorCode & 0x8) 
+    {
+        printLine("  [R] Reserved bit violation", RED);
+    }
+    
+    if (errorCode & 0x10) {
+        printLine("  [I/D] Instruction fetch", LIGHT_BLUE);
+    }
+    
+    printLine("==================", RED);
+    
     asm volatile("cli");
-    while (1);   // halt safely
+    while (1);
 }
 
 void mapMemoryRegion(const unsigned long long virtualStart, 
@@ -142,6 +195,12 @@ PageTable* getOrCreatePageTable(unsigned int virtualAddr)
     if (!kernelPageDirectory->entries[pdIndex].present)
     {
         unsigned long long ptPhys = allocateFreeFrame();
+        if(ptPhys == ERROR)
+        {
+            printLine("Error: Unable to allocate frame for Page Table!", RED);
+            //todo throw kernel panic
+            while(1);
+        }
         PageTable* pt = (PageTable*)(unsigned int)ptPhys;
         memset(pt, 0, PAGE_SIZE);
         

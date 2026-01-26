@@ -95,29 +95,13 @@ IsrCommon:
 
 pageFaultISR:
     cli
-    pusha
-    push ds
-    push es
-    push fs
-    push gs
-
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-
-    push dword [esp + 36]
+    ; error code is 12 bytes above current ESP: EIP(4) + CS(4) + EFLAGS(4)
+    mov eax, [esp]  ; read error code
+    push eax
     call pageFaultHandler
-
-    pop gs
-    pop fs
-    pop es
-    pop ds
-    popa
-    add esp, 4
+    add esp, 4           ; clean up pushed error code
     sti
-    iret      
+    iret
 
 section .data
 ExceptionHandlers:

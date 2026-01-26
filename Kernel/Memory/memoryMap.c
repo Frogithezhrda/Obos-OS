@@ -157,7 +157,6 @@ void reserveKernelRegions(void)
     region.type = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
-    memoryManager.regions[memoryManager.regionCount++] = region;
     memoryManager.totalReserved += (0x200000 - 0x000000); //Kernel Size + Stack Size + Heap Size
 }
 

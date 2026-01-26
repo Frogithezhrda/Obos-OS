@@ -50,7 +50,7 @@ void initalizeException()
     registerInterruptHandler(TIMER_INTERRUPT_VECTOR, ExceptionHandlers[TIMER_INTERRUPT_VECTOR], CODE_SEGMENT, GATE);
     registerInterruptHandler(KEYBOARD_INTERRUPT_VECTOR, ExceptionHandlers[KEYBOARD_INTERRUPT_VECTOR], CODE_SEGMENT, GATE);
     registerInterruptHandler(RTC_INTERRUPT_VECTOR, ExceptionHandlers[RTC_INTERRUPT_VECTOR], CODE_SEGMENT, GATE); //RTC interrupt vector is 40
-    registerInterruptHandler(14, pageFaultISR, CODE_SEGMENT, GATE);
+    registerInterruptHandler(PAGE_FAULT_INTERRUPT_VECTOR, pageFaultISR, CODE_SEGMENT, GATE);
     if (idt[0].offsetLow == 0 && idt[0].offsetHigh == 0) 
     {
         print("ERROR: IDT entry 0 is empty!", RED);
