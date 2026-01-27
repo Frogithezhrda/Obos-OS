@@ -6,6 +6,8 @@ SECTIONS
 {
     . = 0x100000;
     
+    _kernel_physical_start = .;
+    
     .text : ALIGN(4096)
     {
         *(.multiboot)
@@ -14,19 +16,20 @@ SECTIONS
     
     .rodata : ALIGN(4096)
     {
-        *(.rodata.*)
+        *(.rodata*)
     }
     
     .data : ALIGN(4096)
     {
         *(.data)
     }
-
+    
     .bss : ALIGN(4096)
     {
         *(COMMON)
         *(.bss)
     }
-    . = ALIGN(4096);  /* Align to page boundary */
-    _kernel_end = .;
+    
+    . = ALIGN(4096);
+    _kernel_physical_end = .;
 }

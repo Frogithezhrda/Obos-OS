@@ -1,5 +1,3 @@
-
-
 #ifndef PAGING_H
 #define PAGING_H
 
@@ -9,7 +7,7 @@
 #define PAGE_SIZE 4096 //4KB
 #define PAGE_TABLE_COUNT 1024 //each page table has 1024 entries
 #define PAGE_DIRECTORY_SIZE  (4 * 1024 * 1024)
-#define MAPPED_MEMORY_MB_KERNEL 64
+#define MAPPED_MEMORY_MB_KERNEL 32
 #define NUM_PAGE_TABLES_KERNEL (MAPPED_MEMORY_MB_KERNEL / 4) 
 
 #define KERNEL_VIRTUAL_BASE         0xC0000000

@@ -2,6 +2,8 @@
 
 PageDirectory* kernelPageDirectory;
 
+extern char _kernel_physical_start;
+extern char _kernel_physical_end;
 
 void initializePaging(void)
 {
@@ -46,16 +48,26 @@ void initializePaging(void)
         kernelPageDirectory->entries[tableNum].userSupervisor = SUPERVISOR_ONLY;
         kernelPageDirectory->entries[tableNum].pageTableAddress = ptPhys / PAGE_SIZE;
     }
-
+    /*
+    we are using dual mapping here
+    mapping the kernel to both low memory and higher half
+    so we can access the same address in both modes
+    and also higher addresses are protected from user mode
+    */
+    unsigned int kernelPhysStart = (unsigned int)&_kernel_physical_start;
+    unsigned int kernelPhysEnd = (unsigned int)&_kernel_physical_end;
+    unsigned int kernelSize = kernelPhysEnd - kernelPhysStart;
+    
     mapMemoryRegion(VGA_VIRTUAL_ADDRESS, 
                     PAGE_SIZE, 
                     VGA_PHYSICAL_ADDRESS, 
                     SUPERVISOR_ONLY);
     
     mapMemoryRegion(KERNEL_START_ADDRESS,
-                    KERNEL_PHYSICAL_END - KERNEL_PHYSICAL_START,
-                    KERNEL_PHYSICAL_START,
+                    kernelSize,
+                    kernelPhysStart,
                     SUPERVISOR_ONLY);
+    
     mapMemoryRegion(HEAP_START_ADDRESS,
                     HEAP_PHYSICAL_END - HEAP_PHYSICAL_START,
                     HEAP_PHYSICAL_START,
@@ -65,6 +77,7 @@ void initializePaging(void)
                     STACK_PHYSICAL_END - STACK_PHYSICAL_START,
                     STACK_PHYSICAL_START,
                     SUPERVISOR_ONLY);
+    
     asm volatile("mov %0, %%cr3" :: "r"(pdPhys) : "memory");
 }
 
@@ -74,8 +87,8 @@ void enablePagingNow(void)
     unsigned int cr0;
     unsigned int esp;
     asm volatile("mov %%esp, %0" : "=r"(esp));
-    printNumber(esp, WHITE);
-    printLine(" <- ESP before enabling paging", WHITE);
+    // printNumber(esp, WHITE);
+    // printLine(" <- ESP before enabling paging", WHITE);
     asm volatile(
         "movl %[stack_top], %%esp\n\t"
         :
@@ -83,8 +96,8 @@ void enablePagingNow(void)
     );
     
     asm volatile("mov %%esp, %0" : "=r"(esp));
-    printNumber(esp, WHITE);
-    printLine(" <- ESP after setting stack", WHITE);
+    // printNumber(esp, WHITE);
+    // printLine(" <- ESP after setting stack", WHITE);
     
     asm volatile("mov %%cr0, %0" : "=r"(cr0));
     cr0 |= 0x80000000;  //PG bit
@@ -228,3 +241,4 @@ void mapPage(unsigned int virtualAddr, unsigned int physicalAddr, unsigned int i
     pt->entries[ptIndex].userSupervisor = isKernel ? SUPERVISOR_ONLY : USER_SUPERVISOR;
     pt->entries[ptIndex].frameAddress = physicalAddr / PAGE_SIZE;
 }
+
