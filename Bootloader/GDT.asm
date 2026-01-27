@@ -22,6 +22,23 @@ DataGDT:
     db 0xCF      
     db 0x00
 
+
+UserCodeGDT:
+    dw 0xFFFF
+    dw 0x0000
+    db 0x00
+    db 0xFA
+    db 0xCF
+    db 0x00
+
+UserDataGDT:
+    dw 0xFFFF
+    dw 0x0000
+    db 0x00
+    db 0xF2
+    db 0xCF
+    db 0x00
+
 EndGDT:
 
 GDTDescriptor:

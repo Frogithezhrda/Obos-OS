@@ -3,6 +3,7 @@
 
 #include "memoryMap.h"
 #include "../SystemLib/obosMemory.h"
+#include "../SystemLib/errors.h"
 
 #define PAGE_SIZE 4096 //4KB
 #define PAGE_TABLE_COUNT 1024 //each page table has 1024 entries
@@ -23,6 +24,13 @@
 #define STACK_START_ADDRESS         0xC01FFC00
 #define STACK_END_ADDRESS           0xC0200000
 #define KERNEL_STACK_TOP            0xC0200000
+
+#define USER_SPACE_START            0x00400000
+
+// #define USER_SPACE_END   0x0FFFFFFF
+
+#define USER_MAPPING_MB 7  //how much memory we give to user space
+#define USER_MAPPING_PAGES ((USER_MAPPING_MB * MB) / PAGE_SIZE)
 
 
 
@@ -90,7 +98,6 @@ typedef struct PageDirectory
 } __attribute__((aligned(PAGE_SIZE))) PageDirectory;
 
 
-void pageFaultHandler(unsigned int errorCode);
 void enablePaging(void);
 void initializePaging(void);
 void initializeKernelPageTable(void);
@@ -102,4 +109,5 @@ void mapMemoryRegion(const unsigned long long virtualStart,
 
 void mapPage(unsigned int virtualAddr, unsigned int physicalAddr, unsigned int isKernel);
 PageTable* getOrCreatePageTable(unsigned int virtualAddr);
+void mapUserPages(void);
 #endif  

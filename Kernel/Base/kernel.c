@@ -31,5 +31,9 @@ void obos_main()
     initializePaging();
     enablePagingNow();
     printLine("Paging enabled successfully!", GREEN);
+
+    //causing a pagefault
+    // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
+    // unsigned int value = *ptr; //this will cause a page fault
     while (1);
 }

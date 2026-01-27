@@ -232,3 +232,16 @@ int allocateFreeFrame()
     }
     return ERROR; //no free frames available
 }
+
+int allocateFreeUserFrame()
+{
+    for(unsigned int i = FIRST_USER_FRAME; i < TOTAL_FRAMES; i++)
+    {
+        if(frames[i].isFree)
+        {
+            frames[i].isFree = FALSE;
+            return frames[i].address;
+        }
+    }
+    return ERROR; // no free frames
+}
