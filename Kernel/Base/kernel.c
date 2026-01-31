@@ -8,6 +8,10 @@ Error: <message> - red color
 Info: <message> - light blue color
 Those are for messages
 
+BARAK ITS FOR YOU NOT FOR ME READ IT I USED CHAT FOR THIS ONE
+IF YOU THINK SOMETHING IS A BUG ASK ME FIRST CONFIRM IT CAUSE IT MIGHT NOT BE!
+AND IF YOU FIND IT AND CONFIRM PLEASE JUST FIX
+
 A Small guide to using the OS parts:
 
 ------------------------------------------------------
