@@ -30,6 +30,7 @@ void pageFaultHandler(unsigned int errorCode)
     //basic demand paging handler
     if(!(errorCode & PF_PRESENT) && faultAddr >= USER_SPACE_START && faultAddr < USER_SPACE_END)
     {
+        //this removes page offsets...
         unsigned int pageAddr = faultAddr & 0xFFFFF000;
 
         unsigned long long physFrame = allocateFreeFrame();
