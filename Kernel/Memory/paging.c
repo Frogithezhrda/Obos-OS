@@ -236,10 +236,14 @@
         if (stackPhys == ERROR) kernelPanic("No stack frame!");
         memset((void*)(unsigned int)stackPhys, 0, PAGE_SIZE);
         mapPage(USER_STACK_TOP - PAGE_SIZE, (unsigned int)stackPhys, 0);
-        unsigned char* code = (unsigned char*)codePhys;
-        code[0] = 0xEB; // JMP short
-        code[1] = 0xFE; // infinite loop cause if not it will fall off continue to the next instruction until death
 
+        //a small user program in order to check for demand paging
+        unsigned char* code = (unsigned char*)codePhys;
+        code[0] = 0xA1;                     // MOV EAX, moffs32
+        *(unsigned int*)&code[1] = USER_SPACE_START + 0x5000; // 0x40005000
+        code[4] = 0x40;                     // JMP short
+        code[5] = 0xEB;                     // JMP short
+        code[6] = 0xFE;     
         print("User space ready\n", CYAN);
     }
 

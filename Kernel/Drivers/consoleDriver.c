@@ -81,6 +81,17 @@ void print(const char* string, const int color)
     updateCursor(position / 2);
 }
 
+void printHexNumber(unsigned int number, const int color)
+{
+    char hexChars[] = "0123456789ABCDEF";
+    for (int i = 7; i >= 0; i--)
+    {
+        unsigned char nibble = (number >> (i * 4)) & 0xF;
+        printChar(hexChars[nibble], WHITE);
+    }
+    printLine("", WHITE);
+}
+
 void updateCursor(const int cursorPos)
 {
     outb(VGA_COMMAND_PORT, 0x0E);

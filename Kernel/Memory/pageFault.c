@@ -25,38 +25,31 @@ void pageFaultHandler(unsigned int errorCode)
     printNumber(errorCode, WHITE);
     printLine("", WHITE);
 
-    char hexChars[] = "0123456789ABCDEF";
     print("Faulting address: 0x", WHITE);
-
-    for (int i = 7; i >= 0; i--)
-    {
-        unsigned char nibble = (faultAddr >> (i * 4)) & 0xF;
-        printChar(hexChars[nibble], WHITE);
-    }
-    printLine("", WHITE);
+    printHexNumber(faultAddr, WHITE);
+    //basic demand paging handler
     if(!(errorCode & PF_PRESENT) && faultAddr >= USER_SPACE_START && faultAddr < USER_SPACE_END)
     {
         unsigned int pageAddr = faultAddr & 0xFFFFF000;
-        print("Page to map: 0x", WHITE);
-    printNumber(pageAddr, WHITE);
-    printLine("", WHITE);
+
         unsigned long long physFrame = allocateFreeFrame();
         if (physFrame == ERROR)
             kernelPanic("Out of memory!");
         
-        // Zero it (must be in identity-mapped region)
-        if (physFrame < (MAPPED_MEMORY_MB_KERNEL * 1024 * 1024))
+        if (physFrame < (MAPPED_MEMORY_MB_KERNEL * MB))
         {
             memset((void*)(unsigned int)physFrame, 0, PAGE_SIZE);
         }
         
-        // Map as user-accessible
         mapPage(pageAddr, (unsigned int)physFrame, 0);
-        
-        // Flush TLB
         asm volatile("invlpg (%0)" :: "r"(pageAddr) : "memory");
-        
-        return;    
+        unsigned char* code = (unsigned char*)physFrame;
+        //just test code later will be better for processes
+        code[0] = 0xEB;
+        code[1] = 0xFE;    
+        //entering user mode
+        enterUserMode(faultAddr);
+        return;
     }
 
     if (errorCode & PF_PRESENT)
