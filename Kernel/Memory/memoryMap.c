@@ -18,7 +18,7 @@ void initializeMemoryManager()
     // print("\n", WHITE); 
 
     //checking if memory entries exist
-    if(!entryCount) printLine("Warning: No memory map entries found..", LIGHT_BROWN);
+    if(!entryCount) printLine("Warning: No memory map entries found..", YELLOW);
 
     //parsing memory map entries
     parseMemoryMap(entryCount, memoryMap);
