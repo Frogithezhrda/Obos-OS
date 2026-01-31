@@ -21,6 +21,11 @@ void initializeTimer(void)
     outb(CHANNEL_0_PORT, (unsigned char)((divisor >> 8) & 0xFF)); 
 }
 
+unsigned int getTicks()
+{
+    return tickCounter;
+}
+
 void sleep(unsigned int ms)
 {
     unsigned int targetTicks = tickCounter + (ms / 10);
