@@ -57,22 +57,22 @@
         unsigned int kernelPhysEnd = (unsigned int)&_kernel_physical_end;
         unsigned int kernelSize = kernelPhysEnd - kernelPhysStart;
         
-        mapMemoryRegion(VGA_VIRTUAL_ADDRESS, 
+        mapMemoryRegion(VIRTUAL_VGA_ADDRESS, 
                         PAGE_SIZE, 
                         VGA_PHYSICAL_ADDRESS, 
                         SUPERVISOR_ONLY);
         
-        mapMemoryRegion(KERNEL_START_ADDRESS,
+        mapMemoryRegion(VIRTUAL_KERNEL_START_ADDRESS,
                         kernelSize,
                         kernelPhysStart,
                         SUPERVISOR_ONLY);
         
-        mapMemoryRegion(HEAP_START_ADDRESS,
+        mapMemoryRegion(VIRTUAL_HEAP_START_ADDRESS,
                         HEAP_PHYSICAL_END - HEAP_PHYSICAL_START,
                         HEAP_PHYSICAL_START,
                         SUPERVISOR_ONLY);
         
-        mapMemoryRegion(STACK_START_ADDRESS,
+        mapMemoryRegion(VIRTUAL_STACK_START_ADDRESS,
                         STACK_PHYSICAL_END - STACK_PHYSICAL_START,
                         STACK_PHYSICAL_START,
                         SUPERVISOR_ONLY);
@@ -93,7 +93,7 @@
         asm volatile(
             "movl %[stack_top], %%esp\n\t"
             :
-            : [stack_top] "r" (KERNEL_STACK_TOP)
+            : [stack_top] "r" (VIRTUAL_KERNEL_STACK_TOP)
         );
         
         asm volatile("mov %%esp, %0" : "=r"(esp));
@@ -178,7 +178,7 @@
         if (!isKernel)
             kernelPageDirectory->entries[pdIndex].userSupervisor = USER_SUPERVISOR;
 
-        return (PageTable*)(kernelPageDirectory->entries[pdIndex].pageTableAddress << 12);
+        return (PageTable*)(kernelPageDirectory->entries[pdIndex].pageTableAddress * PAGE_SIZE);
     }
 
 
@@ -239,11 +239,11 @@
 
         //a small user program in order to check for demand paging
         unsigned char* code = (unsigned char*)codePhys;
-        code[0] = 0xA1;                     // MOV EAX, moffs32
-        *(unsigned int*)&code[1] = USER_SPACE_START + 0x5000; // 0x40005000
-        code[4] = 0x40;                     // JMP short
-        code[5] = 0xEB;                     // JMP short
-        code[6] = 0xFE;     
+        // code[0] = 0xA1;                     // MOV EAX, moffs32
+        // *(unsigned int*)&code[1] = USER_SPACE_START + 0x5000; // 0x40005000
+        // code[4] = 0x40;                     // JMP short
+        code[0] = 0xEB;                     // JMP short
+        code[1] = 0xFE;     
         print("User space ready\n", CYAN);
     }
 
@@ -252,7 +252,7 @@
         memset(&kernelTSS, 0, sizeof(TSS));
         
         kernelTSS.ss0 = 0x10;
-        kernelTSS.esp0 = KERNEL_STACK_TOP;
+        kernelTSS.esp0 = VIRTUAL_KERNEL_STACK_TOP;
         
         kernelTSS.cs = 0x08;
         kernelTSS.ss = 0x10;

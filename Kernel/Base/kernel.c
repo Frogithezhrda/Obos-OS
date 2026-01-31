@@ -29,7 +29,9 @@ void obos_main()
     // printMemoryManagerInfo();
     initializePaging();
     enablePagingNow();
-
+    initKernelHeap();
+    initUserHeap();
+    // enterUserMode((void*)USER_HEAP_START);
     enterUserMode((void*)USER_SPACE_START);
     // // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
     // unsigned int value = *ptr; //this will cause a page fault
