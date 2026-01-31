@@ -34,6 +34,13 @@ void printNumber(int number, const int color)
     int isNegative = 0;
     char buffer[12]; //enough for int
     int i = 0;
+
+    if (number == 0) 
+    {
+        printChar('0', color);
+        return;
+    }
+
     while (number > 0)
     {
         buffer[i] = (number % 10) + '0';
@@ -72,6 +79,17 @@ void print(const char* string, const int color)
         position += 2;   
     }
     updateCursor(position / 2);
+}
+
+void printHexNumber(unsigned int number, const int color)
+{
+    char hexChars[] = "0123456789ABCDEF";
+    for (int i = 7; i >= 0; i--)
+    {
+        unsigned char nibble = (number >> (i * 4)) & 0xF;
+        printChar(hexChars[nibble], WHITE);
+    }
+    printLine("", WHITE);
 }
 
 void updateCursor(const int cursorPos)

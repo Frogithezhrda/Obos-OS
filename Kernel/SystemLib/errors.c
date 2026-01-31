@@ -43,6 +43,7 @@
 
     void kernelPanic(const char* kernel)
     {
+        asm volatile ("cli");
         clearScreen();
         print("KERNEL PANIC! ! !: ", RED);
         printLine(kernel, LIGHT_RED);

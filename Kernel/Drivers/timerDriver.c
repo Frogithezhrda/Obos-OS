@@ -21,6 +21,11 @@ void initializeTimer(void)
     outb(CHANNEL_0_PORT, (unsigned char)((divisor >> 8) & 0xFF)); 
 }
 
+unsigned int getTicks()
+{
+    return tickCounter;
+}
+
 void sleep(unsigned int ms)
 {
     unsigned int targetTicks = tickCounter + (ms / 10);
@@ -68,7 +73,7 @@ Time getRTCTime(void)
     t.ms = 0;
     return t;
 }
-
+//binary time to decimal in short
 unsigned char bcdToDec(unsigned char bcd)
 {
     unsigned char tens  = (bcd >> 4) & 0x0F; 
@@ -80,10 +85,23 @@ void printCurrentTime(void)
 {
     Time currentTime = getRTCTime();
     print("Current Time: ", WHITE);
+    //quick fix for the missing 0 bug
+    if(currentTime.hours < 10)
+    {
+        print("0", WHITE);
+    }
     printNumber(currentTime.hours, WHITE);
     print(":", WHITE);
+    if(currentTime.minutes < 10)
+    {
+        print("0", WHITE);
+    }
     printNumber(currentTime.minutes, WHITE);
     print(":", WHITE);
+    if(currentTime.seconds < 10)
+    {
+        print("0", WHITE);
+    }
     printNumber(currentTime.seconds, WHITE);
     printLine("", WHITE);
 }

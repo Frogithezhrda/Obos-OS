@@ -32,5 +32,6 @@ Time getRTCTime(void);
 unsigned char readRTC(unsigned char realTimeReg);
 void printCurrentTime(void);
 unsigned char bcdToDec(unsigned char bcd);
+unsigned int getTicks();
 
 #endif
