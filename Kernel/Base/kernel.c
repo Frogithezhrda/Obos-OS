@@ -11,7 +11,6 @@ Those are for messages
 
 */
 
-
 void obos_main()
 {
     //basic initalization
@@ -30,10 +29,9 @@ void obos_main()
     // printMemoryManagerInfo();
     initializePaging();
     enablePagingNow();
-    printLine("Paging enabled successfully!", GREEN);
 
-    //causing a pagefault
-    // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
+    enterUserMode((void*)USER_SPACE_START);
+    // // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
     // unsigned int value = *ptr; //this will cause a page fault
     while (1);
 }

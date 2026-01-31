@@ -8,10 +8,13 @@
 #define PAGE_SIZE 4096 //4KB
 #define PAGE_TABLE_COUNT 1024 //each page table has 1024 entries
 #define PAGE_DIRECTORY_SIZE  (4 * 1024 * 1024)
-#define MAPPED_MEMORY_MB_KERNEL 32
+#define MAPPED_MEMORY_MB_KERNEL 64
 #define NUM_PAGE_TABLES_KERNEL (MAPPED_MEMORY_MB_KERNEL / 4) 
 
-#define KERNEL_VIRTUAL_BASE         0xC0000000
+
+#define PAGING_STRUCT_START         0x00200000
+
+#define KERNEL_PT_VIRT_BASE         0xC0000000
 
 #define KERNEL_START_ADDRESS        0xC0100000
 #define KERNEL_END_ADDRESS          0xC0108000
@@ -25,15 +28,6 @@
 #define STACK_END_ADDRESS           0xC0200000
 #define KERNEL_STACK_TOP            0xC0200000
 
-#define USER_SPACE_START            0x00400000
-
-// #define USER_SPACE_END   0x0FFFFFFF
-
-#define USER_MAPPING_MB 7  //how much memory we give to user space
-#define USER_MAPPING_PAGES ((USER_MAPPING_MB * MB) / PAGE_SIZE)
-
-
-
 #define KERNEL_PHYSICAL_START       0x00100000 
 #define KERNEL_PHYSICAL_END         0x00108000
 
@@ -46,6 +40,21 @@
 #define STACK_PHYSICAL_END          0x00200000
 
 
+#define USER_HEAP_START             0x00600000
+#define USER_HEAP_END               0x00A00000
+
+#define USER_STACK_TOP              0x41000000
+#define USER_STACK_SIZE             0x00004000
+#define USER_STACK_BOTTOM           (USER_STACK_TOP - USER_STACK_SIZE)
+// #define USER_SPACE_START            0x00400000
+#define USER_SPACE_START            0x40000000
+#define USER_SPACE_END              0x41000000
+
+#define USER_MAPPING_MB 4  //how much memory we give to user space
+#define USER_MAPPING_PAGES ((USER_MAPPING_MB * MB) / PAGE_SIZE)
+
+#define TSS_SELECTOR 0x28
+
 enum PermissionBits
 {
     READ_WRITE = 1, // currently changed it did a bug
@@ -53,6 +62,40 @@ enum PermissionBits
     USER_SUPERVISOR = 1,
     SUPERVISOR_ONLY = 0
 };
+
+typedef struct TSS
+{
+    unsigned int prevTSS;
+    unsigned int esp0;
+    unsigned int ss0;
+    unsigned int esp1;
+    unsigned int ss1;
+    unsigned int esp2;
+    unsigned int ss2;
+    unsigned int cr3;
+    unsigned int eip;
+    unsigned int eflags;
+    unsigned int eax;
+    unsigned int ecx;
+    unsigned int edx;
+    unsigned int ebx;
+    unsigned int esp;
+    unsigned int ebp;
+    unsigned int esi;
+    unsigned int edi;
+    unsigned int es;
+    unsigned int cs;
+    unsigned int ss;
+    unsigned int ds;
+    unsigned int fs;
+    unsigned int gs;
+    unsigned int ldt;
+    unsigned short trap;
+    unsigned short iomap_base
+} __attribute__((packed)) TSS;
+
+
+extern TSS kernelTSS;
 
 typedef struct PageTableEntry
 {
@@ -97,6 +140,11 @@ typedef struct PageDirectory
     PageDirectoryEntry entries[PAGE_TABLE_COUNT];
 } __attribute__((aligned(PAGE_SIZE))) PageDirectory;
 
+typedef struct 
+{
+    unsigned short limit;
+    unsigned int base;
+} __attribute__((packed)) GDTR;
 
 void enablePaging(void);
 void initializePaging(void);
@@ -108,6 +156,9 @@ void mapMemoryRegion(const unsigned long long virtualStart,
                      const unsigned int isKernel);
 
 void mapPage(unsigned int virtualAddr, unsigned int physicalAddr, unsigned int isKernel);
-PageTable* getOrCreatePageTable(unsigned int virtualAddr);
+PageTable* getOrCreatePageTable(unsigned int virtualAddr, unsigned int isKernel);
 void mapUserPages(void);
+void initTSS(void);
+void enterUserMode(void* userEntryPoint);
+
 #endif  

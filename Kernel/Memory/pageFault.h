@@ -5,6 +5,7 @@
 #include "../Drivers/consoleDriver.h"
 #include "../SystemLib/errors.h"
 #include "../Drivers/timerDriver.h"
+#include "paging.h"
 
 enum PageFaultFlags {
     PF_PRESENT       = 0x1, // Page not present

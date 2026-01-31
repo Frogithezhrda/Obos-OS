@@ -9,12 +9,12 @@ void pageFaultHandler(unsigned int errorCode)
     register unsigned int nestedLevel asm("eax");
     nestedLevel++; //increments safely in a register, never touches memory
 
-    if(nestedLevel > 1)
-    {
-        clearScreen();
-        printLine("=== DOUBLE FAULT DETECTED ===", RED);
-        while(1) asm volatile("hlt");
-    }
+    // if(nestedLevel > 2)
+    // {
+    //     clearScreen();
+    //     printLine("=== DOUBLE FAULT DETECTED ===", RED);
+    //     while(1) asm volatile("hlt");
+    // }
     printLine("\n=== PAGE FAULT ===", RED);
     
     print("Faulting address: ", WHITE);
@@ -24,10 +24,46 @@ void pageFaultHandler(unsigned int errorCode)
     print("Error code: ", WHITE);
     printNumber(errorCode, WHITE);
     printLine("", WHITE);
+
+    char hexChars[] = "0123456789ABCDEF";
+    print("Faulting address: 0x", WHITE);
+
+    for (int i = 7; i >= 0; i--)
+    {
+        unsigned char nibble = (faultAddr >> (i * 4)) & 0xF;
+        printChar(hexChars[nibble], WHITE);
+    }
+    printLine("", WHITE);
+    if(!(errorCode & PF_PRESENT) && faultAddr >= USER_SPACE_START && faultAddr < USER_SPACE_END)
+    {
+        unsigned int pageAddr = faultAddr & 0xFFFFF000;
+        print("Page to map: 0x", WHITE);
+    printNumber(pageAddr, WHITE);
+    printLine("", WHITE);
+        unsigned long long physFrame = allocateFreeFrame();
+        if (physFrame == ERROR)
+            kernelPanic("Out of memory!");
+        
+        // Zero it (must be in identity-mapped region)
+        if (physFrame < (MAPPED_MEMORY_MB_KERNEL * 1024 * 1024))
+        {
+            memset((void*)(unsigned int)physFrame, 0, PAGE_SIZE);
+        }
+        
+        // Map as user-accessible
+        mapPage(pageAddr, (unsigned int)physFrame, 0);
+        
+        // Flush TLB
+        asm volatile("invlpg (%0)" :: "r"(pageAddr) : "memory");
+        
+        return;    
+    }
+
     if (errorCode & PF_PRESENT)
     {
         printLine("  [P] Page was present (protection violation)", RED);
-    } else 
+    } 
+    else 
     {
         printLine("  [P] Page not present", LIGHT_BLUE);
     }
@@ -51,7 +87,7 @@ void pageFaultHandler(unsigned int errorCode)
     {
         printLine("  [U/S] Supervisor mode access", LIGHT_BLUE);
         //Kernel Panic
-        kernelPanic("Page fault in supervisor mode!");
+        // kernelPanic("Page fault in supervisor mode!");
     }
     
     if (errorCode & PF_RESERVED) 
@@ -60,7 +96,7 @@ void pageFaultHandler(unsigned int errorCode)
     }
     
     if (errorCode & PF_INSTRUCTION) 
-    {
+    {   
         printLine("  [I/D] Instruction fetch", LIGHT_BLUE);
     }
     
