@@ -33,8 +33,7 @@ void pageFaultHandler(unsigned int errorCode)
         unsigned int pageAddr = faultAddr & 0xFFFFF000;
 
         unsigned long long physFrame = allocateFreeFrame();
-        if (physFrame == ERROR)
-            kernelPanic("Out of memory!");
+        if (physFrame == ERROR) kernelPanic("Out of memory!");
         
         if (physFrame < (MAPPED_MEMORY_MB_KERNEL * MB))
         {
@@ -42,13 +41,7 @@ void pageFaultHandler(unsigned int errorCode)
         }
         
         mapPage(pageAddr, (unsigned int)physFrame, 0);
-        asm volatile("invlpg (%0)" :: "r"(pageAddr) : "memory");
-        unsigned char* code = (unsigned char*)physFrame;
-        //just test code later will be better for processes
-        code[0] = 0xEB;
-        code[1] = 0xFE;    
-        //entering user mode
-        enterUserMode(faultAddr);
+
         return;
     }
 
