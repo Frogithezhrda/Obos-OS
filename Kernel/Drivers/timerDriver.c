@@ -31,6 +31,7 @@ void sleep(unsigned int ms)
     unsigned int targetTicks = tickCounter + (ms / 10);
     //hlt until target ticks reached
     while (tickCounter < targetTicks) asm volatile ("hlt");
+
 }
 unsigned int getSeconds(void)
 {

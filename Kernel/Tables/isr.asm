@@ -141,9 +141,9 @@ syscallStub:
     push edi
     push ebp
     
-    push ecx
-    push ebx
-    push eax
+    push ecx ; syscall arg2
+    push ebx ; syscall param
+    push eax ; syscall code
     
     call syscallHandler
     add esp, 12
@@ -159,7 +159,7 @@ syscallStub:
     pop ds
     
     iret
-    
+
 section .data
 ExceptionHandlers:
     dd isr0, isr1, isr2, isr3, isr4, isr5, isr6, isr7

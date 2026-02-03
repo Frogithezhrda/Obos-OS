@@ -241,53 +241,175 @@
         unsigned char* code = (unsigned char*)codePhys;
         int i = 0;
         //this is a small program that keeps everything alive
+        // code[i++] = 0xEB;
+        // code[i++] = 0xFE;
+        // a small program that prints Hello from user mode!
+//         // mov eax, 0
+        // code[i++] = 0xB8;
+        // code[i++] = 0x00;
+        // code[i++] = 0x00;
+        // code[i++] = 0x00;
+        // code[i++] = 0x00;
+        // // mov ebx, USER_SPACE_START + 0x50
+        // code[i++] = 0xBB;
+        // addr = USER_SPACE_START + 0x50;
+        // code[i++] = (addr >> 0) & 0xFF;
+        // code[i++] = (addr >> 8) & 0xFF;
+        // code[i++] = (addr >> 16) & 0xFF;
+        // code[i++] = (addr >> 24) & 0xFF;
+
+        // // // int 0x80
+        // code[i++] = 0xCD;
+        // code[i++] = 0x80;
+
+        // // jmp $
+        // code[i++] = 0xEB;
+        // code[i++] = 0xFE;
+
+        // code[0x50] = 'H';
+        // code[0x51] = 'e';
+        // code[0x52] = 'l';
+        // code[0x53] = 'l';
+        // code[0x54] = 'o';
+        // code[0x55] = ' ';
+        // code[0x56] = 'f';
+        // code[0x57] = 'r';
+        // code[0x58] = 'o';
+        // code[0x59] = 'm';
+        // code[0x5A] = ' ';
+        // code[0x5B] = 'u';
+        // code[0x5C] = 's';
+        // code[0x5D] = 'e';
+        // code[0x5E] = 'r';
+        // code[0x5F] = ' ';
+        // code[0x60] = 'm';
+        // code[0x61] = 'o';
+        // code[0x62] = 'd';
+        // code[0x63] = 'e';
+        // code[0x64] = '!';
+        // code[0x65] = 0x00;
+        // int i = 0;
+        // unsigned int addr;
+
+        // Test 1: Print without color (SYSCALL_PRINT with arg2=0)
+        /* mov eax, 0 */
+        code[i++] = 0xB8;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        /* mov ebx, USER_SPACE_START + 0x50 (string pointer) */
+        code[i++] = 0xBB;
+        addr = USER_SPACE_START + 0x50;
+        code[i++] = (addr >> 0) & 0xFF;
+        code[i++] = (addr >> 8) & 0xFF;
+        code[i++] = (addr >> 16) & 0xFF;
+        code[i++] = (addr >> 24) & 0xFF;
+        /* mov ecx, 0 (no color) */
+        code[i++] = 0xB9;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        /* int 0x80 */
+        code[i++] = 0xCD;
+        code[i++] = 0x80;
+
+        // Test 2: Print with color (SYSCALL_PRINT with arg2=color)
+        /* mov eax, 0 */
+        code[i++] = 0xB8;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        /* mov ebx, USER_SPACE_START + 0x70 (colored string pointer) */
+        code[i++] = 0xBB;
+        addr = USER_SPACE_START + 0x70;
+        code[i++] = (addr >> 0) & 0xFF;
+        code[i++] = (addr >> 8) & 0xFF;
+        code[i++] = (addr >> 16) & 0xFF;
+        code[i++] = (addr >> 24) & 0xFF;
+        /* mov ecx, GREEN (assuming GREEN = 10) */
+        code[i++] = 0xB9;
+        code[i++] = 0x0A;  // GREEN color value
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        /* int 0x80 */
+        code[i++] = 0xCD;
+        code[i++] = 0x80;
+
+        // Test 3: Get ticks (SYSCALL_GET_TICKS)
+        /* mov eax, 1 */
+        code[i++] = 0xB8;
+        code[i++] = 0x01;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        /* mov ebx, USER_SPACE_START + 0x100 (location to store ticks) */
+        code[i++] = 0xBB;
+        addr = USER_SPACE_START + 0x100;
+        code[i++] = (addr >> 0) & 0xFF;
+        code[i++] = (addr >> 8) & 0xFF;
+        code[i++] = (addr >> 16) & 0xFF;
+        code[i++] = (addr >> 24) & 0xFF;
+        /* int 0x80 */
+        code[i++] = 0xCD;
+        code[i++] = 0x80;
+
+        // Test 4: Sleep (SYSCALL_SLEEP = 7)
+        /* mov eax, 7 */
+        code[i++] = 0xB8;
+        code[i++] = 0x07;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        /* mov ebx, 1000 (sleep duration in ms) */
+        code[i++] = 0xBB;
+        code[i++] = 0xE8;
+        code[i++] = 0x05;
+        code[i++] = 0x00;
+        code[i++] = 0x00;
+        /* int 0x80 */
+        code[i++] = 0xCD;
+        code[i++] = 0x80;
+
+        /* jmp $ (infinite loop) */
         code[i++] = 0xEB;
         code[i++] = 0xFE;
-        // a small program that prints Hello from user mode!
-// //         // mov eax, 0
-//         code[i++] = 0xB8;
-//         code[i++] = 0x00;
-//         code[i++] = 0x00;
-//         code[i++] = 0x00;
-//         code[i++] = 0x00;
-//         // mov ebx, USER_SPACE_START + 0x50
-//         code[i++] = 0xBB;
-//         addr = USER_SPACE_START + 0x50;
-//         code[i++] = (addr >> 0) & 0xFF;
-//         code[i++] = (addr >> 8) & 0xFF;
-//         code[i++] = (addr >> 16) & 0xFF;
-//         code[i++] = (addr >> 24) & 0xFF;
 
-//         // // int 0x80
-//         code[i++] = 0xCD;
-//         code[i++] = 0x80;
+        // String data at offset 0x50
+        code[0x50] = 'H';
+        code[0x51] = 'e';
+        code[0x52] = 'l';
+        code[0x53] = 'l';
+        code[0x54] = 'o';
+        code[0x55] = ' ';
+        code[0x56] = 'w';
+        code[0x57] = 'o';
+        code[0x58] = 'r';
+        code[0x59] = 'l';
+        code[0x5A] = 'd';
+        code[0x5B] = '!';
+        code[0x5C] = 0x00;
 
-//         // jmp $
-//         code[i++] = 0xEB;
-//         code[i++] = 0xFE;
+        // String data at offset 0x70 (for colored print)
+        code[0x70] = 'C';
+        code[0x71] = 'o';
+        code[0x72] = 'l';
+        code[0x73] = 'o';
+        code[0x74] = 'r';
+        code[0x75] = 'e';
+        code[0x76] = 'd';
+        code[0x77] = ' ';
+        code[0x78] = 't';
+        code[0x79] = 'e';
+        code[0x7A] = 'x';
+        code[0x7B] = 't';
+        code[0x7C] = '!';
+        code[0x7D] = 0x00;
 
-//         code[0x50] = 'H';
-//         code[0x51] = 'e';
-//         code[0x52] = 'l';
-//         code[0x53] = 'l';
-//         code[0x54] = 'o';
-//         code[0x55] = ' ';
-//         code[0x56] = 'f';
-//         code[0x57] = 'r';
-//         code[0x58] = 'o';
-//         code[0x59] = 'm';
-//         code[0x5A] = ' ';
-//         code[0x5B] = 'u';
-//         code[0x5C] = 's';
-//         code[0x5D] = 'e';
-//         code[0x5E] = 'r';
-//         code[0x5F] = ' ';
-//         code[0x60] = 'm';
-//         code[0x61] = 'o';
-//         code[0x62] = 'd';
-//         code[0x63] = 'e';
-//         code[0x64] = '!';
-//         code[0x65] = 0x00;
+        // Reserve space at 0x100 for ticks value (will be written by syscall)
         print("User space ready\n", CYAN);
     }
 
