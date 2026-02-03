@@ -6,10 +6,18 @@ void syscallHandler(const unsigned int syscallNumber, unsigned int arg1, unsigne
     switch(syscallNumber)
     {
         case SYSCALL_PRINT:
-            // arg1 = pointer to string in user space
-            printW("Worked");
-            // printW((const char*)arg1);
-            break;
+        printW("SYSCALL_PRINT called with arg1=");
+        printNumberW(arg1);
+        printW("\n");
+        
+        // Try to read first byte
+        char firstChar = *((char*)arg1);
+        printW("First char: ");
+        printCharW(firstChar);
+        printW("\n");
+        
+        printW((const char*)arg1);
+        break;
         case SYSCALL_GET_TICKS:
             if(arg1)
             {

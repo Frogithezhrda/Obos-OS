@@ -239,33 +239,55 @@
 
         //a small user program in order to check for demand paging
         unsigned char* code = (unsigned char*)codePhys;
-        // code[0] = 0xA1;                     // MOV EAX, moffs32
-        // *(unsigned int*)&code[1] = USER_SPACE_START + 0x5000; // 0x40005000
-        // code[4] = 0x40;                     // JMP short
-        // code[0] = 0xEB;                     // JMP short
-        // code[1] = 0xFE;     
         int i = 0;
-        // /* mov eax, 0 */
-        // code[i++] = 0xB8;
-        // code[i++] = 0x01;
-        // code[i++] = 0x00;
-        // code[i++] = 0x00;
-        // code[i++] = 0x00;
-
-        // /* mov ebx, USER_SPACE_START + 0x50 */
-        // code[i++] = 0xBB;
-        // addr = USER_SPACE_START + 0x50;
-        // code[i++] = (addr >> 0) & 0xFF;
-        // code[i++] = (addr >> 8) & 0xFF;
-        // code[i++] = (addr >> 16) & 0xFF;
-        // code[i++] = (addr >> 24) & 0xFF;
-
-        // /* int 0x80 */
-        // code[i++] = 0xCD;
-        // code[i++] = 0x80;
-        // /* jmp $ */
+        //this is a small program that keeps everything alive
         code[i++] = 0xEB;
         code[i++] = 0xFE;
+        // a small program that prints Hello from user mode!
+// //         // mov eax, 0
+//         code[i++] = 0xB8;
+//         code[i++] = 0x00;
+//         code[i++] = 0x00;
+//         code[i++] = 0x00;
+//         code[i++] = 0x00;
+//         // mov ebx, USER_SPACE_START + 0x50
+//         code[i++] = 0xBB;
+//         addr = USER_SPACE_START + 0x50;
+//         code[i++] = (addr >> 0) & 0xFF;
+//         code[i++] = (addr >> 8) & 0xFF;
+//         code[i++] = (addr >> 16) & 0xFF;
+//         code[i++] = (addr >> 24) & 0xFF;
+
+//         // // int 0x80
+//         code[i++] = 0xCD;
+//         code[i++] = 0x80;
+
+//         // jmp $
+//         code[i++] = 0xEB;
+//         code[i++] = 0xFE;
+
+//         code[0x50] = 'H';
+//         code[0x51] = 'e';
+//         code[0x52] = 'l';
+//         code[0x53] = 'l';
+//         code[0x54] = 'o';
+//         code[0x55] = ' ';
+//         code[0x56] = 'f';
+//         code[0x57] = 'r';
+//         code[0x58] = 'o';
+//         code[0x59] = 'm';
+//         code[0x5A] = ' ';
+//         code[0x5B] = 'u';
+//         code[0x5C] = 's';
+//         code[0x5D] = 'e';
+//         code[0x5E] = 'r';
+//         code[0x5F] = ' ';
+//         code[0x60] = 'm';
+//         code[0x61] = 'o';
+//         code[0x62] = 'd';
+//         code[0x63] = 'e';
+//         code[0x64] = '!';
+//         code[0x65] = 0x00;
         print("User space ready\n", CYAN);
     }
 

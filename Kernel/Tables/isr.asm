@@ -125,33 +125,41 @@ pageFaultISR:
     iret
 
 syscallStub:
+    push ds
+    push es
+    push fs
+    push gs
+    
     push eax
     mov ax, 0x10
     mov ds, ax
     mov es, ax
     pop eax
-
-    pusha
-    push ds
-    push es
-    push fs
-    push gs
-
-
+    
+    push edx
+    push esi
+    push edi
+    push ebp
     
     push ecx
     push ebx
     push eax
+    
     call syscallHandler
     add esp, 12
-
+    
+    pop ebp
+    pop edi
+    pop esi
+    pop edx
+    
     pop gs
     pop fs
     pop es
     pop ds
-    popa
-
+    
     iret
+    
 section .data
 ExceptionHandlers:
     dd isr0, isr1, isr2, isr3, isr4, isr5, isr6, isr7
