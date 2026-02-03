@@ -4,7 +4,7 @@ extern timerISR
 extern keyboardISR
 extern rtcISR
 extern pageFaultHandler
-
+extern syscallHandler
 section .text
 %macro ISR_NOERR 1
 isr%1:
@@ -55,6 +55,7 @@ global isr32
 global isr33
 global isr40
 global pageFaultISR
+global syscallStub
 
 isr32:
     cli
@@ -123,6 +124,34 @@ pageFaultISR:
     
     iret
 
+syscallStub:
+    push eax
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    pop eax
+
+    pusha
+    push ds
+    push es
+    push fs
+    push gs
+
+
+    
+    push ecx
+    push ebx
+    push eax
+    call syscallHandler
+    add esp, 12
+
+    pop gs
+    pop fs
+    pop es
+    pop ds
+    popa
+
+    iret
 section .data
 ExceptionHandlers:
     dd isr0, isr1, isr2, isr3, isr4, isr5, isr6, isr7

@@ -242,8 +242,30 @@
         // code[0] = 0xA1;                     // MOV EAX, moffs32
         // *(unsigned int*)&code[1] = USER_SPACE_START + 0x5000; // 0x40005000
         // code[4] = 0x40;                     // JMP short
-        code[0] = 0xEB;                     // JMP short
-        code[1] = 0xFE;     
+        // code[0] = 0xEB;                     // JMP short
+        // code[1] = 0xFE;     
+        int i = 0;
+        // /* mov eax, 0 */
+        // code[i++] = 0xB8;
+        // code[i++] = 0x01;
+        // code[i++] = 0x00;
+        // code[i++] = 0x00;
+        // code[i++] = 0x00;
+
+        // /* mov ebx, USER_SPACE_START + 0x50 */
+        // code[i++] = 0xBB;
+        // addr = USER_SPACE_START + 0x50;
+        // code[i++] = (addr >> 0) & 0xFF;
+        // code[i++] = (addr >> 8) & 0xFF;
+        // code[i++] = (addr >> 16) & 0xFF;
+        // code[i++] = (addr >> 24) & 0xFF;
+
+        // /* int 0x80 */
+        // code[i++] = 0xCD;
+        // code[i++] = 0x80;
+        // /* jmp $ */
+        code[i++] = 0xEB;
+        code[i++] = 0xFE;
         print("User space ready\n", CYAN);
     }
 
@@ -253,7 +275,6 @@
         
         kernelTSS.ss0 = 0x10;
         kernelTSS.esp0 = VIRTUAL_KERNEL_STACK_TOP;
-        
         kernelTSS.cs = 0x08;
         kernelTSS.ss = 0x10;
         kernelTSS.ds = 0x10;

@@ -2,6 +2,7 @@
 
 extern void* ExceptionHandlers[41];
 extern void pageFaultISR();
+extern void syscallStub();
 
 static IDTEntry idt[IDT_SIZE];
 static IDTPointer idtPointer;
@@ -28,7 +29,7 @@ void enableInterrupts()
     asm volatile ("sti");
 }
 
-void registerInterruptHandler(const char interruptNumber, void (*handler)(), const short selector, const char typeAttr)
+void registerInterruptHandler(const unsigned char interruptNumber, void (*handler)(), const short selector, const char typeAttr)
 {
     int address = (int)handler;
     idt[interruptNumber].offsetLow = (short)(address & 0xFFFF);
@@ -51,6 +52,7 @@ void initalizeException()
     registerInterruptHandler(KEYBOARD_INTERRUPT_VECTOR, ExceptionHandlers[KEYBOARD_INTERRUPT_VECTOR], CODE_SEGMENT, GATE);
     registerInterruptHandler(RTC_INTERRUPT_VECTOR, ExceptionHandlers[RTC_INTERRUPT_VECTOR], CODE_SEGMENT, GATE); //RTC interrupt vector is 40
     registerInterruptHandler(PAGE_FAULT_INTERRUPT_VECTOR, pageFaultISR, CODE_SEGMENT, GATE);
+    registerInterruptHandler(USER_INTERRUPT, syscallStub, CODE_SEGMENT, USER_GATE);
     if (idt[0].offsetLow == 0 && idt[0].offsetHigh == 0) 
     {
         print("ERROR: IDT entry 0 is empty!", RED);

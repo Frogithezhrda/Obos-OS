@@ -14,8 +14,9 @@
 #define KEYBOARD_INTERRUPT_VECTOR 33
 #define RTC_INTERRUPT_VECTOR 40
 #define PAGE_FAULT_INTERRUPT_VECTOR 14
-
+#define USER_INTERRUPT 0x80
 enum {
+    USER_GATE = 0xEE,
     GATE = 0x8E,
     CODE_SEGMENT = 0x08
 };
@@ -35,7 +36,7 @@ typedef struct __attribute__((packed)) {
 
 void setupIDT(void);
 void loadIDT(void);
-void registerInterruptHandler(const char interruptNumber, void (*handler)(), const short selector, const char typeAttr);
+void registerInterruptHandler(const unsigned char interruptNumber, void (*handler)(), const short selector, const char typeAttr);
 void disableInterrupts();
 void enableInterrupts();
 void initalizeException();
