@@ -4,7 +4,7 @@
 #include "../Memory/heap.h"
 
 #define NULL 0
-#define TIME_SLICE 5 //temp time slice
+#define TIME_SLICE 20
 
 typedef enum States
 {

@@ -3,6 +3,7 @@
 
 #include "../Tables/PIC.h"
 #include "consoleDriver.h"
+#include "../Processes/scheduler.h"
 
 #define BASE_FREQUENCY 1193180
 #define COMMAND_PORT 0x43
