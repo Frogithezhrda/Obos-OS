@@ -20,7 +20,7 @@ static void splitBlock(HeapBlock* block, unsigned long size)
     {
         HeapBlock* newBlock = (HeapBlock*)((char*)block + size);
         newBlock->size = block->size - size;
-        newBlock->free = 1;
+        newBlock->free = FREE;
         newBlock->next = block->next;
         
         block->size = size;
@@ -110,7 +110,7 @@ void ufree(void* ptr)
     if (!ptr) return;
     
     HeapBlock* block = (HeapBlock*)((char*)ptr - HEAP_BLOCK_HEADER_SIZE);
-    block->free = 1;
+    block->free = FREE;
     
     mergeBlocks(&userHeap);
 }
