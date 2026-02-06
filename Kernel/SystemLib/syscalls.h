@@ -10,8 +10,12 @@
 #define SYSCALL_MALLOC     5
 #define SYSCALL_FREE       6
 #define SYSCALL_SLEEP      7
+#define SYSCALL_HOUR      8
 
-void syscallHandler(const unsigned int syscallNumber, unsigned int arg1, unsigned int arg2);
+#define SUCCESS 1
+#define FAILED  0
+
+unsigned int syscallHandler(const unsigned int syscallNumber, unsigned int arg1, unsigned int arg2);
 
 
 #endif

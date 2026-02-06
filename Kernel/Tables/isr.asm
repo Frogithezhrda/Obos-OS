@@ -129,35 +129,30 @@ syscallStub:
     push es
     push fs
     push gs
-    
     push eax
     mov ax, 0x10
     mov ds, ax
     mov es, ax
     pop eax
-    
     push edx
     push esi
     push edi
     push ebp
-    
-    push ecx ; syscall arg2
-    push ebx ; syscall param
-    push eax ; syscall code
-    
+    push ecx
+    push ebx
+    push eax
     call syscallHandler
     add esp, 12
     
+    ; eax contains return value - don't restore it!
     pop ebp
     pop edi
     pop esi
     pop edx
-    
     pop gs
     pop fs
     pop es
     pop ds
-    
     iret
 
 section .data
