@@ -30,9 +30,23 @@ typedef struct CPUContext
 } CPUContext;
 
 
+// CPU Context
+// edi
+// esi
+// ebx
+// ebp
+// eflags;
+    // This is pushed automatically by the C compiler's CALL instruction when switch_to() is called.
+// eip
 
 typedef struct PCB
 {
+    // Context Information
+    // This points to the CURRENT top of the stack for this process.
+    // When the process is running, this value is outdated.
+    // When the process is paused, this points to a CPU Context on the stack.
+    void* esp;
+
     unsigned int processID;
     unsigned int parentPID;
     States state;
