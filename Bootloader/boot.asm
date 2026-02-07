@@ -14,15 +14,15 @@ mmap_ent equ 0x8000
 jmp Start
 
 Start:
-    cli
+    cli         ; clear interrupt flag
     xor ax, ax
     mov ds, ax
     mov es, ax
     mov ss, ax
     mov sp, 0x9000
-    sti
-    cld
-    
+    sti         ; set interrupt flag
+    cld         ; clear direction flag  
+
 EnableA20:
     in al, 0x92
     or al, 2
