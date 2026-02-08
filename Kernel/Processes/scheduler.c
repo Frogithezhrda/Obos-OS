@@ -1,5 +1,6 @@
 #include "scheduler.h"
 
+enum Mode {SAVE_AND_SWITCH = 0, SWITCH_ONLY};
 
 void initScheduler()
 {
@@ -17,7 +18,17 @@ void initScheduler()
 // eflags;
     // This is pushed automatically by the C compiler's CALL instruction when switch_to() is called.
 // eip
-void switch_to(PCB* old_pcb, PCB* next_pcb) {
+void contextSwitch(PCB* old_pcb, PCB* next_pcb, Mode mode) {
+    if (mode == SAVE_AND_SWITCH){
+       saveContext(old_pcb);
+       loadContext(next_pcb);
+    }
+    else (mode == SWITCH_ONLY){
+       loadContext(next_pcb);
+    }
+}
+
+void saveContext(PCB* pcb){
     asm volatile (
         // Save current context onto the current stack
         "pushfl \n\t"              // Push EFLAGS
@@ -28,10 +39,17 @@ void switch_to(PCB* old_pcb, PCB* next_pcb) {
 
         // Save current ESP into old_pcb->esp
         // We use %[old_esp] to let C tell us where that variable is
-        "mov %%esp, %[old_esp] \n\t"
+        "mov %%esp, %[pcb] \n\t"
 
+        : [pcb] "=m" (pcb->esp)  // Output: write hardware ESP here
+        : "memory"                       // Tell compiler memory has changed
+    )
+}
+
+void loadContext(PCB* pcb){
+    asm volatile (
         // THE SWITCH: Load the new ESP from next_pcb->esp
-        "mov %[next_esp], %%esp \n\t"
+        "mov %[pcb], %%esp \n\t"
 
         // Restore new context from the new stack
         "pop %%edi \n\t"
@@ -40,11 +58,11 @@ void switch_to(PCB* old_pcb, PCB* next_pcb) {
         "pop %%ebp \n\t"
         "popfl \n\t"               // Pop EFLAGS
 
-        : [old_esp] "=m" (old_pcb->esp)  // Output: write hardware ESP here
-        : [next_esp] "m" (next_pcb->esp) // Input: read new ESP from here
+        : [pcb] "m" (pcb->esp) // Input: read new ESP from here
         : "memory"                       // Tell compiler memory has changed
-    );
+    )
 }
+
 
 void nextProcess()
 {
@@ -58,11 +76,11 @@ void nextProcess()
     //if the preivous process still alive need to save it in the context switch
     if(previousProcess)
     {
-        switch_to(previousProcess, currentProcess);
+        contextSwitch(previousProcess, currentProcess, SAVE_AND_SWITCH);
     }
     else //still need to switch probably to a process so
     {
-        //TODO Context switc
+        contextSwitch(previousProcess, currentProcess, SWITCH_ONLY);
     }
 }
 
