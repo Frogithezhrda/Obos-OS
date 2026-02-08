@@ -19,6 +19,7 @@ void initScheduler()
     // This is pushed automatically by the C compiler's CALL instruction when switch_to() is called.
 // eip
 void contextSwitch(PCB* old_pcb, PCB* next_pcb, Mode mode) {
+
     if (mode == SAVE_AND_SWITCH){
        saveContext(old_pcb);
        loadContext(next_pcb);
@@ -26,6 +27,7 @@ void contextSwitch(PCB* old_pcb, PCB* next_pcb, Mode mode) {
     else (mode == SWITCH_ONLY){
        loadContext(next_pcb);
     }
+    
 }
 
 void saveContext(PCB* pcb){
@@ -80,7 +82,7 @@ void nextProcess()
     }
     else //still need to switch probably to a process so
     {
-        contextSwitch(previousProcess, currentProcess, SWITCH_ONLY);
+        contextSwitch(previousProcess, currentProcess, );
     }
 }
 
