@@ -111,6 +111,20 @@ code[5] = 0xFE; // infinite loop
 AND DONT FORGET TO PUT THE COLOR WHEN CALLING THE PRINT
 */
 
+void printTitle()
+{
+    printLine(" ________  ________  ________  ________      ", GREEN);
+    printLine("|\\   __  \\|\\   __  \\|\\   __  \\|\\   ____\\     ", GREEN);
+    printLine("\\ \\  \\|\\  \\ \\  \\|\\ /\\ \\  \\|\\  \\ \\  \\___|_    ", GREEN);
+    printLine(" \\ \\  \\\\\\  \\ \\   __  \\ \\  \\\\  \\ \\_____  \\   ", GREEN);
+    printLine("  \\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\  \\|____|\\  \\  ", GREEN);
+    printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
+    printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
+    printLine("                                 \\|_________|", GREEN);
+    printLine("Version: 0.3", BLUE);
+    printLine("Made By: Omer saban and Baraksh", BLUE);
+    disableInterrupts();
+}
 
 void obos_main()
 {
@@ -132,6 +146,9 @@ void obos_main()
     enablePagingNow();
     initKernelHeap();
     initUserHeap();
+    clearScreen();
+    printTitle(); //this disables interrupts in the os
+    enableInterrupts();
     // enterUserMode((void*)USER_SPACE_START);
     // // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
     // unsigned int value = *ptr; //this will cause a page fault

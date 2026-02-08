@@ -2,11 +2,36 @@
 
 static unsigned short position = 0;
 
+
+void scrollIfNeeded()
+{
+    int maxPos = SCREEN_WIDTH * SCREEN_HEIGHT * 2;
+    if (position < maxPos) 
+        return;
+    
+    char* video = (char*)VIDEO_LOCATION;
+    int rowSize = SCREEN_WIDTH * 2;
+    
+    for (int i = 0; i < maxPos - rowSize; i++)
+    {
+        video[i] = video[i + rowSize];
+    }
+    
+    // Clear last row
+    for (int i = maxPos - rowSize; i < maxPos; i += 2)
+    {
+        video[i] = ' ';
+        video[i + 1] = WHITE;
+    }
+    
+    position = maxPos - rowSize;
+}
+
 void clearScreen()
 {
     char* video = (char*)VIDEO_LOCATION;
     char* blank = ' ';
-    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT; i += 2) 
+    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT * 2; i += 2) 
     {
         video[i] = blank;
         video[i + 1] = WHITE;
@@ -34,6 +59,12 @@ void printNumber(int number, const int color)
     int isNegative = 0;
     char buffer[12]; //enough for int
     int i = 0;
+
+    if (number < 0)
+    {
+        isNegative = 1;
+        number = -number;
+    }
 
     if (number == 0) 
     {
@@ -71,12 +102,14 @@ void print(const char* string, const int color)
             int currentRow = currentChar / SCREEN_WIDTH;
             int nextRow = currentRow + 1;
             position = nextRow * SCREEN_WIDTH * 2;
+            scrollIfNeeded();
             continue;
         }
         
         video[position] = string[i];
         video[position + 1] = color;         
         position += 2;   
+        scrollIfNeeded();
     }
     updateCursor(position / 2);
 }

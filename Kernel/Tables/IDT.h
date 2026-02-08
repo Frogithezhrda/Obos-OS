@@ -16,7 +16,7 @@
 #define PAGE_FAULT_INTERRUPT_VECTOR 14
 #define USER_INTERRUPT 0x80
 enum {
-    USER_GATE = 0xEE,
+    USER_GATE = 0xEE, //11101110 
     GATE = 0x8E,
     CODE_SEGMENT = 0x08
 };
