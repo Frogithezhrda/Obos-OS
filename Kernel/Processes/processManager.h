@@ -20,14 +20,6 @@ typedef enum Flags
 {
     IF = 0x202
 } Flags;
-typedef struct CPUContext
-{
-    int eip;
-    int esp;
-    int ebp;
-    int eax, ebx, ecx, edx, esi, edi;
-    int eflags;
-} CPUContext;
 
 
 // CPU Context
