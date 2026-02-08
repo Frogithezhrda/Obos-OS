@@ -9,26 +9,6 @@ void initScheduler()
     currentProcess = NULL;
 }
 
-void nextProcess()
-{
-    PCB* previousProcess = currentProcess;
-    currentProcess = pop(&readyQueue);
-
-    if(!currentProcess) return;
-
-    currentProcess->state = Running;
-
-    //if the preivous process still alive need to save it in the context switch
-    if(previousProcess)
-    {
-        //TODO Context switc
-    }
-    else //still need to switch probably to a process so
-    {
-        //TODO Context switc
-    }
-}
-
 // CPU Context
 // edi
 // esi
@@ -64,6 +44,26 @@ void switch_to(PCB* old_pcb, PCB* next_pcb) {
         : [next_esp] "m" (next_pcb->esp) // Input: read new ESP from here
         : "memory"                       // Tell compiler memory has changed
     );
+}
+
+void nextProcess()
+{
+    PCB* previousProcess = currentProcess;
+    currentProcess = pop(&readyQueue);
+
+    if(!currentProcess) return;
+
+    currentProcess->state = Running;
+
+    //if the preivous process still alive need to save it in the context switch
+    if(previousProcess)
+    {
+        switch_to(previousProcess, currentProcess);
+    }
+    else //still need to switch probably to a process so
+    {
+        //TODO Context switc
+    }
 }
 
 void tick()
