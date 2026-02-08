@@ -101,6 +101,8 @@ PCB* createProcess(void* entryPoint)
     need to add the stack and page directory
     */
 
+    saveContext(process);
+
     push(&readyQueue, process);
 }
 
