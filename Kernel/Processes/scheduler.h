@@ -4,9 +4,9 @@
 #include "processManager.h"
 
 void initScheduler(void);
-void contextSwitch(PCB* old_pcb, PCB* next_pcb, Mode mode);
-void saveContext(PCB* pcb);
-void loadContext(PCB* pcb);
+
+void contextSwitch(PCB* old_pcb, PCB* next_pcb);
+void loadFirstProcess(PCB* pcb);
 
 void nextProcess(void);
 void tick(void);

@@ -101,7 +101,17 @@ PCB* createProcess(void* entryPoint)
     need to add the stack and page directory
     */
 
-    saveContext(process);
+    asm volatile (
+        "mov %[new_esp], %%esp \n\t"  // Jump to the new stack
+        "pop %%edi \n\t"
+        "pop %%esi \n\t"
+        "pop %%ebx \n\t"
+        "pop %%ebp \n\t"
+        "popfl \n\t"
+        : 
+        : [new_esp] "m" (process->esp)
+        : "memory"
+    );
 
     push(&readyQueue, process);
 }

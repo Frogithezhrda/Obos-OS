@@ -1,7 +1,5 @@
 #include "scheduler.h"
 
-enum Mode {SAVE_AND_SWITCH = 0, SWITCH_ONLY};
-
 void initScheduler()
 {
     initQueue(&readyQueue);
@@ -18,53 +16,49 @@ void initScheduler()
 // eflags;
     // This is pushed automatically by the C compiler's CALL instruction when switch_to() is called.
 // eip
-void contextSwitch(PCB* old_pcb, PCB* next_pcb, Mode mode) {
-
-    if (mode == SAVE_AND_SWITCH){
-       saveContext(old_pcb);
-       loadContext(next_pcb);
-    }
-    else (mode == SWITCH_ONLY){
-       loadContext(next_pcb);
-    }
-    
-}
-
-void saveContext(PCB* pcb){
+void contextSwitch(PCB* old_pcb, PCB* next_pcb) {
     asm volatile (
-        // Save current context onto the current stack
-        "pushfl \n\t"              // Push EFLAGS
+        // 1. SAVE: Only if we have an old process
+        "pushfl \n\t"
         "push %%ebp \n\t"
         "push %%ebx \n\t"
         "push %%esi \n\t"
         "push %%edi \n\t"
 
-        // Save current ESP into old_pcb->esp
-        // We use %[old_esp] to let C tell us where that variable is
-        "mov %%esp, %[pcb] \n\t"
+        // Store the stack pointer into the OLD pcb
+        "mov %%esp, %[old_esp] \n\t"
 
-        : [pcb] "=m" (pcb->esp)  // Output: write hardware ESP here
-        : "memory"                       // Tell compiler memory has changed
-    )
-}
+        // 2. SWITCH: Change the ground under the CPU's feet
+        "mov %[next_esp], %%esp \n\t"
 
-void loadContext(PCB* pcb){
-    asm volatile (
-        // THE SWITCH: Load the new ESP from next_pcb->esp
-        "mov %[pcb], %%esp \n\t"
-
-        // Restore new context from the new stack
+        // 3. LOAD: Restore registers from the NEW stack
         "pop %%edi \n\t"
         "pop %%esi \n\t"
         "pop %%ebx \n\t"
         "pop %%ebp \n\t"
-        "popfl \n\t"               // Pop EFLAGS
+        "popfl \n\t"
 
-        : [pcb] "m" (pcb->esp) // Input: read new ESP from here
-        : "memory"                       // Tell compiler memory has changed
-    )
+        : [old_esp] "=m" (old_pcb->esp) 
+        : [next_esp] "m" (next_pcb->esp)
+        : "memory"
+    );
 }
 
+void loadFirstProcess(PCB* pcb)
+{
+    // Load the first process's stack pointer into ESP and jump to its entry point
+    asm volatile (
+        "mov %[next_esp], %%esp \n\t"
+        "pop %%edi \n\t"
+        "pop %%esi \n\t"
+        "pop %%ebx \n\t"
+        "pop %%ebp \n\t"
+        "popfl \n\t"
+        :
+        : [next_esp] "m" (pcb->esp)
+        : "memory"
+    );
+}
 
 void nextProcess()
 {
@@ -78,11 +72,11 @@ void nextProcess()
     //if the preivous process still alive need to save it in the context switch
     if(previousProcess)
     {
-        contextSwitch(previousProcess, currentProcess, SAVE_AND_SWITCH);
+        contextSwitch(previousProcess, currentProcess);
     }
     else //still need to switch probably to a process so
     {
-        contextSwitch(previousProcess, currentProcess, );
+        loadFirstProcess(currentProcess);
     }
 }
 
