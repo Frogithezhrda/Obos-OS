@@ -4,6 +4,8 @@
 #include "../Tables/IDT.h"
 #include "../Tables/PIC.h"
 #include "../Memory/heap.h"
+#include "../SystemLib/obosMemory.h"
+
 void obos_main();
 
 #endif  
