@@ -54,7 +54,6 @@ void keyboardISR(void)
                 keyboardBuffer[bufferIndex] = '\0'; //null-terminate the string
                 //printing the char
             }
-            clearScreen();
             print(keyboardBuffer, WHITE);
         }
     }
@@ -78,7 +77,6 @@ void deleteChar(void)
         keyboardBuffer[bufferIndex] = ' ';
         keyboardBuffer[bufferIndex + 1] = '\0';
         //printing the updated buffer
-        clearScreen();
         print(keyboardBuffer, WHITE);
     }
 }

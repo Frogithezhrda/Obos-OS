@@ -17,7 +17,6 @@ void scrollIfNeeded()
         video[i] = video[i + rowSize];
     }
     
-    // Clear last row
     for (int i = maxPos - rowSize; i < maxPos; i += 2)
     {
         video[i] = ' ';
