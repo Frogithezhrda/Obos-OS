@@ -104,7 +104,13 @@ void print(const char* string, const int color)
             scrollIfNeeded();
             continue;
         }
-        
+        if (string[i] == '\b') 
+        {  
+            position -= 2;
+            video[position] = ' ';
+            video[position + 1] = color;     
+            continue;
+        }
         video[position] = string[i];
         video[position + 1] = color;         
         position += 2;   

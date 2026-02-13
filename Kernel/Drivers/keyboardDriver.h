@@ -3,6 +3,7 @@
 
 #include "consoleDriver.h"
 #include "../Tables/PIC.h"
+#include "../SystemLib/obosMemory.h"
 
 #define KEYBOARD_BUFFER_SIZE 256
 #define KEYBOARD_SCAN_CODE_PORT 0x60
@@ -15,5 +16,6 @@
 
 void keyboardISR(void);
 void deleteChar(void);
-
+void keybos(char* string, const int maxLength);
+void handleKeyRelease(void);
 #endif

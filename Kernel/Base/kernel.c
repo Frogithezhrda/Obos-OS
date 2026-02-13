@@ -149,6 +149,13 @@ void obos_main()
     clearScreen();
     printTitle(); //this disables interrupts in the os
     enableInterrupts();
+    char* string = kmalloc(100);
+    while(1)
+    {
+        printW("\n>>");
+        keybos(string, 100);
+        printLineW(string);
+    }
     // enterUserMode((void*)USER_SPACE_START);
     // // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
     // unsigned int value = *ptr; //this will cause a page fault
