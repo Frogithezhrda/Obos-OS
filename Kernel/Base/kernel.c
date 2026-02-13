@@ -121,8 +121,8 @@ void printTitle()
     printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
     printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
     printLine("                                 \\|_________|", GREEN);
-    printLine("Version: 0.3", BLUE);
-    printLine("Made By: Omer saban and Baraksh", BLUE);
+    printLine("Version: 0.3", LIGHT_BLUE);
+    printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
     disableInterrupts();
 }
 
@@ -139,7 +139,6 @@ void obos_main()
     enableInterrupts();
     clearScreen();
 
-        
     initializeMemoryManager();
     // printMemoryManagerInfo();
     initializePaging();
