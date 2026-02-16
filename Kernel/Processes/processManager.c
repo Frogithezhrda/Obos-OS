@@ -118,7 +118,13 @@ PCB* createProcess(void* entryPoint)
 
 void exitProcess(const int exitCode)
 {
-    //currently only terminating and adding to the terminated queue
+    kfree(currentProcess);
+    currentProcess = NULL;
+}
+
+void terminateProcess()
+{
     currentProcess->state = Terminated;
     push(&terminatedQueue, currentProcess);
+    currentProcess = NULL;
 }

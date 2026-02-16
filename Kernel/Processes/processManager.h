@@ -77,6 +77,7 @@ void remove(ProcessQueue* queue, PCB* process);
 
 PCB* createProcess(void* entryPoint);
 void exitProcess(const int exitCode);
+void terminateProcess();
 
 
 #endif
