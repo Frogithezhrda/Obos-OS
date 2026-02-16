@@ -21,7 +21,6 @@ typedef enum Flags
     IF = 0x202
 } Flags;
 
-
 // CPU Context
 // edi
 // esi

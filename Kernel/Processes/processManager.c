@@ -103,11 +103,11 @@ PCB* createProcess(void* entryPoint)
 
     asm volatile (
         "mov %[new_esp], %%esp \n\t"  // Jump to the new stack
-        "pop %%edi \n\t"
-        "pop %%esi \n\t"
-        "pop %%ebx \n\t"
-        "pop %%ebp \n\t"
-        "popfl \n\t"
+        "pushfl \n\t"
+        "push %%ebp \n\t"
+        "push %%ebx \n\t"
+        "push %%esi \n\t"
+        "push %%edi \n\t"
         : 
         : [new_esp] "m" (process->esp)
         : "memory"
