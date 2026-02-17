@@ -111,6 +111,20 @@ code[5] = 0xFE; // infinite loop
 AND DONT FORGET TO PUT THE COLOR WHEN CALLING THE PRINT
 */
 
+void printTitle()
+{
+    printLine(" ________  ________  ________  ________      ", GREEN);
+    printLine("|\\   __  \\|\\   __  \\|\\   __  \\|\\   ____\\     ", GREEN);
+    printLine("\\ \\  \\|\\  \\ \\  \\|\\ /\\ \\  \\|\\  \\ \\  \\___|_    ", GREEN);
+    printLine(" \\ \\  \\\\\\  \\ \\   __  \\ \\  \\\\  \\ \\_____  \\   ", GREEN);
+    printLine("  \\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\  \\|____|\\  \\  ", GREEN);
+    printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
+    printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
+    printLine("                                 \\|_________|", GREEN);
+    printLine("Version: 0.3", LIGHT_BLUE);
+    printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
+    disableInterrupts();
+}
 
 void obos_main()
 {
@@ -125,13 +139,29 @@ void obos_main()
     enableInterrupts();
     clearScreen();
 
-        
     initializeMemoryManager();
     // printMemoryManagerInfo();
     initializePaging();
     enablePagingNow();
     initKernelHeap();
     initUserHeap();
+    clearScreen();
+    printTitle(); //this disables interrupts in the os
+    enableInterrupts();
+    char* string = kmalloc(100);
+    while(1)
+    {
+        printW("\n>>");
+        keybos(string, 100);
+        printLineW(string);
+        if(!strcmp(string, "exit"))
+        {
+            printLineW("Exiting write mode...");
+            break;
+        }
+    }
+    //minimal shutdown
+    asm volatile("hlt");
     // enterUserMode((void*)USER_SPACE_START);
     // // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
     // unsigned int value = *ptr; //this will cause a page fault

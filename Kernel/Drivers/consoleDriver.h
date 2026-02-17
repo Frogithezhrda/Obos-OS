@@ -8,7 +8,7 @@
 
 // #define VGA_VIRTUAL_ADDRESS 0xC00B8000
 #define SCREEN_WIDTH 80
-#define SCREEN_HEIGHT 90
+#define SCREEN_HEIGHT 25
 
 //can print now using White without writing the color each time
 #define printW(s) print(s, WHITE)
@@ -44,5 +44,6 @@ void printLine(const char* string, const int color);
 void printNumber(int number, const int color);
 void printHexNumber(unsigned int number, const int color);
 void updateCursor(const int cursorPos);
+void scrollIfNeeded();
 
 #endif

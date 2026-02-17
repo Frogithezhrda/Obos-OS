@@ -1,6 +1,6 @@
 #include "keyboardDriver.h"
 
-//keys table
+// Keys table
 static const char scancodeToASCII[LAST_SCAN_CODE] = 
 {
     0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
@@ -10,6 +10,7 @@ static const char scancodeToASCII[LAST_SCAN_CODE] =
     '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'
 };
+
 static const char scancodeToASCIIShift[LAST_SCAN_CODE] = 
 {
     0, 0, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b',
@@ -20,65 +21,89 @@ static const char scancodeToASCIIShift[LAST_SCAN_CODE] =
     '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'
 };
 
-static char keyboardBuffer[KEYBOARD_BUFFER_SIZE];
-static unsigned int bufferIndex = 0;
-static unsigned char shiftPressed = 0; //flag for shift pressed
+static unsigned char shiftPressed = 0;
+static unsigned char lastScanCode = 0;
 
 void keyboardISR(void)
 {
-    unsigned char asciiChar;
-    unsigned char scanCode = inb(KEYBOARD_SCAN_CODE_PORT); // reading from keyboard data port
-    if (!(scanCode & KEYPRESS_MASK)) //key press event
-    {
-        if(scanCode == SHIFT_LEFT_PRESS || scanCode == SHIFT_RIGHT_PRESS) 
-        {
-            shiftPressed = 1;
-        }
-        else if (scanCode < LAST_SCAN_CODE) //valid scan code
-        {
-            if (shiftPressed)
-            {
-                asciiChar = scancodeToASCIIShift[scanCode];
-            }
-            else
-            {
-                asciiChar = scancodeToASCII[scanCode];
-            }
-            if(asciiChar == '\b') //backspace handling
-            {
-                deleteChar();
-            }
-            else if (asciiChar != 0 && bufferIndex < KEYBOARD_BUFFER_SIZE - 1)
-            {
-                keyboardBuffer[bufferIndex++] = asciiChar;
-                keyboardBuffer[bufferIndex] = '\0'; //null-terminate the string
-                //printing the char
-            }
-            clearScreen();
-            print(keyboardBuffer, WHITE);
-        }
-    }
-    else 
-    {
-        if (scanCode == SHIFT_LEFT_RELEASE || scanCode == SHIFT_RIGHT_RELEASE)
-        {
-            shiftPressed = 0;
-        }
-    }
-    endOfInterrupt(1); //IRQ1 is keyboard
+    lastScanCode = inb(KEYBOARD_SCAN_CODE_PORT);
+    endOfInterrupt(1);
 }
 
-//half works needs the console driver to support backspace properly
 void deleteChar(void)
 {
-    if (bufferIndex > 0)
+    printW("\b \b");
+}
+
+void keybos(char* string, const int maxLength)
+{
+    int index = 0;
+    unsigned char scanCode;
+    unsigned char asciiChar;
+    
+    // Clear the string
+    string[0] = '\0';
+    
+    while (1)
     {
-        //works as half baked solution
-        bufferIndex--;
-        keyboardBuffer[bufferIndex] = ' ';
-        keyboardBuffer[bufferIndex + 1] = '\0';
-        //printing the updated buffer
-        clearScreen();
-        print(keyboardBuffer, WHITE);
+        while (lastScanCode == 0);
+        
+        scanCode = lastScanCode;
+        lastScanCode = 0;
+        
+        if (scanCode & KEYPRESS_MASK)
+        {
+            if (scanCode == SHIFT_LEFT_RELEASE || scanCode == SHIFT_RIGHT_RELEASE)
+            {
+                shiftPressed = 0;
+            }
+            continue;
+        }
+        
+        if (scanCode == SHIFT_LEFT_PRESS || scanCode == SHIFT_RIGHT_PRESS)
+        {
+            shiftPressed = 1;
+            continue;
+        }
+        
+        if (scanCode >= LAST_SCAN_CODE) 
+            continue;
+        
+        if (shiftPressed)
+        {
+            asciiChar = scancodeToASCIIShift[scanCode];
+        }
+        else
+        {
+            asciiChar = scancodeToASCII[scanCode];
+        }
+        
+        if (asciiChar == 0) 
+            continue;
+        
+        if (asciiChar == '\n')
+        {
+            string[index] = '\0';
+            printLineW("");
+            break;
+        }
+        else if (asciiChar == '\b')
+        {
+            if (index > 0)
+            {
+                index--;
+                string[index] = '\0';
+                deleteChar();
+            }
+        }
+        else if (index < maxLength - 1)
+        {
+            string[index] = asciiChar;
+            index++;
+            string[index] = '\0';
+            printChar(asciiChar, WHITE);
+        }
+        
+        for (int i = 0; i < 50000; i++);
     }
 }
