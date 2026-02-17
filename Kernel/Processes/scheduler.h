@@ -12,4 +12,6 @@ void nextProcess(void);
 void tick(void);
 void yield(void);
 
+void wakeupReadyWaitingProcesses();
+
 #endif

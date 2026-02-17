@@ -76,6 +76,7 @@ PCB* pop(ProcessQueue* queue);
 void remove(ProcessQueue* queue, PCB* process);
 
 PCB* createProcess(void* entryPoint);
+void runToWaiting();
 void exitProcess(const int exitCode);
 void terminateProcess();
 

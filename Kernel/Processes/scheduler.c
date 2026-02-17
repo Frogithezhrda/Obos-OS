@@ -94,10 +94,25 @@ void tick()
 void yield()
 {
     if(!currentProcess) return;
-    
+
     currentProcess->state = Ready;
     currentProcess->timeSlice = TIME_SLICE;
     push(&readyQueue, currentProcess);
 
     nextProcess();
+}
+
+void wakeupReadyWaitingProcesses()
+{
+    PCB* process = waitingQueue.head;
+    while(process)
+    {
+        if(process->state == Waiting){
+            continue;
+        }
+        remove(&waitingQueue, process);
+        process->state = Ready;
+        push(&readyQueue, process);
+        process = process->next;
+    }
 }
