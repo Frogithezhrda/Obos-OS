@@ -116,14 +116,28 @@ PCB* createProcess(void* entryPoint)
     push(&readyQueue, process);
 }
 
+void runToWaiting()
+{
+    if(!currentProcess) return;
+
+    currentProcess->state = Waiting;
+    push(&waitingQueue, currentProcess);
+    currentProcess = NULL;
+}
+
 void exitProcess(const int exitCode)
 {
+    if(!currentProcess) return;
+
+    // parents should be aware and kids should be down too?
     kfree(currentProcess);
     currentProcess = NULL;
 }
 
 void terminateProcess()
 {
+    if(!currentProcess) return;
+
     currentProcess->state = Terminated;
     push(&terminatedQueue, currentProcess);
     currentProcess = NULL;

@@ -93,12 +93,11 @@ void tick()
 
 void yield()
 {
-    if(currentProcess)
-    {
-        currentProcess->state = Ready;
-        currentProcess->timeSlice = TIME_SLICE;
-        push(&readyQueue, currentProcess);
-    }
+    if(!currentProcess) return;
+    
+    currentProcess->state = Ready;
+    currentProcess->timeSlice = TIME_SLICE;
+    push(&readyQueue, currentProcess);
 
     nextProcess();
 }
