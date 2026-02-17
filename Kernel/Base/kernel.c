@@ -121,7 +121,7 @@ void printTitle()
     printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
     printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
     printLine("                                 \\|_________|", GREEN);
-    printLine("Version: 0.3", LIGHT_BLUE);
+    printLine("Version: 0.4", LIGHT_BLUE);
     printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
     disableInterrupts();
 }
@@ -147,8 +147,19 @@ void obos_main()
     initUserHeap();
     clearScreen();
     printTitle(); //this disables interrupts in the os
+    initializeSuperBlock();
     enableInterrupts();
     char* string = kmalloc(100);
+    // Block block;
+    // if(!readBlock(28, &block))
+    // {
+    //     printW("Block Info: ");
+    //     printLineW(block.block);
+    // }
+    // else
+    // {
+    //     printW("Couldnt print");
+    // }
     while(1)
     {
         printW("\n>>");
@@ -160,6 +171,7 @@ void obos_main()
             break;
         }
     }
+    kfree(string);
     //minimal shutdown
     asm volatile("hlt");
     // enterUserMode((void*)USER_SPACE_START);

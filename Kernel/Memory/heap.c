@@ -75,7 +75,7 @@ void* kmalloc(unsigned long size)
     block->free = OCCUPIED;
 
     return (void*)((char*)block + HEAP_BLOCK_HEADER_SIZE);
-}   
+}
 
 void kfree(void* ptr)
 {

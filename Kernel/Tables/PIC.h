@@ -24,7 +24,9 @@
 #define LOWER_IRQ 8
 
 void outb(const unsigned short port, const unsigned char value);
+void outw(const unsigned short port, const unsigned short value);
 unsigned char inb(const unsigned short port);
+unsigned short inw(const unsigned short port);
 void maskAllInterrupts();
 void initializePIC();
 void unmaskAllInterrupts();

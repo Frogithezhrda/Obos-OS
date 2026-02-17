@@ -5,6 +5,8 @@
 ; standard for talking to hard drives
 ; the disk has A small set of registers exposed to the CPU via I/O ports
 ; its like a tiny computer that the CPU can talk to about disk operations
+global ataReadSectors
+
 ataReadSectors:
     ;preserving registers
     pusha

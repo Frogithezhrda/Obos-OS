@@ -5,6 +5,7 @@
 #include "../Tables/PIC.h"
 #include "../Memory/heap.h"
 #include "../SystemLib/obosMemory.h"
+#include "../Fs/superblock.h"
 
 void obos_main();
 
