@@ -9,7 +9,7 @@ void createSuperBlock()
 
     sb->magicNumber = MAGIC_NUMBER;
     sb->inodeTableStartBlock = SUPERBLOCK_BLOCK + 1;
-    sb->inodeTableBlocks = (sizeof(INodeTable) / BLOCK_SIZE) + 1;
+    sb->inodeTableBlocks = (sizeof(INodeTable) / BLOCK_SIZE);
     sb->bitmapStartBlock = sb->inodeTableStartBlock + sb->inodeTableBlocks;
     sb->bitmapBlocks = ((TOTAL_BLOCKS / 8 + BLOCK_SIZE - 1) / BLOCK_SIZE);
     sb->freeBlocksCount = TOTAL_BLOCKS - (SUPERBLOCK_BLOCK + sb->inodeTableBlocks + sb->bitmapBlocks);
@@ -99,18 +99,17 @@ void initializeINodeMap()
     }
     memset(inodeTable, 0, sizeof(INodeTable));
     Block* block = (Block*)kmalloc(sizeof(Block));
-
-    memset(block, 0, sizeof(Block));
-
-        memcpy(block->block, (char*)inodeTable + (0 * BLOCK_SIZE), BLOCK_SIZE);
-        if (writeBlock(sb->inodeTableStartBlock + 0, block) != SUCCESS)
+    for (unsigned int i = 0; i < sb->inodeTableBlocks; i++)
+    {
+        memset(block, 0, sizeof(Block));
+        memcpy(block->block, (char*)inodeTable + (i * BLOCK_SIZE), BLOCK_SIZE);
+        if (writeBlock(sb->inodeTableStartBlock + i, block) != SUCCESS)
         {
             kfree(inodeTable);
             kfree(block);
             kernelPanic("Failed to write inode table block!");
         }
-        printNumberW(sb->inodeTableStartBlock + 0);
-
+    }
     kfree(inodeTable);
     kfree(block);
 }
@@ -144,7 +143,109 @@ void initializeBitmap(unsigned char* bitmap)
         {
             kernelPanic("Failed to write bitmap block!");
         }
-        printNumberW(sb->bitmapStartBlock + i);
 
     }
+}
+
+int allocateBlock()
+{
+    unsigned char* bitmap = (unsigned char*)kmalloc(sb->bitmapBlocks * BLOCK_SIZE);
+    if (bitmap == NULL)
+    {
+        return ERROR;
+    }
+
+    Block* block = (Block*)kmalloc(sizeof(Block));
+    if (block == NULL)
+    {
+        kfree(bitmap);
+        return ERROR;
+    }
+
+    for (unsigned int i = 0; i < sb->bitmapBlocks; i++)
+    {
+        if (readBlock(sb->bitmapStartBlock + i, block) != SUCCESS)
+        {
+            kfree(bitmap);
+            kfree(block);
+            return ERROR;
+        }
+        memcpy(bitmap + (i * BLOCK_SIZE), block->block, BLOCK_SIZE);
+    }
+
+    int foundBlock = ERROR;
+    for (unsigned int i = 0; i < TOTAL_BLOCKS; i++)
+    {
+        if (!(bitmap[i / 8] & (1 << (i % 8))))
+        {
+            foundBlock = i;
+            break;
+        }
+    }
+
+    if (foundBlock == ERROR)
+    {
+        kfree(bitmap);
+        kfree(block);
+        return ERROR; //no free blocks
+    }
+
+    bitmap[foundBlock / 8] |= (1 << (foundBlock % 8));
+    sb->freeBlocksCount--;
+
+    //write the modified bitmap block back
+    unsigned int bitmapBlockIndex = foundBlock / (BLOCK_SIZE * 8);
+    memset(block, 0, sizeof(Block));
+    memcpy(block->block, bitmap + (bitmapBlockIndex * BLOCK_SIZE), BLOCK_SIZE);
+    if (writeBlock(sb->bitmapStartBlock + bitmapBlockIndex, block) != SUCCESS)
+    {
+        kfree(bitmap);
+        kfree(block);
+        return ERROR;
+    }
+
+    kfree(bitmap);
+    kfree(block);
+    return foundBlock;
+}
+
+int freeBlock(const unsigned int blockNum)
+{
+    unsigned int bitmapBlockIndex = blockNum / (BLOCK_SIZE * 8);
+
+    unsigned char* bitmap = (unsigned char*)kmalloc(BLOCK_SIZE);
+    if (bitmap == NULL) return ERROR;
+
+    Block* block = (Block*)kmalloc(sizeof(Block));
+    if (block == NULL)
+    {
+        kfree(bitmap);
+        return ERROR;
+    }
+
+    if (readBlock(sb->bitmapStartBlock + bitmapBlockIndex, block) != SUCCESS)
+    {
+        kfree(bitmap);
+        kfree(block);
+        return ERROR;
+    }
+    memcpy(bitmap, block->block, BLOCK_SIZE);
+
+    unsigned int bitIndex = blockNum % (BLOCK_SIZE * 8);
+    bitmap[bitIndex / 8] &= ~(1 << (bitIndex % 8));
+    sb->freeBlocksCount++;
+
+    //write back
+    memset(block, 0, sizeof(Block));
+    memcpy(block->block, bitmap, BLOCK_SIZE);
+    if(writeBlock(sb->bitmapStartBlock + bitmapBlockIndex, block) != SUCCESS)
+    {
+        kfree(bitmap);
+        kfree(block);
+        return ERROR;
+    }
+
+    kfree(bitmap);
+    kfree(block);
+    return SUCCESS; 
 }
