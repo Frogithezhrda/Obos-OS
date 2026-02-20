@@ -2,12 +2,10 @@
 
 int readBlock(const int blockId, Block* block)
 {
-    if (readATABlock(blockId, block) != SUCCESS) return ERROR;
-    return SUCCESS;
+    return readATABlock(blockId, block);
 }
 
 int writeBlock(const int blockId, Block* block)
 {
-    if (writeATABlock(blockId, block) != SUCCESS) return ERROR;
-    return SUCCESS;
+    return writeATABlock(blockId, block);
 }

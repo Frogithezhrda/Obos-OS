@@ -5,7 +5,7 @@
 #include "../SystemLib/obosMemory.h"
 
 #define TOTAL_BLOCKS 1024
-#define SUPERBLOCK_BLOCK 28
+#define SUPERBLOCK_BLOCK 40
 #define MAGIC_NUMBER 0x4F424653
 #define MAX_BLOCKS_PER_FILE 16
 #define MAX_FILES 128
@@ -40,5 +40,6 @@ typedef struct SuperBlock
 void createSuperBlock();
 void loadSuperBlock();
 void initializeBitmap(unsigned char* bitmap);
+void initializeINodeMap();
 
 #endif
