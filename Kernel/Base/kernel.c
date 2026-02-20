@@ -147,8 +147,8 @@ void obos_main()
     initUserHeap();
     clearScreen();
     printTitle(); //this disables interrupts in the os
-    initializeSuperBlock();
-    enableInterrupts();
+    loadSuperBlock();
+    // printLine("SuperBlock loaded!", LIGHT_BLUE);
     char* string = kmalloc(100);
     // Block block;
     // if(!readBlock(28, &block))

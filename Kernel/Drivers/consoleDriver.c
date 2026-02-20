@@ -127,7 +127,6 @@ void printHexNumber(unsigned int number, const int color)
         unsigned char nibble = (number >> (i * 4)) & 0xF;
         printChar(hexChars[nibble], WHITE);
     }
-    printLine("", WHITE);
 }
 
 void updateCursor(const int cursorPos)

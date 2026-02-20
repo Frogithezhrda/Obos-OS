@@ -33,9 +33,12 @@ typedef struct SuperBlock
     unsigned int totalBlocksCount;
     unsigned int inodeTableStartBlock;
     unsigned int inodeTableBlocks;
+    unsigned int bitmapStartBlock;
+    unsigned int bitmapBlocks;
 } SuperBlock;
 
-void initializeSuperBlock();
-
+void createSuperBlock();
+void loadSuperBlock();
+void initializeBitmap(unsigned char* bitmap);
 
 #endif

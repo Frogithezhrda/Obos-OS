@@ -32,6 +32,7 @@ int readATABlock(const int id, Block* block);
 int writeATABlock(const int id, Block* block);
 int waitForDRQ();
 void settingDrive(const int lba);
+void resetATA();
 
 
 

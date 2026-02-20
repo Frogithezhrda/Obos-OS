@@ -1,11 +1,44 @@
 #include "ata.h"
 
+
+void resetATA()
+{
+    outb(ATA_DRIVE, 0xE0);          //select master drive
+    outb(ATA_CMD, 0x08);            //device reset command
+    while (inb(ATA_STATUS) & 0x80); //wait for BSY to clear
+    //read status 4 times to flush (ATA spec requires this)
+    inb(ATA_STATUS);
+    inb(ATA_STATUS);
+    inb(ATA_STATUS);
+    inb(ATA_STATUS);
+}
+
+int waitForBSY()
+{
+    int timeout = 1000000;
+    while (timeout--)
+    {
+        unsigned char status = inb(ATA_STATUS);
+        if (status & 0x01) return ERROR;
+        if (status & 0x20) return ERROR;
+        if (!(status & 0x80)) return SUCCESS; 
+    }
+    return ERROR;
+}
 int waitForDRQ()
 {
     while (inb(ATA_STATUS) & 0x80);
 
-    unsigned char status = inb(ATA_STATUS);
-    if (!(status & 0x08)) return ERROR;
+    unsigned char status = 0;
+    int timeout = 1000000;
+    while (timeout--)
+    {
+        status = inb(ATA_STATUS);
+
+        if (status & 0x01) return ERROR;
+        if (status & 0x20) return ERROR;
+        if (status & 0x08) return SUCCESS;
+    }
     return SUCCESS;
 }
 
@@ -13,24 +46,27 @@ int readATABlock(const int id, Block* block)
 {
     unsigned int lba = id * SECTORS_PER_BLOCK;
     char* buffer = block->block;
-    disableInterrupts();
-    //reading a sector
-    settingDrive(lba);
 
+    disableInterrupts();
+    settingDrive(lba);
     outb(ATA_CMD, ATA_CMD_READ_SECTORS);
-    //waiting
-    if (waitForDRQ() != SUCCESS)
+
+    for (int s = 0; s < SECTORS_PER_BLOCK; s++)
     {
-        enableInterrupts();
-        return ERROR;
-    } 
-    for (int i = 0; i < BLOCK_SIZE / 2; i++)
-    {
-        unsigned short data = inw(ATA_DATA);
-        buffer[i*2] = data & 0xFF;
-        buffer[i*2+1] = (data >> 8) & 0xFF;
+        if (waitForDRQ() != SUCCESS)
+        {
+            resetATA();
+            enableInterrupts();
+            return ERROR;
+        }
+        for (int i = 0; i < 256; i++)
+        {
+            unsigned short data = inw(ATA_DATA);
+            buffer[(s * 512) + i*2]     = data & 0xFF;
+            buffer[(s * 512) + i*2 + 1] = (data >> 8) & 0xFF;
+        }
     }
-    block->block[BLOCK_SIZE - 1] = '\0';
+
     enableInterrupts();
     return SUCCESS;
 }
@@ -39,21 +75,33 @@ int writeATABlock(const int id, Block* block)
 {
     unsigned int lba = id * SECTORS_PER_BLOCK;
     char* buffer = block->block;
+
     disableInterrupts();
-    //reading a sector
     settingDrive(lba);
     outb(ATA_CMD, ATA_CMD_WRITE_SECTORS);
-    //waiting
-    if (waitForDRQ() != SUCCESS)
+
+    for (int s = 0; s < SECTORS_PER_BLOCK; s++)
     {
+        if (waitForDRQ() != SUCCESS)
+        {
+            resetATA();
+            enableInterrupts();
+            return ERROR;
+        }
+        for (int i = 0; i < 256; i++)  //256 words = 512 bytes per sector
+        {
+            unsigned short data = (unsigned char)buffer[(s * 512) + i*2] 
+                                | ((unsigned char)buffer[(s * 512) + i*2 + 1] << 8);
+            outw(ATA_DATA, data);
+        }
+    }
+
+    outb(ATA_CMD, 0xE7);
+    if (waitForBSY() != SUCCESS)
+    {
+        resetATA();
         enableInterrupts();
         return ERROR;
-    } 
-
-    for (int i = 0; i < BLOCK_SIZE / 2; i++)
-    {
-        unsigned short data = buffer[i*2] + (buffer[i*2+1] << 8);
-        outw(ATA_DATA, data);
     }
 
     enableInterrupts();

@@ -1,29 +1,142 @@
 #include "superblock.h"
 
-void initializeSuperBlock()
+SuperBlock* sb = NULL;
+
+void createSuperBlock()
 {
-    SuperBlock sb;
-    sb.magicNumber = MAGIC_NUMBER;
+    printLine("Creating SuperBlock...", BLUE);
 
-    sb.inodeTableStartBlock = SUPERBLOCK_BLOCK + 1;
-    sb.inodeTableBlocks = (sizeof(INodeTable) + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    sb.freeBlocksCount = TOTAL_BLOCKS - (sb.inodeTableStartBlock + sb.inodeTableBlocks);
 
-    Block block;
-    memset(&block, 0, sizeof(Block));
-    memcpy(block.block, &sb, sizeof(SuperBlock));
-    if(writeBlock(SUPERBLOCK_BLOCK, &block) == ERROR)
+    sb->magicNumber = MAGIC_NUMBER;
+    sb->inodeTableStartBlock = SUPERBLOCK_BLOCK + 1;
+    sb->inodeTableBlocks = sizeof(INodeTable) / BLOCK_SIZE;
+    sb->bitmapStartBlock = sb->inodeTableStartBlock + sb->inodeTableBlocks;
+    sb->bitmapBlocks = ((TOTAL_BLOCKS / 8 + BLOCK_SIZE - 1) / BLOCK_SIZE);
+    sb->freeBlocksCount = TOTAL_BLOCKS - (SUPERBLOCK_BLOCK + sb->inodeTableBlocks + sb->bitmapBlocks);
+    Block* tempBlock = (Block*)kmalloc(sizeof(Block));
+    memset(tempBlock, 0, sizeof(Block));
+    memcpy(tempBlock->block, sb, sizeof(SuperBlock));
+    if(writeBlock(SUPERBLOCK_BLOCK, tempBlock) != SUCCESS)
     {
-        kernelPanic("File System failed to initialize!");
+        kernelPanic("Failed to write superblock to disk!");
+    }
+    kfree(tempBlock);
+    initializeBitmap((unsigned char*)kmalloc(sb->bitmapBlocks * BLOCK_SIZE));
+
+    printLine("SuperBlock created successfully!", GREEN);
+}
+
+void loadSuperBlock()
+{
+    printLine("Loading SuperBlock...", BLUE);
+    sb = (SuperBlock*)kmalloc(sizeof(SuperBlock));
+    
+    if (sb == NULL)
+    {
+        kernelPanic("Failed to allocate superblock!");
     }
 
-    INodeTable* table = (INodeTable*)kmalloc(sizeof(INodeTable));
-    memset(table, 0, sizeof(INodeTable));
-    //this creates the superblock basically...
-    for (unsigned int i = 0; i < sb.inodeTableBlocks; i++)
+    Block* tempBlock = (Block*)kmalloc(sizeof(Block));
+    if (!tempBlock)
     {
-        memset(&block, 0, sizeof(Block));
-        memcpy(block.block, ((char*)table) + i * BLOCK_SIZE, BLOCK_SIZE);
-        writeBlock(sb.inodeTableStartBlock + i, &block);
+        kernelPanic("Failed to allocate temp block");
     }
+
+    if (readBlock(SUPERBLOCK_BLOCK, tempBlock) != SUCCESS)
+    {
+        kernelPanic("Failed to read superblock");
+    }
+
+    memcpy(sb, tempBlock->block, sizeof(SuperBlock));
+
+    kfree(tempBlock);
+    
+    if (sb->magicNumber != MAGIC_NUMBER)
+    {
+        printLine("Failed to read superblock from disk. Creating new one...", YELLOW);
+        createSuperBlock();
+    }
+    else
+    {
+        printLine("Loading SuperBlock with out creating...", BLUE);
+    }
+    if (sb->magicNumber != MAGIC_NUMBER)
+    {
+        kfree(sb);
+        kernelPanic("Failed to create superblock!");
+    } 
+    //print superblock info
+    printW("Magic Number: 0x");
+    printHexW(sb->magicNumber);
+    printLineW("");
+
+    printW("Inode Table Start: ");
+    printNumberW(sb->inodeTableStartBlock);
+    printLineW("");
+    
+    printW("Inode Table Blocks: ");
+    printNumberW(sb->inodeTableBlocks);
+    printLineW("");
+    
+    printW("Free Blocks: ");
+    printNumberW(sb->freeBlocksCount);
+    printLineW("");
+    
+    printW("Free bytes: 0x");
+    printHexW(sb->freeBlocksCount * BLOCK_SIZE);
+    printW(" bytes");
+    printLineW("");
+
+    printLine("SuperBlock loaded successfully!", GREEN);
+}
+
+void initializeBitmap(unsigned char* bitmap)
+{
+    Block* block = (Block*)kmalloc(sizeof(Block));
+    for (int i = 0; i < TOTAL_BLOCKS / 8; i++)
+    {
+        bitmap[i] = 0xFF;
+    }
+    for (unsigned int i = 0; i <= SUPERBLOCK_BLOCK; i++)
+    {
+        bitmap[i / 8] |= (1 << (i % 8));
+    }
+
+    for (unsigned int i = sb->inodeTableStartBlock; i < sb->inodeTableStartBlock + sb->inodeTableBlocks; i++)
+    {
+        bitmap[i / 8] |= (1 << (i % 8));
+    }
+
+    for (unsigned int i = sb->bitmapStartBlock; i < sb->bitmapStartBlock + sb->bitmapBlocks; i++)
+    {
+        bitmap[i / 8] |= (1 << (i % 8));
+    }
+    for (unsigned int i = 0; i < sb->bitmapBlocks; i++)
+    {
+        memset(block, 0, sizeof(Block));
+        memcpy(block->block, bitmap + (i * BLOCK_SIZE), BLOCK_SIZE);
+        if (writeBlock(sb->bitmapStartBlock + i, block) == ERROR) 
+        {
+            kernelPanic("Failed to write bitmap block!");
+        }
+        printNumberW(sb->bitmapStartBlock + i);
+
+    }
+    INodeTable* inodeTable = (INodeTable*)kmalloc(sizeof(INodeTable));
+    memset(inodeTable, 0, sizeof(INodeTable));
+    for (unsigned int i = 0; i < sb->inodeTableBlocks; i++)
+    {
+        memset(block, 0, sizeof(Block));
+        memcpy(block->block, (char*)inodeTable + (i * BLOCK_SIZE), BLOCK_SIZE);
+        if (writeBlock(sb->inodeTableStartBlock + i, block) != SUCCESS)
+        {
+            kfree(inodeTable);
+            kfree(block);
+            kernelPanic("Failed to write inode table block!");
+        }
+        
+        printNumberW(sb->inodeTableStartBlock + i);
+    }
+    kfree(inodeTable);
+    kfree(block);
 }

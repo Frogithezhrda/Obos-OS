@@ -21,8 +21,8 @@ static const char scancodeToASCIIShift[LAST_SCAN_CODE] =
     '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'
 };
 
-static unsigned char shiftPressed = 0;
-static unsigned char lastScanCode = 0;
+static volatile unsigned char shiftPressed = 0;
+static volatile unsigned char lastScanCode = 0;
 
 void keyboardISR(void)
 {
@@ -41,7 +41,7 @@ void keybos(char* string, const int maxLength)
     unsigned char scanCode;
     unsigned char asciiChar;
     
-    // Clear the string
+    //clearing the string
     string[0] = '\0';
     
     while (1)
@@ -104,6 +104,6 @@ void keybos(char* string, const int maxLength)
             printChar(asciiChar, WHITE);
         }
         
-        for (int i = 0; i < 50000; i++);
+        for (volatile int i = 0; i < 50000; i++);
     }
 }
