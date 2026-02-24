@@ -33,6 +33,8 @@ $(DISK_IMAGE_FILE_PATH): $(BOOT_BIN) $(KERNEL_BIN) $(ISR_ASM_OBJ)
 	@if [ ! -f "$(DISK_IMAGE_FILE_PATH)" ]; then \
 		qemu-img create -f raw "$(DISK_IMAGE_FILE_PATH)" 1G; \
 	fi
+	@echo "------ Resetting first 160 disk blocks ------"
+	@dd if=/dev/zero of=$(DISK_IMAGE_FILE_PATH) bs=512 count=512 conv=notrunc
 	@dd if=$(BOOT_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=0 conv=notrunc
 	@dd if=$(KERNEL_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=1 conv=notrunc
 

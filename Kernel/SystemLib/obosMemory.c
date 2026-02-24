@@ -36,3 +36,40 @@ void* memcpy(const void* dest, const void* src, unsigned int size)
     }
     return dest;
 }
+
+char* strtok(char *str, const char *delim)
+{
+    static char* saved = NULL;
+    if (str != NULL) saved = str;
+    if (saved == NULL) return NULL;
+
+    while (*saved && strchr(delim, *saved)) saved++;
+    if (*saved == '\0') return NULL;
+
+    char* token = saved;
+
+    while (*saved && !strchr(delim, *saved)) saved++;
+    if (*saved) *saved++ = '\0';
+
+    return token;
+}
+
+char* strchr(const char* str, int c)
+{
+    while (*str)
+    {
+        if (*str == (char)c) return (char*)str;
+        str++;
+    }
+    return NULL;
+}
+
+unsigned int strlen(const char *str) {
+    unsigned int length = 0;
+
+    while (str[length] != '\0') {
+        length++;
+    }
+
+    return length;
+}

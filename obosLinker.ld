@@ -8,28 +8,28 @@ SECTIONS
     
     _kernel_physical_start = .;
     
-    .text : ALIGN(4096)
+    .text : ALIGN(1024)
     {
         *(.multiboot)
         *(.text)
     }
     
-    .rodata : ALIGN(4096)
+    .rodata : ALIGN(1024)
     {
         *(.rodata*)
     }
     
-    .data : ALIGN(4096)
+    .data : ALIGN(1024)
     {
         *(.data)
     }
     
-    .bss : ALIGN(4096)
+    .bss : ALIGN(1024)
     {
         *(COMMON)
         *(.bss)
     }
     
-    . = ALIGN(4096);
+    . = ALIGN(1024);
     _kernel_physical_end = .;
 }

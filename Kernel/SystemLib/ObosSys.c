@@ -29,12 +29,12 @@ unsigned int getObosTicks()
     return result;
 }
 
-// SYSCALL_MALLOC (2)
+// SYSCALL_MALLOC (5)
 void* malloc(unsigned int size)
 {
     void* result;
     asm volatile(
-        "mov $2, %%eax\n"
+        "mov $5, %%eax\n"
         "mov %1, %%ebx\n"        // arg1 = size
         "int $0x80\n"
         "mov %%eax, %0\n"        // get return value (pointer)
@@ -45,11 +45,11 @@ void* malloc(unsigned int size)
     return result;
 }
 
-// SYSCALL_FREE (3)
+// SYSCALL_FREE (6)
 void free(void* ptr)
 {
     asm volatile(
-        "mov $3, %%eax\n"
+        "mov $6, %%eax\n"
         "mov %0, %%ebx\n"        // arg1 = pointer
         "int $0x80\n"
         :
@@ -58,12 +58,12 @@ void free(void* ptr)
     );
 }
 
-// SYSCALL_HOUR (4)
+// SYSCALL_HOUR (8)
 unsigned int getObosTime(Time* timePtr)
 {
     int result;
     asm volatile(
-        "mov $4, %%eax\n"
+        "mov $8, %%eax\n"
         "mov %1, %%ebx\n"        // arg1 = pointer to Time struct
         "int $0x80\n"
         "mov %%eax, %0\n"
@@ -74,11 +74,11 @@ unsigned int getObosTime(Time* timePtr)
     return result;
 }
 
-// SYSCALL_SLEEP (5)
+// SYSCALL_SLEEP (7)
 void sleepo(unsigned int ms)
 {
     asm volatile(
-        "mov $5, %%eax\n"
+        "mov $7, %%eax\n"
         "mov %0, %%ebx\n"
         "int $0x80\n"
         :

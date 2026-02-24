@@ -9,6 +9,9 @@
 #define MAGIC_NUMBER 0x4F424653
 #define MAX_BLOCKS_PER_FILE 16
 #define MAX_FILES 128
+#define FILE_NAME_LENGTH 64
+#define DIR_ENTRY_SIZE (sizeof(DirectoryEntry))
+
 
 typedef enum Type {File =0, Directory} Type;
 
@@ -26,6 +29,11 @@ typedef struct INodeTable
     INode inodes[MAX_FILES];
 } INodeTable;
 
+typedef struct DirectoryEntry
+{
+    unsigned int inodeNumber;
+    char name[FILE_NAME_LENGTH];
+} DirectoryEntry;
 
 typedef struct SuperBlock
 {
@@ -40,9 +48,11 @@ typedef struct SuperBlock
 
 void createSuperBlock();
 void loadSuperBlock();
-void initializeBitmap(unsigned char* bitmap);
+void initializeBitmap(unsigned char* newBitmap);
 void initializeINodeMap();
-
+void createRootDirectory();
+void readFile(const char* name, char* buffer, unsigned int size);
+void writeFile(const char* name, const char* data, unsigned int size);
 /*
 if it returns error you do not let him read/write to the file
 and quit the file operation immediatly
@@ -53,6 +63,13 @@ same here as allocation you must stop the user program if it fails
 
 */
 int freeBlock(const unsigned int blockNum);
+
+int createFile(const char* name, Type type);
+void ls();
+#define createFileF(name) createFile(name, File)
+
+void writeFile(const char* name, const char* data, unsigned int size);
+void readFile(const char* name, char* buffer, unsigned int size);
 
 
 #endif

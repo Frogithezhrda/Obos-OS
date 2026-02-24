@@ -111,6 +111,7 @@ code[5] = 0xFE; // infinite loop
 AND DONT FORGET TO PUT THE COLOR WHEN CALLING THE PRINT
 */
 
+
 void printTitle()
 {
     printLine(" ________  ________  ________  ________      ", GREEN);
@@ -121,7 +122,7 @@ void printTitle()
     printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
     printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
     printLine("                                 \\|_________|", GREEN);
-    printLine("Version: 0.4", LIGHT_BLUE);
+    printLine("Version: 0.5", LIGHT_BLUE);
     printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
     disableInterrupts();
 }
@@ -138,13 +139,13 @@ void obos_main()
     // maskAllInterrupts(); //no need to maksk interrupts here
     enableInterrupts();
     clearScreen();
-
     initializeMemoryManager();
     // printMemoryManagerInfo();
     initializePaging();
     enablePagingNow();
     initKernelHeap();
     initUserHeap();
+
     clearScreen();
     printTitle(); //this disables interrupts in the os
     loadSuperBlock();
@@ -164,11 +165,94 @@ void obos_main()
     {
         printW("\n>>");
         keybos(string, 100);
-        printLineW(string);
-        if(!strcmp(string, "exit"))
+        char* cmd = strtok(string, " ");
+
+        if(cmd == NULL)
         {
-            printLineW("Exiting write mode...");
+            continue;
+        }
+        else if(!strcmp(cmd, "exit"))
+        {
+            printLineW("Exiting...");
             break;
+        }
+        else if(!strcmp(cmd, "ls"))
+        {
+            ls();
+        }
+        else if(!strcmp(cmd, "repeat"))
+        {
+            char* param = strtok(NULL, "\0");
+            if(param != NULL) printW(param);
+        }
+        else if(!strcmp(cmd, "read"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: read <filename>");
+                continue;
+            }
+            char* buffer = (char*)kmalloc(100);
+            readFile(param, buffer, 100);
+            printW("File contents:\n");
+            printW(buffer);
+            kfree(buffer);
+        }
+        else if(!strcmp(cmd, "write"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: write <filename>");
+                continue;
+            }
+            char* data = strtok(NULL, "\0");
+            if(data == NULL)
+            {
+                printLineW("Usage: write <filename> <data>");
+                continue;
+            }
+            writeFile(param, data, strlen(data));
+            printLineW("File written successfully!");
+        }
+        else if(!strcmp(cmd, "create"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: create <filename>");
+                continue;
+            }
+            if(createFile(param, File) != ERROR)
+            {
+                printLineW("File created successfully!");
+            }
+            else
+            {
+                printLineW("Failed to create file!");
+            }
+        }
+        else if(!strcmp(cmd, "createDir"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: createDir <dirname>");
+                continue;
+            }
+            if(createFile(param, Directory) != ERROR)
+            {
+                printLineW("Directory created successfully!");
+            }
+            else
+            {
+                printLineW("Failed to create directory!");
+            }
+        }
+        else
+        {
+            printLine("Unknown command!", LIGHT_RED);
         }
     }
     kfree(string);
