@@ -5,7 +5,7 @@ INodeTable* inodeTable = NULL;
 unsigned char* bitmap = NULL;
 unsigned int currentDirINode = 0;
 
-static INode* findFile(const char* name)
+static int findFile(const char* name)
 {
     INode* dir = &inodeTable->inodes[currentDirINode];
     unsigned int totalEntries = dir->fileSize / DIR_ENTRY_SIZE;
@@ -41,6 +41,7 @@ static INode* findFile(const char* name)
     kfree(block);
     return ERROR;
 }
+
 
 static void flushInodeTable()
 {
@@ -117,6 +118,11 @@ static int addDirEntry(unsigned int fileInodeIndex, const char* name)
     flushInodeTable();
 
     kfree(block);
+    return SUCCESS;
+}
+
+static int removeDirEntry(const char* name)
+{
     return SUCCESS;
 }
 
@@ -460,6 +466,7 @@ void readFile(const char* name, char* buffer, unsigned int size)
         printLine("File not found!", RED);
         return;
     }
+    
     INode* inode = &inodeTable->inodes[inodeIdx];
     if (inode->type != File)
     {
@@ -526,4 +533,35 @@ void writeFile(const char* name, const char* data, unsigned int size)
     inode->fileSize = bytesWritten;
     flushInodeTable();
     kfree(block);
+}
+
+int deleteFile(const char* name)
+{
+    int inodeIdx = findFile(name);
+    if (inodeIdx == ERROR)
+    {
+        printLine("File not found!", RED);
+        return ERROR;
+    }
+    INode* inode = &inodeTable->inodes[inodeIdx];
+    if (inode->type != File)
+    {
+        printLine("Not a file!", RED);
+        return ERROR;
+    }
+
+    //free the blocks associated with the inode
+    for (unsigned int b = 0; b < MAX_BLOCKS_PER_FILE; b++)
+    {
+        if (inode->blocks[b] != 0)
+        {
+            freeBlock(inode->blocks[b]);
+            inode->blocks[b] = 0;
+        }
+    }
+
+    inode->isUsed = 0;
+    removeDirEntry(name);
+    flushInodeTable();
+    return SUCCESS;
 }

@@ -169,7 +169,7 @@ void obos_main()
 
     while(1)
     {
-        printW("\n>>");
+        print("\n>> ", LIGHT_GREEN);
         keybos(string, 100);
         char* cmd = strtok(string, " ");
 
@@ -239,6 +239,23 @@ void obos_main()
                 printLineW("Failed to create file!");
             }
         }
+        else if(!strcmp(cmd, "delete"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: delete <filename>");
+                continue;
+            }
+            if(deleteFile(param) != ERROR)
+            {
+                printLineW("File deleted successfully!");
+            }
+            else
+            {
+                printLineW("Failed to delete file!");
+            }
+        }
         else if(!strcmp(cmd, "createDir"))
         {
             char* param = strtok(NULL, " ");
@@ -256,10 +273,10 @@ void obos_main()
                 printLineW("Failed to create directory!");
             }
         }
-        // else
-        // {
-        //     printLine("Unknown command!", LIGHT_RED);
-        // }
+        else
+        {
+            printLine("Unknown command!", LIGHT_RED);
+        }
     }
     kfree(string);
     //minimal shutdown

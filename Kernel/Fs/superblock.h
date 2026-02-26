@@ -70,6 +70,6 @@ void ls();
 
 void writeFile(const char* name, const char* data, unsigned int size);
 void readFile(const char* name, char* buffer, unsigned int size);
-
+int deleteFile(const char* name);
 
 #endif
