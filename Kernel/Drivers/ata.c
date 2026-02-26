@@ -66,7 +66,6 @@ int readATABlock(const int id, Block* block)
             buffer[(s * 512) + i*2 + 1] = (data >> 8) & 0xFF;
         }
     }
-
     enableInterrupts();
     return SUCCESS;
 }

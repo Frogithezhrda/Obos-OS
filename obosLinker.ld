@@ -26,10 +26,12 @@ SECTIONS
     
     .bss : ALIGN(1024)
     {
+        _bss_start = .;
         *(COMMON)
         *(.bss)
+        _bss_end = .;
     }
-    
+
     . = ALIGN(1024);
     _kernel_physical_end = .;
 }

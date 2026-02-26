@@ -227,7 +227,6 @@ void loadSuperBlock()
     }
 
     memcpy(sb, tempBlock->block, sizeof(SuperBlock));
-
     kfree(tempBlock);
     
     if (sb->magicNumber != MAGIC_NUMBER)

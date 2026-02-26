@@ -37,6 +37,8 @@ $(DISK_IMAGE_FILE_PATH): $(BOOT_BIN) $(KERNEL_BIN) $(ISR_ASM_OBJ)
 	@dd if=/dev/zero of=$(DISK_IMAGE_FILE_PATH) bs=512 count=512 conv=notrunc
 	@dd if=$(BOOT_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=0 conv=notrunc
 	@dd if=$(KERNEL_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=1 conv=notrunc
+	@ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(ISR_ASM_OBJ) $(KERNEL_C_OBJECTS)
+	@ld -m elf_i386 -T $(LINKER_SCRIPT) -Map=$(COMPONENTS_DIR)/kernel.map -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(ISR_ASM_OBJ) $(KERNEL_C_OBJECTS)
 
 $(BOOT_BIN): $(BOOT_SRC) $(ATA_SRC) 
 	@echo "------ Assembling bootloader ------"

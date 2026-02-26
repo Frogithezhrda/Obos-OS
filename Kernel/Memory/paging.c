@@ -19,7 +19,6 @@ void initializePaging(void)
         kernelPanic("Error: Unable to allocate frame for Page Directory!");
     }
     kernelPageDirectory = (PageDirectory*)(unsigned int)pdPhys;
-    
     memset(kernelPageDirectory, 0, PAGE_SIZE);
     
     for (unsigned int tableNum = 0; tableNum < NUM_PAGE_TABLES_KERNEL; tableNum++)
@@ -76,6 +75,12 @@ void initializePaging(void)
                     STACK_PHYSICAL_END - STACK_PHYSICAL_START,
                     STACK_PHYSICAL_START,
                     SUPERVISOR_ONLY);
+
+    mapMemoryRegion(VIRTUAL_STACK_START_ADDRESS,
+                    STACK_PHYSICAL_END - STACK_PHYSICAL_START,
+                    STACK_PHYSICAL_START,
+                    SUPERVISOR_ONLY);
+
     mapUserPages();
 
 

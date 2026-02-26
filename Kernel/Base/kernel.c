@@ -130,12 +130,18 @@ void printTitle()
 void obos_main()
 {
     //basic initalization
+    clearScreen();
     disableInterrupts();
     setupIDT();
+    printLine("IDT Setup Complete...", LIGHT_BLUE);
     initalizeException();
+    printLine("Exception Handling Initialized...", LIGHT_BLUE);
     initializePIC();
-    loadIDT();      
+    printLine("PIC Initialized...", LIGHT_BLUE);
+    loadIDT();
+    printLine("IDT Loaded...", LIGHT_BLUE);
     initializeTimer();
+    printLine("Timer Initialized...", LIGHT_BLUE);
     // maskAllInterrupts(); //no need to maksk interrupts here
     enableInterrupts();
     clearScreen();
@@ -145,7 +151,6 @@ void obos_main()
     enablePagingNow();
     initKernelHeap();
     initUserHeap();
-
     clearScreen();
     printTitle(); //this disables interrupts in the os
     loadSuperBlock();
@@ -161,6 +166,7 @@ void obos_main()
     // {
     //     printW("Couldnt print");
     // }
+
     while(1)
     {
         printW("\n>>");
@@ -193,8 +199,8 @@ void obos_main()
                 printLineW("Usage: read <filename>");
                 continue;
             }
-            char* buffer = (char*)kmalloc(100);
-            readFile(param, buffer, 100);
+            char* buffer = (char*)kmalloc(144);
+            readFile(param, buffer, 144);
             printW("File contents:\n");
             printW(buffer);
             kfree(buffer);
@@ -250,10 +256,10 @@ void obos_main()
                 printLineW("Failed to create directory!");
             }
         }
-        else
-        {
-            printLine("Unknown command!", LIGHT_RED);
-        }
+        // else
+        // {
+        //     printLine("Unknown command!", LIGHT_RED);
+        // }
     }
     kfree(string);
     //minimal shutdown

@@ -10,11 +10,11 @@ ProtectedModeEntry:
     mov ebp, 0x9C00
     mov esp, ebp
     
-    mov bl, KERNEL_SECTORS
+    mov bl, 255
     mov edi, KERNEL_START_ADDR
     mov ecx, 1
     call ataReadSectors
-
+    
     
     ; mov esi, KERNEL_TEMP_ADDR
     ; mov edi, KERNEL_START_ADDR
