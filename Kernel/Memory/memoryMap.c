@@ -136,38 +136,47 @@ void reserveKernelRegions(void)
 {
     MemoryRegion region;
 
-    region.start = 0x100000; //1MB
-    region.end = 0x1A0000;   //1MB + Kernel Size (16384 bytes)
-    region.type = MEMORY_TYPE_RESERVED;
-    region.isFree = FALSE;
-    memoryManager.regions[memoryManager.regionCount++] = region;
-    //IMPORTANT NOTE: Stack grows downwards
-    //so the stack region is from 0x1FFC00 to 0x200000 - but it starts at 0x200000 and grows downwards
-    region.start = 0x1FFC00; //2MB
-    region.end = 0x300000;   //2MB - Stack Size (16KB)
-    region.type = MEMORY_TYPE_RESERVED;
-    region.isFree = FALSE;
-    memoryManager.regions[memoryManager.regionCount++] = region;
-    region.start = 0x1A0000; //1MB + Kernel Size
-    region.end = 0x300000;   //1MB + Kernel Size + Heap Size (1MB)
-    region.type = MEMORY_TYPE_RESERVED;
-    region.isFree = FALSE;
-
-    //Reserving 0x000000 to 0x100000 (First 1MB) used for initalizing the system
-    region.start = 0x000000; //1MB
-    region.end = 0x100000;   //1MB size
-    region.type = MEMORY_TYPE_RESERVED;
+    // first 1MB - BIOS/bootloader
+    region.start  = 0x000000;
+    region.end    = 0x100000;
+    region.type   = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
 
-    region.start = 0x200000; //1MB
-    region.end = 0x00400000;   //1MB size
-    region.type = MEMORY_TYPE_RESERVED;
+    // kernel + BSS
+    region.start  = 0x100000;
+    region.end    = 0x1A0000;
+    region.type   = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
 
-    memoryManager.totalReserved += (0x200000 - 0x000000); //Kernel Size + Stack Size + Heap Size
-    
+    // heap
+    region.start  = 0x1A0000;
+    region.end    = 0x200000;
+    region.type   = MEMORY_TYPE_RESERVED;
+    region.isFree = FALSE;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+
+    // stack
+    region.start  = 0x200000;
+    region.end    = 0x300000;
+    region.type   = MEMORY_TYPE_RESERVED;
+    region.isFree = FALSE;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+
+    // paging structures
+    region.start  = 0x300000;
+    region.end    = 0x400000;
+    region.type   = MEMORY_TYPE_RESERVED;
+    region.isFree = FALSE;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+
+    // frames array
+    region.start  = 0x400000;
+    region.end    = 0x440000;
+    region.type   = MEMORY_TYPE_RESERVED;
+    region.isFree = FALSE;
+    memoryManager.regions[memoryManager.regionCount++] = region;
 }
 
 

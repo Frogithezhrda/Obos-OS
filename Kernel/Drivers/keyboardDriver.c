@@ -101,7 +101,7 @@ void keybos(char* string, const int maxLength)
             string[index] = asciiChar;
             index++;
             string[index] = '\0';
-            printChar(asciiChar, LIGHT_GREEN);
+            printChar(asciiChar, LIGHT_CYAN);
         }
         
         for (volatile int i = 0; i < 50000; i++);

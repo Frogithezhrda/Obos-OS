@@ -111,65 +111,12 @@ code[5] = 0xFE; // infinite loop
 AND DONT FORGET TO PUT THE COLOR WHEN CALLING THE PRINT
 */
 
-
-void printTitle()
+void shell()
 {
-    printLine(" ________  ________  ________  ________      ", GREEN);
-    printLine("|\\   __  \\|\\   __  \\|\\   __  \\|\\   ____\\     ", GREEN);
-    printLine("\\ \\  \\|\\  \\ \\  \\|\\ /\\ \\  \\|\\  \\ \\  \\___|_    ", GREEN);
-    printLine(" \\ \\  \\\\\\  \\ \\   __  \\ \\  \\\\  \\ \\_____  \\   ", GREEN);
-    printLine("  \\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\  \\|____|\\  \\  ", GREEN);
-    printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
-    printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
-    printLine("                                 \\|_________|", GREEN);
-    printLine("Version: 0.5", LIGHT_BLUE);
-    printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
-    disableInterrupts();
-}
-
-void obos_main()
-{
-    //basic initalization
-    clearScreen();
-    disableInterrupts();
-    setupIDT();
-    printLine("IDT Setup Complete...", LIGHT_BLUE);
-    initalizeException();
-    printLine("Exception Handling Initialized...", LIGHT_BLUE);
-    initializePIC();
-    printLine("PIC Initialized...", LIGHT_BLUE);
-    loadIDT();
-    printLine("IDT Loaded...", LIGHT_BLUE);
-    initializeTimer();
-    printLine("Timer Initialized...", LIGHT_BLUE);
-    // maskAllInterrupts(); //no need to maksk interrupts here
-    enableInterrupts();
-    clearScreen();
-    initializeMemoryManager();
-    // printMemoryManagerInfo();
-    initializePaging();
-    enablePagingNow();
-    initKernelHeap();
-    initUserHeap();
-    clearScreen();
-    printTitle(); //this disables interrupts in the os
-    loadSuperBlock();
-    // printLine("SuperBlock loaded!", LIGHT_BLUE);
     char* string = kmalloc(100);
-    // Block block;
-    // if(!readBlock(28, &block))
-    // {
-    //     printW("Block Info: ");
-    //     printLineW(block.block);
-    // }
-    // else
-    // {
-    //     printW("Couldnt print");
-    // }
-
     while(1)
     {
-        print("\n>> ", LIGHT_GREEN);
+        print("\n>>", LIGHT_GREEN);
         keybos(string, 100);
         char* cmd = strtok(string, " ");
 
@@ -273,12 +220,69 @@ void obos_main()
                 printLineW("Failed to create directory!");
             }
         }
+        else if(!strcmp(cmd, "help"))
+        {
+            printLineW("Available commands:");
+            printLineW("ls - list files and directories");
+            printLineW("create <filename> - create a new file");
+            printLineW("delete <file/dir name> - delete a file/dir");
+            printLineW("createDir <dirname> - create a new directory");
+            printLineW("read <filename> - read contents of a file");
+            printLineW("write <filename> <data> - write data to a file");
+            printLineW("repeat <text> - repeat the given text");
+            printLineW("exit - exit the shell");
+        }
         else
         {
             printLine("Unknown command!", LIGHT_RED);
         }
     }
     kfree(string);
+}
+
+void printTitle()
+{
+    printLine(" ________  ________  ________  ________      ", GREEN);
+    printLine("|\\   __  \\|\\   __  \\|\\   __  \\|\\   ____\\     ", GREEN);
+    printLine("\\ \\  \\|\\  \\ \\  \\|\\ /\\ \\  \\|\\  \\ \\  \\___|_    ", GREEN);
+    printLine(" \\ \\  \\\\\\  \\ \\   __  \\ \\  \\\\  \\ \\_____  \\   ", GREEN);
+    printLine("  \\ \\  \\\\\\  \\ \\  \\|\\  \\ \\  \\\\  \\|____|\\  \\  ", GREEN);
+    printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
+    printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
+    printLine("                                 \\|_________|", GREEN);
+    printLine("Version: 0.5", LIGHT_BLUE);
+    printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
+    disableInterrupts();
+}
+
+void obos_main()
+{
+    //basic initalization
+    clearScreen();
+    disableInterrupts();
+    setupIDT();
+    printLine("IDT Setup Complete...", LIGHT_BLUE);
+    initalizeException();
+    printLine("Exception Handling Initialized...", LIGHT_BLUE);
+    initializePIC();
+    printLine("PIC Initialized...", LIGHT_BLUE);
+    loadIDT();
+    printLine("IDT Loaded...", LIGHT_BLUE);
+    initializeTimer();
+    printLine("Timer Initialized...", LIGHT_BLUE);
+    // maskAllInterrupts(); //no need to maksk interrupts here
+    enableInterrupts();
+    clearScreen();
+    initializeMemoryManager();
+    // printMemoryManagerInfo();
+    initializePaging();
+    enablePagingNow();
+    initKernelHeap();
+    initUserHeap();
+    clearScreen();
+    printTitle(); //this disables interrupts in the os
+    loadSuperBlock();
+    shell();
     //minimal shutdown
     asm volatile("hlt");
     // enterUserMode((void*)USER_SPACE_START);

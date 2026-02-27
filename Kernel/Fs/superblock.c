@@ -60,6 +60,7 @@ static void flushInodeTable()
     kfree(block);
 }
 
+
 static int addDirEntry(unsigned int fileInodeIndex, const char* name)
 {
     INode* dir = &inodeTable->inodes[currentDirINode];
@@ -123,7 +124,81 @@ static int addDirEntry(unsigned int fileInodeIndex, const char* name)
 
 static int removeDirEntry(const char* name)
 {
-    return SUCCESS;
+    INode* dir = &inodeTable->inodes[currentDirINode];
+    unsigned int totalEntries = dir->fileSize / DIR_ENTRY_SIZE;
+    unsigned int entriesPerBlock = BLOCK_SIZE / DIR_ENTRY_SIZE;
+    unsigned int entriesRead = 0;
+
+    Block* block = (Block*)kmalloc(sizeof(Block));
+    if (!block) return ERROR;
+
+    for (unsigned int b = 0; b < MAX_BLOCKS_PER_FILE && entriesRead < totalEntries; b++)
+    {
+        if (dir->blocks[b] == 0) break;
+
+        memset(block, 0, sizeof(Block));
+        if (readBlock(dir->blocks[b], block) != SUCCESS)
+        {
+            kfree(block);
+            return ERROR;
+        }
+
+        for (unsigned int e = 0; e < entriesPerBlock && entriesRead < totalEntries; e++, entriesRead++)
+        {
+            DirectoryEntry* entry = (DirectoryEntry*)(block->block + (e * DIR_ENTRY_SIZE));
+            if (strcmp(entry->name, name) == 0)
+            {
+                // replace this entry with the last entry to fill the gap
+                unsigned int lastBlock  = (totalEntries - 1) / entriesPerBlock;
+                unsigned int lastSlot   = (totalEntries - 1) % entriesPerBlock;
+
+                if (b == lastBlock && e == lastSlot)
+                {
+                    // it IS the last entry — just zero it
+                    memset(entry, 0, DIR_ENTRY_SIZE);
+                }
+                else
+                {
+                    // load the last block and copy last entry here
+                    Block* lastBlockBuf = (Block*)kmalloc(sizeof(Block));
+                    if (!lastBlockBuf) { kfree(block); return ERROR; }
+
+                    memset(lastBlockBuf, 0, sizeof(Block));
+                    if (readBlock(dir->blocks[lastBlock], lastBlockBuf) != SUCCESS)
+                    {
+                        kfree(lastBlockBuf);
+                        kfree(block);
+                        return ERROR;
+                    }
+
+                    DirectoryEntry* last = (DirectoryEntry*)(lastBlockBuf->block + (lastSlot * DIR_ENTRY_SIZE));
+                    memcpy(entry, last, DIR_ENTRY_SIZE);
+                    memset(last, 0, DIR_ENTRY_SIZE);
+
+                    if (writeBlock(dir->blocks[lastBlock], lastBlockBuf) != SUCCESS)
+                    {
+                        kfree(lastBlockBuf);
+                        kfree(block);
+                        return ERROR;
+                    }
+                    kfree(lastBlockBuf);
+                }
+
+                // write the modified block back
+                if (writeBlock(dir->blocks[b], block) != SUCCESS)
+                {
+                    kfree(block);
+                    return ERROR;
+                }
+
+                dir->fileSize -= DIR_ENTRY_SIZE;
+                flushInodeTable();
+                kfree(block);
+                return SUCCESS;
+            }
+        }
+    }
+    return ERROR;
 }
 
 
@@ -543,13 +618,12 @@ int deleteFile(const char* name)
         printLine("File not found!", RED);
         return ERROR;
     }
-    INode* inode = &inodeTable->inodes[inodeIdx];
-    if (inode->type != File)
+    if(inodeIdx == 0 || !strcmp(name, ".") || !strcmp(name, ".."))
     {
-        printLine("Not a file!", RED);
+        printLine("Cannot delete root directory!", RED);
         return ERROR;
     }
-
+    INode* inode = &inodeTable->inodes[inodeIdx];
     //free the blocks associated with the inode
     for (unsigned int b = 0; b < MAX_BLOCKS_PER_FILE; b++)
     {
