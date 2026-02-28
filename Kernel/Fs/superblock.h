@@ -21,6 +21,7 @@ typedef struct INode
     unsigned int fileSize;
     unsigned int blocks[MAX_BLOCKS_PER_FILE];
     char isUsed;
+    unsigned int parentINode;
 } INode;
 
 
@@ -71,5 +72,7 @@ void ls();
 void writeFile(const char* name, const char* data, unsigned int size);
 void readFile(const char* name, char* buffer, unsigned int size);
 int deleteFile(const char* name);
+int createDir(const char* name);
+int cd(const char* name);
 
 #endif

@@ -133,6 +133,23 @@ void shell()
         {
             ls();
         }
+        else if(!strcmp(cmd, "cd"))
+        {
+            char* param = strtok(NULL, "\0");
+            if(param == NULL)
+            {
+                printLineW("Usage: cd <directory>");
+                continue;
+            }
+            if(cd(param) != ERROR)
+            {
+                printLineW("Changed directory successfully!");
+            }
+            else
+            {
+                printLineW("Failed to change directory!");
+            }
+        }
         else if(!strcmp(cmd, "repeat"))
         {
             char* param = strtok(NULL, "\0");
@@ -211,7 +228,7 @@ void shell()
                 printLineW("Usage: createDir <dirname>");
                 continue;
             }
-            if(createFile(param, Directory) != ERROR)
+            if(createDir(param) != ERROR)
             {
                 printLineW("Directory created successfully!");
             }

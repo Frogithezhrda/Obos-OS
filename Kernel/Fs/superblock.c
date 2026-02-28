@@ -341,9 +341,9 @@ void loadSuperBlock()
     printNumberW(sb->freeBlocksCount);
     printLineW("");
     
-    printW("Free bytes: 0x");
-    printHexW(sb->freeBlocksCount * BLOCK_SIZE);
-    printW(" bytes");
+    printW("Free bytes: ");
+    printNumberW((sb->freeBlocksCount * BLOCK_SIZE) / 1000);
+    printW("KB");
     printLineW("");
     loadInodeTable();
     loadBitmap();
@@ -435,6 +435,71 @@ int freeBlock(const unsigned int blockNum)
     kfree(block);
     return SUCCESS;
 }
+int createDir(const char* name)
+{
+    if (findFile(name) != ERROR)
+    {
+        printLine("Directory already exists!", RED);
+        return ERROR;
+    }
+
+    int newInodeIdx = createFile(name, Directory);
+    if (newInodeIdx == ERROR) return ERROR;
+
+    int dataBlock = allocateBlock();
+    if (dataBlock == ERROR) return ERROR;
+
+    inodeTable->inodes[newInodeIdx].blocks[0] = dataBlock;
+    inodeTable->inodes[newInodeIdx].fileSize = DIR_ENTRY_SIZE * 2;
+    inodeTable->inodes[newInodeIdx].parentINode = currentDirINode;
+    flushInodeTable();
+
+    Block* block = (Block*)kmalloc(sizeof(Block));
+    if (!block) return ERROR;
+    memset(block, 0, sizeof(Block));
+
+    unsigned char* ptr = block->block;
+    *((unsigned int*)ptr) = (unsigned int)newInodeIdx;
+    memcpy(ptr + 4, ".", 2);
+
+    *((unsigned int*)(ptr + DIR_ENTRY_SIZE)) = (unsigned int)currentDirINode;
+    memcpy(ptr + DIR_ENTRY_SIZE + 4, "..", 3);
+
+    if (writeBlock(dataBlock, block) != SUCCESS) 
+    {
+        kfree(block);
+        return ERROR;
+    }
+    kfree(block);
+    return SUCCESS;
+}
+
+int cd(const char* name)
+{
+    if (strcmp(name, ".") == 0) return SUCCESS;
+
+    if (strcmp(name, "..") == 0) 
+    {
+        currentDirINode = inodeTable->inodes[currentDirINode].parentINode;
+        return SUCCESS;
+    }
+
+    int inodeIdx = findFile(name);
+    if (inodeIdx == ERROR) 
+    {
+        printLine("Directory not found!", RED);
+        return ERROR;
+    }
+
+    if (inodeTable->inodes[inodeIdx].type != Directory) 
+    {
+        printLine("Not a directory!", RED);
+        return ERROR;
+    }
+
+    currentDirINode = (unsigned int)inodeIdx;
+    return SUCCESS;
+}
 
 int createFile(const char* name, Type type)
 {
@@ -451,7 +516,8 @@ int createFile(const char* name, Type type)
     inodeTable->inodes[freeInodeIndex].isUsed = 1;
     inodeTable->inodes[freeInodeIndex].type = type;
     inodeTable->inodes[freeInodeIndex].fileSize = 0;
-    
+    inodeTable->inodes[freeInodeIndex].parentINode = currentDirINode;
+
     flushInodeTable();
     addDirEntry(freeInodeIndex, name);
     return freeInodeIndex;
@@ -466,7 +532,7 @@ void createRootDirectory()
 
     int dataBlock = allocateBlock();
     if (dataBlock == ERROR) kernelPanic("Failed to allocate block for root directory!");
-
+    inodeTable->inodes[rootInodeIndex].parentINode = rootInodeIndex;
     inodeTable->inodes[rootInodeIndex].fileSize = DIR_ENTRY_SIZE * 2;
     inodeTable->inodes[rootInodeIndex].blocks[0] = dataBlock;
     flushInodeTable();
