@@ -244,6 +244,7 @@ void shell()
             printLineW("create <filename> - create a new file");
             printLineW("delete <file/dir name> - delete a file/dir");
             printLineW("createDir <dirname> - create a new directory");
+            printLineW("cd <dirname> - change directory");
             printLineW("read <filename> - read contents of a file");
             printLineW("write <filename> <data> - write data to a file");
             printLineW("repeat <text> - repeat the given text");
