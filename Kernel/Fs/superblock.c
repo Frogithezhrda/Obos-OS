@@ -63,6 +63,7 @@ static void flushInodeTable()
 
 static int addDirEntry(unsigned int fileInodeIndex, const char* name)
 {
+    //getting inode
     INode* dir = &inodeTable->inodes[currentDirINode];
 
     //find which block + slot has room, or allocate a new block
@@ -73,20 +74,23 @@ static int addDirEntry(unsigned int fileInodeIndex, const char* name)
 
     Block* block = (Block*)kmalloc(sizeof(Block));
     if (!block) return ERROR;
-
+    //check if the directory is full
     if (slotIndex == 0)
     {
+        // Check if we need to allocate a new block
         if (blockIndex >= MAX_BLOCKS_PER_FILE)
         {
             kfree(block);
             return ERROR; //dir full
         }
+        //allocate
         int newBlock = allocateBlock();
         if (newBlock == ERROR)
         {
             kfree(block);
             return ERROR;
         }
+        //initialize
         dir->blocks[blockIndex] = newBlock;
         memset(block, 0, sizeof(Block));
     }
@@ -103,7 +107,7 @@ static int addDirEntry(unsigned int fileInodeIndex, const char* name)
     //write the entry into the slot
     unsigned char* ptr = block->block + (slotIndex * DIR_ENTRY_SIZE);
     *((unsigned int*)ptr) = fileInodeIndex;
-    memset(ptr + 4, 0, 64);
+    memset(ptr + 4, 0, FILE_NAME_LENGTH);
     // opy name max 63 chars + null terminator
     unsigned int nameLen = 0;
     while (name[nameLen] && nameLen < FILE_NAME_LENGTH - 1) nameLen++;
@@ -124,19 +128,25 @@ static int addDirEntry(unsigned int fileInodeIndex, const char* name)
 
 static int removeDirEntry(const char* name)
 {
+    //getting the current dir
     INode* dir = &inodeTable->inodes[currentDirINode];
+    //getting amount of entries by dir file size
     unsigned int totalEntries = dir->fileSize / DIR_ENTRY_SIZE;
+    //getting entries per block
     unsigned int entriesPerBlock = BLOCK_SIZE / DIR_ENTRY_SIZE;
     unsigned int entriesRead = 0;
 
     Block* block = (Block*)kmalloc(sizeof(Block));
     if (!block) return ERROR;
-
+    //going through each entry/block
     for (unsigned int b = 0; b < MAX_BLOCKS_PER_FILE && entriesRead < totalEntries; b++)
     {
+        //if has nothing die
         if (dir->blocks[b] == 0) break;
 
         memset(block, 0, sizeof(Block));
+
+        //reading the block
         if (readBlock(dir->blocks[b], block) != SUCCESS)
         {
             kfree(block);
@@ -145,19 +155,21 @@ static int removeDirEntry(const char* name)
 
         for (unsigned int e = 0; e < entriesPerBlock && entriesRead < totalEntries; e++, entriesRead++)
         {
+            //creating a dir entry
             DirectoryEntry* entry = (DirectoryEntry*)(block->block + (e * DIR_ENTRY_SIZE));
             if (strcmp(entry->name, name) == 0)
             {
-                // replace this entry with the last entry to fill the gap
+                // found the entry to remove
+                //getting the last block and slot
                 unsigned int lastBlock  = (totalEntries - 1) / entriesPerBlock;
                 unsigned int lastSlot   = (totalEntries - 1) % entriesPerBlock;
 
                 if (b == lastBlock && e == lastSlot)
                 {
-                    // it IS the last entry — just zero it
+                    // it IS the last entry just zero it
                     memset(entry, 0, DIR_ENTRY_SIZE);
                 }
-                else
+                else //removing the entry and shifting the entry back up
                 {
                     // load the last block and copy last entry here
                     Block* lastBlockBuf = (Block*)kmalloc(sizeof(Block));
@@ -174,7 +186,7 @@ static int removeDirEntry(const char* name)
                     DirectoryEntry* last = (DirectoryEntry*)(lastBlockBuf->block + (lastSlot * DIR_ENTRY_SIZE));
                     memcpy(entry, last, DIR_ENTRY_SIZE);
                     memset(last, 0, DIR_ENTRY_SIZE);
-
+                    //writing back the new block after changes
                     if (writeBlock(dir->blocks[lastBlock], lastBlockBuf) != SUCCESS)
                     {
                         kfree(lastBlockBuf);
@@ -184,13 +196,13 @@ static int removeDirEntry(const char* name)
                     kfree(lastBlockBuf);
                 }
 
-                // write the modified block back
+                //write the modified block back
                 if (writeBlock(dir->blocks[b], block) != SUCCESS)
                 {
                     kfree(block);
                     return ERROR;
                 }
-
+                //removing the entry and writing to the inode
                 dir->fileSize -= DIR_ENTRY_SIZE;
                 flushInodeTable();
                 kfree(block);
@@ -365,7 +377,7 @@ void initializeBitmap(unsigned char* newBitmap)
 
     memset(bitmap, 0x00, sb->bitmapBlocks * BLOCK_SIZE);
 
-    // Mark superblock block(s) as used
+    //mark superblock blocks as used
     for (unsigned int i = 0; i <= SUPERBLOCK_BLOCK; i++)
     {
         bitmap[i / 8] |= (1 << (i % 8));
@@ -437,34 +449,45 @@ int freeBlock(const unsigned int blockNum)
 }
 int createDir(const char* name)
 {
+    /**
+     * Checks if a directory with the same name already exists.
+     * If it does, prints an error message and returns an error code.
+     */
     if (findFile(name) != ERROR)
     {
         printLine("Directory already exists!", RED);
         return ERROR;
     }
 
+    /**
+     * Creates a new directory inode.
+     */
     int newInodeIdx = createFile(name, Directory);
     if (newInodeIdx == ERROR) return ERROR;
 
+
     int dataBlock = allocateBlock();
     if (dataBlock == ERROR) return ERROR;
-
+    /*
+        * Initializes the new directory's inode with the allocated data block,
+        * sets the file size to accommodate "." and ".." entries, and sets the parent inode.
+    */
     inodeTable->inodes[newInodeIdx].blocks[0] = dataBlock;
     inodeTable->inodes[newInodeIdx].fileSize = DIR_ENTRY_SIZE * 2;
     inodeTable->inodes[newInodeIdx].parentINode = currentDirINode;
-    flushInodeTable();
+    flushInodeTable(); //writing to indoe talbe
 
     Block* block = (Block*)kmalloc(sizeof(Block));
     if (!block) return ERROR;
     memset(block, 0, sizeof(Block));
-
+    // Initialize the block for the new directory
     unsigned char* ptr = block->block;
     *((unsigned int*)ptr) = (unsigned int)newInodeIdx;
     memcpy(ptr + 4, ".", 2);
-
+    // Initialize the ".." entry
     *((unsigned int*)(ptr + DIR_ENTRY_SIZE)) = (unsigned int)currentDirINode;
     memcpy(ptr + DIR_ENTRY_SIZE + 4, "..", 3);
-
+    // Write the block of names to disk
     if (writeBlock(dataBlock, block) != SUCCESS) 
     {
         kfree(block);
@@ -477,7 +500,6 @@ int createDir(const char* name)
 int cd(const char* name)
 {
     if (strcmp(name, ".") == 0) return SUCCESS;
-
     if (strcmp(name, "..") == 0) 
     {
         currentDirINode = inodeTable->inodes[currentDirINode].parentINode;
@@ -490,7 +512,6 @@ int cd(const char* name)
         printLine("Directory not found!", RED);
         return ERROR;
     }
-
     if (inodeTable->inodes[inodeIdx].type != Directory) 
     {
         printLine("Not a directory!", RED);
@@ -512,6 +533,7 @@ int createFile(const char* name, Type type)
 
 
     int freeInodeIndex = ERROR;
+    // Find a free inode
     for (unsigned int i = 0; i < MAX_FILES; i++)
     {
         if (!inodeTable->inodes[i].isUsed)
@@ -520,6 +542,7 @@ int createFile(const char* name, Type type)
             break;
         }
     }
+    // If no free inode is found, return an error
     if (freeInodeIndex == ERROR) return ERROR;
     inodeTable->inodes[freeInodeIndex].isUsed = 1;
     inodeTable->inodes[freeInodeIndex].type = type;
