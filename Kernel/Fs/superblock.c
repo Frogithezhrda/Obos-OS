@@ -503,6 +503,14 @@ int cd(const char* name)
 
 int createFile(const char* name, Type type)
 {
+    int inodeIdx = findFile(name);
+    if (inodeIdx != ERROR)
+    {
+        printLine("File already exists!", RED);
+        return ERROR;
+    }
+
+
     int freeInodeIndex = ERROR;
     for (unsigned int i = 0; i < MAX_FILES; i++)
     {
