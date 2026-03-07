@@ -103,9 +103,35 @@ void keybosIndex(char* string, const int maxLength, int index)
             printChar(asciiChar, LIGHT_CYAN);
         }
         
-        for (volatile int i = 0; i < 50000; i++);
     }
 
+}
+
+char keybosChar()
+{
+    unsigned char scanCode;
+    unsigned char asciiChar;
+
+    while (1)
+    {
+        while (lastScanCode == 0) return 0;
+
+        scanCode = lastScanCode;
+        lastScanCode = 0;
+
+        if (scanCode >= LAST_SCAN_CODE)
+        {
+            return 0;
+        }
+        asciiChar = scancodeToASCII[scanCode];
+
+        if (asciiChar == 0)
+        {
+            return 0;
+        }
+        return asciiChar;
+    }
+    return 0;
 }
 
 void keybos(char* string, const int maxLength)

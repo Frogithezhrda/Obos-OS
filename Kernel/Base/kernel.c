@@ -124,6 +124,37 @@ void shell()
         {
             continue;
         }
+        else if(!strcmp(cmd, "calc"))
+        {
+            menu();
+        }
+        else if(!strcmp(cmd, "snake"))
+        {
+            char* param = strtok(NULL, " ");
+            //bad habit sry
+            enum Difficulty{EASY = 30, MEDIUM = 20, HARD = 10};
+            if(param != NULL)
+            {
+                if(!strcmp(param, "easy"))
+                {
+                    setDiff(EASY);
+                }
+                else if(!strcmp(param, "medium"))
+                {
+                    setDiff(MEDIUM);
+                }
+                else if(!strcmp(param, "hard"))
+                {
+                    setDiff(HARD);
+                }
+                else
+                {
+                    printLineW("Usage: snake [easy|medium|hard]");
+                    continue;
+                }
+            }
+            runSnakeGame();
+        }
         else if(!strcmp(cmd, "edit"))
         {
             char* param = strtok(NULL, " ");
