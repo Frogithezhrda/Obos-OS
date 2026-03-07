@@ -630,25 +630,25 @@ void ls()
     kfree(block);
 }
 
-void readFile(const char* name, char* buffer, unsigned int size)
+int readFile(const char* name, char* buffer, unsigned int size)
 {
     int inodeIdx = findFile(name);
     if (inodeIdx == ERROR)
     {
         printLine("File not found!", RED);
-        return;
+        return ERROR;
     }
     
     INode* inode = &inodeTable->inodes[inodeIdx];
     if (inode->type != File)
     {
         printLine("Not a file!", RED);
-        return;
+        return ERROR;
     }
 
     unsigned int bytesRead = 0;
     Block* block = (Block*)kmalloc(sizeof(Block));
-    if (!block) return;
+    if (!block) return ERROR;
 
     for (unsigned int b = 0; b < MAX_BLOCKS_PER_FILE && bytesRead < size; b++)
     {
@@ -663,6 +663,7 @@ void readFile(const char* name, char* buffer, unsigned int size)
         bytesRead += toCopy;
     }
     kfree(block);
+    return SUCCESS;
 }
 
 void writeFile(const char* name, const char* data, unsigned int size)

@@ -17,5 +17,6 @@
 void keyboardISR(void);
 void deleteChar(void);
 void keybos(char* string, const int maxLength);
+void keybosIndex(char* string, const int maxLength, int index);
 void handleKeyRelease(void);
 #endif

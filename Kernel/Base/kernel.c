@@ -124,6 +124,16 @@ void shell()
         {
             continue;
         }
+        else if(!strcmp(cmd, "edit"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: edit <filename>");
+                continue;
+            }
+            editFile(param);
+        }
         else if(!strcmp(cmd, "exit"))
         {
             printLineW("Exiting...");
@@ -248,6 +258,7 @@ void shell()
             printLineW("read <filename> - read contents of a file");
             printLineW("write <filename> <data> - write data to a file");
             printLineW("repeat <text> - repeat the given text");
+            printLineW("edit <filename> - edit a file");
             printLineW("exit - exit the shell");
         }
         else

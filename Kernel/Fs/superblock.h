@@ -105,7 +105,7 @@ void createRootDirectory();
  *
  * Stops immediately if file not found or is not a regular file.
  */
-void readFile(const char* name, char* buffer, unsigned int size);
+int readFile(const char* name, char* buffer, unsigned int size);
 
 /**
  * Writes data into a file.

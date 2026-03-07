@@ -35,14 +35,13 @@ void deleteChar(void)
     printW("\b \b");
 }
 
-void keybos(char* string, const int maxLength)
+void keybosIndex(char* string, const int maxLength, int index)
 {
-    int index = 0;
+    if (index < 0 || index >= maxLength) return;
     unsigned char scanCode;
     unsigned char asciiChar;
-    
     //clearing the string
-    string[0] = '\0';
+    // string[0] = '\0';
     
     while (1)
     {
@@ -106,4 +105,10 @@ void keybos(char* string, const int maxLength)
         
         for (volatile int i = 0; i < 50000; i++);
     }
+
+}
+
+void keybos(char* string, const int maxLength)
+{
+    keybosIndex(string, maxLength, 0);
 }
