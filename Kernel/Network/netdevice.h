@@ -4,6 +4,7 @@
 #define MAX_PACKET_SIZE  1518
 #define RX_BUFFER_COUNT  16
 #define TX_BUFFER_COUNT  16
+#define MAX_BUFFER_COUNT 16
 #define ERROR -1
 #define OK 0
 #define NULL 0
@@ -24,7 +25,7 @@ typedef struct NetDeviceFunc
 
 
 typedef struct NetDevice {
-    char name[TX_BUFFER_COUNT];
+    char name[MAX_BUFFER_COUNT];
     unsigned char mac[6];
 
     // queues

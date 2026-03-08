@@ -5,6 +5,7 @@ extern keyboardISR
 extern rtcISR
 extern pageFaultHandler
 extern syscallHandler
+extern e1000ISRHandler
 section .text
 %macro ISR_NOERR 1
 isr%1:
@@ -56,6 +57,7 @@ global isr33
 global isr40
 global pageFaultISR
 global syscallStub
+global e1000ISR
 
 isr32:
     cli
@@ -92,6 +94,15 @@ IsrCommon:
     add esp, 4 
     popa
     add esp, 8
+    iret
+
+e1000ISR:
+    cli
+    push byte 0
+    push byte 40
+    call e1000ISRHandler
+    add esp, 8
+    sti
     iret
 
 pageFaultISR:

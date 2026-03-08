@@ -321,7 +321,15 @@ void printTitle()
     printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
     disableInterrupts();
 }
-
+void initializeNet()
+{
+    // unsigned char nullMac[6] = {0};
+    // NetDevice* eth0 = netDeviceCreate("eth0", nullMac);
+    // unsigned int mmioBase = 1245;
+    // e1000Init(eth0);
+    // netDeviceInit(eth0);
+    // ethernetInit(eth0);
+}
 void obos_main()
 {
     //basic initalization
@@ -346,10 +354,12 @@ void obos_main()
     enablePagingNow();
     initKernelHeap();
     initUserHeap();
+    // initializeNet(); //net
     clearScreen();
     printTitle(); //this disables interrupts in the os
     loadSuperBlock();
     shell();
+
     //minimal shutdown
     asm volatile("hlt");
     // enterUserMode((void*)USER_SPACE_START);
