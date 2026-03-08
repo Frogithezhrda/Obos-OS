@@ -52,3 +52,15 @@ void endOfInterrupt(const unsigned char irq)
     }
     outb(MASTER_PIC_COMMAND_PORT, EOI);
 }
+
+unsigned short inw(const unsigned short port)
+{
+    unsigned short value;
+    asm volatile ("inw %1, %0" : "=a"(value) : "Nd"(port));
+    return value;
+}
+
+void outw(const unsigned short port, const unsigned short value)
+{
+    asm volatile ("outw %0, %1" :: "a"(value), "Nd"(port));
+}

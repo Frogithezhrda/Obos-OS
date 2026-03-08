@@ -21,8 +21,8 @@ static const char scancodeToASCIIShift[LAST_SCAN_CODE] =
     '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'
 };
 
-static unsigned char shiftPressed = 0;
-static unsigned char lastScanCode = 0;
+static volatile unsigned char shiftPressed = 0;
+static volatile unsigned char lastScanCode = 0;
 
 void keyboardISR(void)
 {
@@ -35,14 +35,13 @@ void deleteChar(void)
     printW("\b \b");
 }
 
-void keybos(char* string, const int maxLength)
+void keybosIndex(char* string, const int maxLength, int index)
 {
-    int index = 0;
+    if (index < 0 || index >= maxLength) return;
     unsigned char scanCode;
     unsigned char asciiChar;
-    
-    // Clear the string
-    string[0] = '\0';
+    //clearing the string
+    // string[0] = '\0';
     
     while (1)
     {
@@ -101,9 +100,41 @@ void keybos(char* string, const int maxLength)
             string[index] = asciiChar;
             index++;
             string[index] = '\0';
-            printChar(asciiChar, WHITE);
+            printChar(asciiChar, LIGHT_CYAN);
         }
         
-        for (int i = 0; i < 50000; i++);
     }
+
+}
+
+char keybosChar()
+{
+    unsigned char scanCode;
+    unsigned char asciiChar;
+
+    while (1)
+    {
+        while (lastScanCode == 0) return 0;
+
+        scanCode = lastScanCode;
+        lastScanCode = 0;
+
+        if (scanCode >= LAST_SCAN_CODE)
+        {
+            return 0;
+        }
+        asciiChar = scancodeToASCII[scanCode];
+
+        if (asciiChar == 0)
+        {
+            return 0;
+        }
+        return asciiChar;
+    }
+    return 0;
+}
+
+void keybos(char* string, const int maxLength)
+{
+    keybosIndex(string, maxLength, 0);
 }

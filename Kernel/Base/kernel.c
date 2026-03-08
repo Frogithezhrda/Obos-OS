@@ -111,6 +111,202 @@ code[5] = 0xFE; // infinite loop
 AND DONT FORGET TO PUT THE COLOR WHEN CALLING THE PRINT
 */
 
+void shell()
+{
+    char* string = kmalloc(100);
+    while(1)
+    {
+        print("\n>>", LIGHT_GREEN);
+        keybos(string, 100);
+        char* cmd = strtok(string, " ");
+
+        if(cmd == NULL)
+        {
+            continue;
+        }
+        else if(!strcmp(cmd, "calc"))
+        {
+            menu();
+        }
+        else if(!strcmp(cmd, "snake"))
+        {
+            char* param = strtok(NULL, " ");
+            //bad habit sry
+            enum Difficulty{EASY = 30, MEDIUM = 20, HARD = 10};
+            if(param != NULL)
+            {
+                if(!strcmp(param, "easy"))
+                {
+                    setDiff(EASY);
+                }
+                else if(!strcmp(param, "medium"))
+                {
+                    setDiff(MEDIUM);
+                }
+                else if(!strcmp(param, "hard"))
+                {
+                    setDiff(HARD);
+                }
+                else
+                {
+                    printLineW("Usage: snake [easy|medium|hard]");
+                    continue;
+                }
+            }
+            runSnakeGame();
+        }
+        else if(!strcmp(cmd, "edit"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: edit <filename>");
+                continue;
+            }
+            editFile(param);
+        }
+        else if(!strcmp(cmd, "exit"))
+        {
+            printLineW("Exiting...");
+            break;
+        }
+        else if(!strcmp(cmd, "ls"))
+        {
+            ls();
+        }
+        else if(!strcmp(cmd, "cd"))
+        {
+            char* param = strtok(NULL, "\0");
+            if(param == NULL)
+            {
+                printLineW("Usage: cd <directory>");
+                continue;
+            }
+            if(cd(param) != ERROR)
+            {
+                printLineW("Changed directory successfully!");
+            }
+            else
+            {
+                printLineW("Failed to change directory!");
+            }
+        }
+        else if(!strcmp(cmd, "repeat"))
+        {
+            char* param = strtok(NULL, "\0");
+            if(param != NULL) printW(param);
+        }
+        else if(!strcmp(cmd, "read"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: read <filename>");
+                continue;
+            }
+            char* buffer = (char*)kmalloc(144);
+            readFile(param, buffer, 144);
+            printW("File contents:\n");
+            printW(buffer);
+            kfree(buffer);
+        }
+        else if(!strcmp(cmd, "write"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: write <filename>");
+                continue;
+            }
+            char* data = strtok(NULL, "\0");
+            if(data == NULL)
+            {
+                printLineW("Usage: write <filename> <data>");
+                continue;
+            }
+            writeFile(param, data, strlen(data));
+            printLineW("File written successfully!");
+        }
+        else if(!strcmp(cmd, "create"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: create <filename>");
+                continue;
+            }
+            if(createFile(param, File) != ERROR)
+            {
+                printLineW("File created successfully!");
+            }
+            else
+            {
+                printLineW("Failed to create file!");
+            }
+        }
+        else if(!strcmp(cmd, "delete"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: delete <filename>");
+                continue;
+            }
+            if(deleteFile(param) != ERROR)
+            {
+                printLineW("File deleted successfully!");
+            }
+            else
+            {
+                printLineW("Failed to delete file!");
+            }
+        }
+        else if(!strcmp(cmd, "stats"))
+        {
+            showSystemStats();
+        }
+        else if(!strcmp(cmd, "createDir"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: createDir <dirname>");
+                continue;
+            }
+            if(createDir(param) != ERROR)
+            {
+                printLineW("Directory created successfully!");
+            }
+            else
+            {
+                printLineW("Failed to create directory!");
+            }
+        }
+        else if(!strcmp(cmd, "help"))
+        {
+            printLineW("Available commands:");
+            printLineW("ls - list files and directories");
+            printLineW("create <filename> - create a new file");
+            printLineW("delete <file/dir name> - delete a file/dir");
+            printLineW("createDir <dirname> - create a new directory");
+            printLineW("cd <dirname> - change directory");
+            printLineW("read <filename> - read contents of a file");
+            printLineW("write <filename> <data> - write data to a file");
+            printLineW("repeat <text> - repeat the given text");
+            printLineW("edit <filename> - edit a file");
+            printLineW("snake <diff>(optional) - play the snake game");
+            printLineW("calc - open the calculator");
+            printLineW("stats - show system statistics");
+            printLineW("exit - exit the shell");
+        }
+        else
+        {
+            printLine("Unknown command!", LIGHT_RED);
+        }
+    }
+    kfree(string);
+}
+
 void printTitle()
 {
     printLine(" ________  ________  ________  ________      ", GREEN);
@@ -121,7 +317,7 @@ void printTitle()
     printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
     printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
     printLine("                                 \\|_________|", GREEN);
-    printLine("Version: 0.3", LIGHT_BLUE);
+    printLine("Version: 0.6", LIGHT_BLUE);
     printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
     disableInterrupts();
 }
@@ -129,16 +325,21 @@ void printTitle()
 void obos_main()
 {
     //basic initalization
+    clearScreen();
     disableInterrupts();
     setupIDT();
+    printLine("IDT Setup Complete...", LIGHT_BLUE);
     initalizeException();
+    printLine("Exception Handling Initialized...", LIGHT_BLUE);
     initializePIC();
-    loadIDT();      
+    printLine("PIC Initialized...", LIGHT_BLUE);
+    loadIDT();
+    printLine("IDT Loaded...", LIGHT_BLUE);
     initializeTimer();
+    printLine("Timer Initialized...", LIGHT_BLUE);
     // maskAllInterrupts(); //no need to maksk interrupts here
     enableInterrupts();
     clearScreen();
-
     initializeMemoryManager();
     // printMemoryManagerInfo();
     initializePaging();
@@ -147,19 +348,8 @@ void obos_main()
     initUserHeap();
     clearScreen();
     printTitle(); //this disables interrupts in the os
-    enableInterrupts();
-    char* string = kmalloc(100);
-    while(1)
-    {
-        printW("\n>>");
-        keybos(string, 100);
-        printLineW(string);
-        if(!strcmp(string, "exit"))
-        {
-            printLineW("Exiting write mode...");
-            break;
-        }
-    }
+    loadSuperBlock();
+    shell();
     //minimal shutdown
     asm volatile("hlt");
     // enterUserMode((void*)USER_SPACE_START);

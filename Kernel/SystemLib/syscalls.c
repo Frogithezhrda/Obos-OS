@@ -29,6 +29,30 @@ unsigned int syscallHandler(const unsigned int syscallNumber, unsigned int arg1,
             }
             return FAILED;
             break;
+        case SYSCALL_CREATE_FILE:
+            if(arg1)
+            {
+                createFileF((const char*)arg1);
+                return SUCCESS;
+            }
+            return FAILED;
+            break;
+        case SYSCALL_CREATE_DIRECTORY:
+            if(arg1)
+            {
+                createDir((const char*)arg1);
+                return SUCCESS;
+            }
+            return FAILED;
+            break;
+        case SYSCALL_DELETE_FILE:
+            if(arg1)
+            {
+                deleteFile((const char*)arg1);
+                return SUCCESS;
+            }
+            return FAILED;
+            break;
         case SYSCALL_SLEEP:
             asm volatile ("sti"); //got to enable interrupts
             if(arg1) sleep(arg1);

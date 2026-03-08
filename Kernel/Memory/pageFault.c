@@ -17,16 +17,14 @@ void pageFaultHandler(unsigned int errorCode)
     // }
     printLine("\n=== PAGE FAULT ===", RED);
     
-    print("Faulting address: ", WHITE);
-    printNumber(faultAddr, WHITE);
+    print("Faulting address: 0x", WHITE);
+    printHexNumber(faultAddr, WHITE);
     printLine("", WHITE);
     
     print("Error code: ", WHITE);
-    printNumber(errorCode, WHITE);
+    printHexNumber(errorCode, WHITE);
     printLine("", WHITE);
 
-    print("Faulting address: 0x", WHITE);
-    printHexNumber(faultAddr, WHITE);
     //basic demand paging handler
     if(!(errorCode & PF_PRESENT) && faultAddr >= USER_SPACE_START && faultAddr < USER_SPACE_END)
     {

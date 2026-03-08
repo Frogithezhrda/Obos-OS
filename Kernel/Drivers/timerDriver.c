@@ -1,6 +1,7 @@
 #include "timerDriver.h"
 
 static unsigned int tickCounter = 0;
+static unsigned int rseed = 2463534242;
 
 void timerISR(void)
 {
@@ -105,4 +106,24 @@ void printCurrentTime(void)
     }
     printNumber(currentTime.seconds, WHITE);
     printLine("", WHITE);
+}
+
+void srand()
+{
+    rseed = tickCounter; //seed with current tick count for sort of randomness i guess...
+}
+
+unsigned int rand()
+{
+    rseed ^= rseed << 13;
+    rseed ^= rseed >> 17;
+    rseed ^= rseed << 5;
+    return rseed;
+}
+
+unsigned int randRange(unsigned int min, unsigned int max)
+{
+    if (max <= min) return min;
+    unsigned int range = max - min + 1;
+    return (rand() % range) + min;
 }

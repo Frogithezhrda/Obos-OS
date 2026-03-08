@@ -23,6 +23,9 @@ typedef struct Time
     unsigned int ms;
 } Time;
 
+unsigned int rand();
+void srand();
+unsigned int randRange(unsigned int min, unsigned int max);
 void timerISR(void);
 void initializeTimer(void);
 void sleep(unsigned int ms);

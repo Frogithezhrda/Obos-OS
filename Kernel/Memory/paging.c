@@ -19,7 +19,6 @@ void initializePaging(void)
         kernelPanic("Error: Unable to allocate frame for Page Directory!");
     }
     kernelPageDirectory = (PageDirectory*)(unsigned int)pdPhys;
-    
     memset(kernelPageDirectory, 0, PAGE_SIZE);
     
     for (unsigned int tableNum = 0; tableNum < NUM_PAGE_TABLES_KERNEL; tableNum++)
@@ -47,6 +46,22 @@ void initializePaging(void)
         kernelPageDirectory->entries[tableNum].userSupervisor = SUPERVISOR_ONLY;
         kernelPageDirectory->entries[tableNum].pageTableAddress = ptPhys / PAGE_SIZE;
     }
+
+    unsigned int testAddr = 0x1090E8;
+    unsigned int pdIdx = testAddr >> 22;
+    unsigned int ptIdx = (testAddr >> 12) & 0x3FF;
+
+    printW("Testing addr 0x1090E8: PD["); printNumberW(pdIdx);
+    printW("] PT["); printNumberW(ptIdx); printW("]\n");
+    printW("PD entry present: "); 
+    printNumberW(kernelPageDirectory->entries[pdIdx].present); printLineW("");
+
+    if(kernelPageDirectory->entries[pdIdx].present)
+    {
+        PageTable* pt = (PageTable*)(kernelPageDirectory->entries[pdIdx].pageTableAddress * PAGE_SIZE);
+        printW("PT entry present: "); printNumberW(pt->entries[ptIdx].present); printLineW("");
+        printW("Frame: 0x"); printHexW(pt->entries[ptIdx].frameAddress * PAGE_SIZE); printLineW("");
+    }
     /*
     we are using dual mapping here
     mapping the kernel to both low memory and higher half
@@ -63,8 +78,8 @@ void initializePaging(void)
                     SUPERVISOR_ONLY);
     
     mapMemoryRegion(VIRTUAL_KERNEL_START_ADDRESS,
-                    kernelSize,
-                    kernelPhysStart,
+                    VIRTUAL_KERNEL_END_ADDRESS - VIRTUAL_KERNEL_START_ADDRESS,
+                    KERNEL_PHYSICAL_START,
                     SUPERVISOR_ONLY);
     
     mapMemoryRegion(VIRTUAL_HEAP_START_ADDRESS,
@@ -76,6 +91,7 @@ void initializePaging(void)
                     STACK_PHYSICAL_END - STACK_PHYSICAL_START,
                     STACK_PHYSICAL_START,
                     SUPERVISOR_ONLY);
+
     mapUserPages();
 
 
@@ -321,7 +337,9 @@ void initTSS()
     tssDesc[3] = (tssAddress / 256) & 0xFF;
     tssDesc[4] = (tssAddress / 65536) & 0xFF;
     tssDesc[7] = (tssAddress / 16777216) & 0xFF;
-    
+    printW("kernelTSS phys addr: "); 
+    printHexW((unsigned int)&kernelTSS); 
+    printLineW("");
     asm volatile("ltr %0" : : "r"((unsigned short)TSS_SELECTOR));
 
 }

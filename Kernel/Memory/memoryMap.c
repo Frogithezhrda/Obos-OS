@@ -3,12 +3,14 @@
 static MemoryManager memoryManager;
 static MemoryMapEntry* memoryMap = (MemoryMapEntry*)MEMORY_MAP_ADDRESS;    
 
-Frame frames[TOTAL_FRAMES];
-
-
+// Frame frames[TOTAL_FRAMES];
+static Frame* frames;
 
 void initializeMemoryManager()
 {
+
+
+    frames = (Frame*)0x00400000;
     //entry amounts getting from the specified memory address
     unsigned short entryCount = *((unsigned short*)MEMORY_MAP_ENTTRY_COUNT_ADDRESS);
 
@@ -134,30 +136,47 @@ void reserveKernelRegions(void)
 {
     MemoryRegion region;
 
-    region.start = 0x100000; //1MB
-    region.end = 0x108000;   //1MB + Kernel Size (16384 bytes)
-    region.type = MEMORY_TYPE_RESERVED;
+    // first 1MB - BIOS/bootloader
+    region.start  = 0x000000;
+    region.end    = 0x100000;
+    region.type   = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
-    //IMPORTANT NOTE: Stack grows downwards
-    //so the stack region is from 0x1FFC00 to 0x200000 - but it starts at 0x200000 and grows downwards
-    region.start = 0x1FFC00; //2MB
-    region.end = 0x200000;   //2MB - Stack Size (16KB)
-    region.type = MEMORY_TYPE_RESERVED;
-    region.isFree = FALSE;
-    memoryManager.regions[memoryManager.regionCount++] = region;
-    region.start = 0x108000; //1MB + Kernel Size
-    region.end = 0x200000;   //1MB + Kernel Size + Heap Size (1MB)
-    region.type = MEMORY_TYPE_RESERVED;
-    region.isFree = FALSE;
 
-    //Reserving 0x000000 to 0x100000 (First 1MB) used for initalizing the system
-    region.start = 0x000000; //1MB
-    region.end = 0x100000;   //1MB size
-    region.type = MEMORY_TYPE_RESERVED;
+    // kernel + BSS
+    region.start  = 0x100000;
+    region.end    = 0x1A0000;
+    region.type   = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
-    memoryManager.totalReserved += (0x200000 - 0x000000); //Kernel Size + Stack Size + Heap Size
+
+    // heap
+    region.start  = 0x1A0000;
+    region.end    = 0x200000;
+    region.type   = MEMORY_TYPE_RESERVED;
+    region.isFree = FALSE;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+
+    // stack
+    region.start  = 0x200000;
+    region.end    = 0x300000;
+    region.type   = MEMORY_TYPE_RESERVED;
+    region.isFree = FALSE;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+
+    // paging structures
+    region.start  = 0x300000;
+    region.end    = 0x400000;
+    region.type   = MEMORY_TYPE_RESERVED;
+    region.isFree = FALSE;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+
+    // frames array
+    region.start  = 0x400000;
+    region.end    = 0x440000;
+    region.type   = MEMORY_TYPE_RESERVED;
+    region.isFree = FALSE;
+    memoryManager.regions[memoryManager.regionCount++] = region;
 }
 
 
@@ -198,11 +217,11 @@ void settingReservedFrames()
 int allocateFrame(unsigned long long address)
 {
     unsigned long long frameIndex = address / FRAME_SIZE;
-    if (!frames[frameIndex].isFree) 
-    {
-        printLine("Error: Frame already allocated!", RED);
-        return ERROR;
-    }
+    // if (!frames[frameIndex].isFree) 
+    // {
+    //     printLine("Error: Frame already allocated!", RED);
+    //     return ERROR;
+    // }
     frames[frameIndex].isFree = FALSE;
     return frames[frameIndex].address;
 }
@@ -219,7 +238,7 @@ int freeFrame(unsigned long long address)
     return frames[frameIndex].address;
 }
 
-int allocateFreeFrame()
+unsigned long long allocateFreeFrame()
 {
     for(unsigned int i = 0; i < TOTAL_FRAMES; i++)
     {

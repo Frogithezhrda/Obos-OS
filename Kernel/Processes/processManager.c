@@ -94,7 +94,7 @@ PCB* createProcess(void* entryPoint)
     process->state = Ready;
 
     process->cpuContext.eip = (unsigned int)entryPoint;
-    process->cpuContext.eflags = IF; 
+    process->cpuContext.eflags = IF;
     process->timeSlice = TIME_SLICE;
 
     /*
