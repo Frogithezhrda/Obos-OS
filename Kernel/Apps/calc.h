@@ -2,6 +2,7 @@
 #define CALC_H
 
 #include "../Drivers/keyboardDriver.h"
+#include "../SystemLib/obosMemory.h"
 
 void menu();
 int add(int a, int b);

@@ -9,4 +9,5 @@ int strcmp(const char* str1, const char* str2);
 char* strtok(char *str, const char *delim);
 char* strchr(const char* str, int c);
 unsigned int strlen(const char *str);
+int atoi(char *p);
 #endif

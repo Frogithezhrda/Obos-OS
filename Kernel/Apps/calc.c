@@ -3,31 +3,53 @@
 void menu()
 {
     char option = NULL;
-    printW("Calculator Menu:\n");
-    printW("1. Add\n");
-    printW("2. Subtract\n");
-    printW("3. Multiply\n");
-    printW("4. Divide\n");
-    printW("Select an option: ");
-    while(option != 0) option = keybosChar();
-    switch(option)
+    while(1)
     {
-        case '1':
-
-            break;
-        case '2':
-            // Handle subtraction
-            break;
-        case '3':
-            // Handle multiplication
-            break;
-        case '4':
-            // Handle division
-            break;
-        default:
-            printW("Invalid option. Please try again.\n");
-            menu();
-            break;
+        char buffA[12];
+        char buffB[12];
+        char result[1];
+        printW("Calculator Menu:\n");
+        printW("1. Add\n");
+        printW("2. Subtract\n");
+        printW("3. Multiply\n");
+        printW("4. Divide\n");
+        printW("5. Bye\n");
+        printW("Select an option: ");
+        keybos(result, 2);
+        option = result[0];
+        if(option == '5')
+        {
+            printW("Exiting Calculator App...\n");
+            return;
+        }
+        printW("Enter first number: ");
+        keybos(buffA, 12);
+        printW("Enter second number: ");
+        keybos(buffB, 12);
+        int a = atoi(buffA);
+        int b = atoi(buffB);
+        printW("Result:");
+        switch(option)
+        {
+            case '1':
+                printNumberW(add(a, b));
+                break;
+            case '2':
+                printNumberW(sub(a, b));
+                break;
+            case '3':
+                printNumberW(mul(a, b));
+                break;
+            case '4':
+                printNumberW(div(a, b));
+                break;
+            default:
+                printW("Invalid option. Please try again.\n");
+                menu();
+                break;
+        }
+        printW("\n");
+        printW("\n");
     }
 }
 
@@ -52,5 +74,5 @@ int div(int a, int b)
     {
         return a / b;
     }
-    return 0; // Handle division by zero
+    return 0;
 }
