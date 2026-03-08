@@ -298,6 +298,11 @@ void createSuperBlock()
     printLine("Root directory created successfully!", GREEN);
 }
 
+unsigned int getFreeBlocksCount()
+{
+    return sb->freeBlocksCount;
+}
+
 void loadSuperBlock()
 {
     printLine("Loading SuperBlock...", BLUE);

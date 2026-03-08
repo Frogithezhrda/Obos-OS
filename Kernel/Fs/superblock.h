@@ -201,6 +201,8 @@ int createDir(const char* name);
  */
 int cd(const char* name);
 
+unsigned int getFreeBlocksCount();
+
 #define createFileF(name) createFile(name, File)
 
 #endif

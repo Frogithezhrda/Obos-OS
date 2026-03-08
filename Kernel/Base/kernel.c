@@ -261,6 +261,10 @@ void shell()
                 printLineW("Failed to delete file!");
             }
         }
+        else if(!strcmp(cmd, "stats"))
+        {
+            showSystemStats();
+        }
         else if(!strcmp(cmd, "createDir"))
         {
             char* param = strtok(NULL, " ");
@@ -290,6 +294,9 @@ void shell()
             printLineW("write <filename> <data> - write data to a file");
             printLineW("repeat <text> - repeat the given text");
             printLineW("edit <filename> - edit a file");
+            printLineW("snake <diff>(optional) - play the snake game");
+            printLineW("calc - open the calculator");
+            printLineW("stats - show system statistics");
             printLineW("exit - exit the shell");
         }
         else
@@ -310,7 +317,7 @@ void printTitle()
     printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
     printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
     printLine("                                 \\|_________|", GREEN);
-    printLine("Version: 0.5", LIGHT_BLUE);
+    printLine("Version: 0.6", LIGHT_BLUE);
     printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
     disableInterrupts();
 }
