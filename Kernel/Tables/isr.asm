@@ -97,12 +97,9 @@ IsrCommon:
     iret
 
 e1000ISR:
-    cli
-    push byte 0
-    push byte 40
+    pusha
     call e1000ISRHandler
-    add esp, 8
-    sti
+    popa
     iret
 
 pageFaultISR:

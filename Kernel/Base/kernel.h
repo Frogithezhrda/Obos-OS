@@ -6,7 +6,7 @@
 #include "../Memory/heap.h"
 #include "../SystemLib/obosMemory.h"
 #include "../Fs/superblock.h"
-#include "../Network/e1000.h"
+#include "../Network/icmp.h"
 void obos_main();
 
 #endif  

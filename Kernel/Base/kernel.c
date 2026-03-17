@@ -265,6 +265,18 @@ void shell()
         {
             showSystemStats();
         }
+        else if(!strcmp(cmd, "ping"))
+        {
+            printLineW("Sending ARP request to gateway...");
+            printW("Destination IP: 0x");
+            printHexW(QEMU_GATEWAY);
+            printLineW("");
+            arpRequest(QEMU_GATEWAY);
+            printLineW("ARP request sent, waiting for interrupt...");
+            e1000SendRaw();
+
+            sleep(1000);
+        }
         else if(!strcmp(cmd, "createDir"))
         {
             char* param = strtok(NULL, " ");
@@ -321,15 +333,7 @@ void printTitle()
     printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
     disableInterrupts();
 }
-void initializeNet()
-{
-    // unsigned char nullMac[6] = {0};
-    // NetDevice* eth0 = netDeviceCreate("eth0", nullMac);
-    // unsigned int mmioBase = 1245;
-    // e1000Init(eth0);
-    // netDeviceInit(eth0);
-    // ethernetInit(eth0);
-}
+
 void obos_main()
 {
     //basic initalization
@@ -354,8 +358,8 @@ void obos_main()
     enablePagingNow();
     initKernelHeap();
     initUserHeap();
-    // initializeNet(); //net
     clearScreen();
+    initializeNet(); //net
     printTitle(); //this disables interrupts in the os
     loadSuperBlock();
     shell();

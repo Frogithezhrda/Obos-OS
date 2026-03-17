@@ -1,9 +1,7 @@
 #ifndef ETHERNET_H
 #define ETHERNET_H
 
-#include "netdevice.h"
-#include "byteorder.h"
-
+#include "ip.h"
 #define ETHERNET_HEADER_SIZE 14
 
 #define ETHERTYPE_IP    0x0800
@@ -18,6 +16,6 @@ typedef struct
 
 void ethernetInit(NetDevice* dev);
 void ethernetSend(unsigned char* dstMac, unsigned short ethertype, void* data, unsigned int length);
-void ethernetReceive(void* buffer, unsigned int length);
+void ethernetReceive(NetDevice* dev, const void* buffer, unsigned int length);
 
 #endif // ETHERNET_H

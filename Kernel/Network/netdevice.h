@@ -1,61 +1,36 @@
 #ifndef NET_DEVICE_H
 #define NET_DEVICE_H
 
-#define MAX_PACKET_SIZE  1518
-#define RX_BUFFER_COUNT  16
-#define TX_BUFFER_COUNT  16
-#define MAX_BUFFER_COUNT 16
+#include "../SystemLib/obosMemory.h"
+#include "../Drivers/consoleDriver.h"
+
+#define ETH_MAC_LEN 6
+#define ETH_FRAME_MAX 1518
+#define MAX_NAME_LEN 8
+
 #define ERROR -1
-#define OK 0
-#define NULL 0
-typedef struct PacketBuffer {
-    unsigned char data[MAX_PACKET_SIZE];
-    unsigned int length;
-    struct PacketBuffer* next;
-} PacketBuffer;
+#define SUCCESS 0
 
+struct NetDevice;
 
-typedef struct NetDeviceFunc
+//called by the driver when a packet is received
+typedef void (*rxHandler)(struct NetDevice* dev,
+                              const void* data, unsigned int len);
+ 
+typedef struct NetDevice 
 {
-    int  (*init)  (struct NetDevice* dev);
-    int  (*send)  (struct NetDevice* dev, PacketBuffer* pkt);
-    void (*destroy)  (struct NetDevice* dev);  // for virtual/polling mode
-    void (*irqHandler)(struct NetDevice* dev);  // for real hardware
-} NetDeviceFunc;
-
-
-typedef struct NetDevice {
-    char name[MAX_BUFFER_COUNT];
-    unsigned char mac[6];
-
-    // queues
-    PacketBuffer* rxHead;
-    PacketBuffer* rxTail;
-    PacketBuffer* txHead;
-    PacketBuffer* txTail;
-    unsigned int rxCount;
-    unsigned int txCount;
-
-    // stats
-    unsigned int rxPackets;
-    unsigned int txPackets;
-    unsigned int rxDropped;
-    unsigned int txDropped;
-
-    NetDeviceFunc* ops;
-    // internal state
-    int initialized;
-    void* driverData;
+    char name[MAX_NAME_LEN];
+    unsigned char mac[ETH_MAC_LEN];
+    rxHandler rx;
+    void* priv;
+    //send packet for each netdevice
+    int (*send)(struct NetDevice* dev, const void* data, unsigned int len);
 } NetDevice;
-
-NetDevice* netDeviceCreate(const char* name, unsigned char mac[6]);
-void netDeviceDestroy(NetDevice* dev);
-int netDeviceInit(NetDevice* dev);
-PacketBuffer* packetBufferAlloc();
-void packetBufferFree(PacketBuffer* pkt);
-int netDeviceTransmit(NetDevice* dev, PacketBuffer* pkt);
-PacketBuffer* netDeviceReceive(NetDevice* dev);  // dequeues one rx packet
-
-// interrupt
-void netDeviceHandleIRQ(NetDevice* dev);
+ 
+void netDeviceRegister(NetDevice* dev);
+NetDevice* netDeviceGet(const char* name);
+ 
+int netDeviceSend(NetDevice* dev, const void* data, unsigned int len);
+ 
+void netDeviceReceive(NetDevice* dev, const void* data, unsigned int len);
 #endif // NET_DEVICE_H
