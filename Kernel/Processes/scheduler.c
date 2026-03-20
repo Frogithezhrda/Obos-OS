@@ -26,10 +26,13 @@ void contextSwitch(PCB* old_pcb, PCB* next_pcb) {
         "push %%edi \n\t"
 
         // Store the stack pointer into the OLD pcb
-        "mov %%esp, %[old_esp] \n\t"
+        "mov %%esp, %old_esp \n\t"
 
+        mov %next_ptbr, %%eax \n\t"
+        "mov %%eax, %%cr3 \n\t" // Switch to the old process
+        
         // 2. SWITCH: Change the ground under the CPU's feet
-        "mov %[next_esp], %%esp \n\t"
+        "mov %next_esp, %%esp \n\t"
 
         // 3. LOAD: Restore registers from the NEW stack
         "pop %%edi \n\t"
@@ -38,9 +41,11 @@ void contextSwitch(PCB* old_pcb, PCB* next_pcb) {
         "pop %%ebp \n\t"
         "popfl \n\t"
 
+        :
         : [old_esp] "=m" (old_pcb->esp) 
         : [next_esp] "m" (next_pcb->esp)
-        : "memory"
+        : [next_ptbr] "m" (next_pcb->pageTableIndex), "memory"
+        : "eax","memory"
     );
 }
 
@@ -54,6 +59,7 @@ void loadFirstProcess(PCB* pcb)
         "pop %%ebx \n\t"
         "pop %%ebp \n\t"
         "popfl \n\t"
+
         :
         : [next_esp] "m" (pcb->esp)
         : "memory"
@@ -84,6 +90,7 @@ void tick()
 {
     if(!currentProcess) return;
 
+    wakeupReadyWaitingProcesses();
     currentProcess->timeSlice--;
     if(currentProcess->timeSlice <= 0)
     {
@@ -102,17 +109,30 @@ void yield()
     nextProcess();
 }
 
-void wakeupReadyWaitingProcesses()
+void wakeupReadyProcesses()
 {
     PCB* process = waitingQueue.head;
-    while(process)
-    {
-        if(process->state == Waiting){
-            continue;
-        }
+    PCB* nextProcess = process->next;
+
+    while (process != NULL){
+        // if (process->state != Ready) {
+        //     remove(&waitingQueue, process);
+        //     //delete process? if terminated?
+        //     process = nextProcess;
+        //     continue;
+        // }
+
         remove(&waitingQueue, process);
         process->state = Ready;
+
         push(&readyQueue, process);
-        process = process->next;
+        process = nextProcess;  
     }
+}
+
+void wakeupWaitingToReadyProcesses(PCB* process)
+{
+    process->state = Ready;
+    remove(&waitingQueue, process);
+    push(&readyQueue, process);
 }

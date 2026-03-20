@@ -91,6 +91,7 @@ PCB* createProcess(void* entryPoint)
 
     process->processID = nextPID++;
     process->parentPID = currentProcess ? currentProcess->processID : 0;
+    
     process->state = Ready;
 
     process->cpuContext.eip = (unsigned int)entryPoint;
@@ -134,11 +135,11 @@ void exitProcess(const int exitCode)
     currentProcess = NULL;
 }
 
-void terminateProcess()
-{
-    if(!currentProcess) return;
+// void terminateProcess()
+// {
+//     if(!currentProcess) return;
 
-    currentProcess->state = Terminated;
-    push(&terminatedQueue, currentProcess);
-    currentProcess = NULL;
-}
+//     currentProcess->state = Terminated;
+//     push(&terminatedQueue, currentProcess);
+//     currentProcess = NULL;
+// }

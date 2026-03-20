@@ -38,13 +38,14 @@ typedef struct PCB
     // When the process is paused, this points to a CPU Context on the stack.
     void* esp;
 
-    unsigned int processID;
+    unsigned int propcessID;
     unsigned int parentPID;
     States state;
     //all registers
     CPUContext cpuContext;
     //page directory
-    unsigned int pageDirectory;
+
+    void* pageTableIndex;
     unsigned int kernelStack;
     unsigned int userStack;
 
