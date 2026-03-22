@@ -1,6 +1,8 @@
 #ifndef PROCESS_MANAGER_H
 #define PROCESS_MANAGER_H
 
+// Lifecycle and Resource Management of Processes
+
 #include "../Memory/heap.h"
 #include "../SystemLib/obosint.h"
 
@@ -10,6 +12,8 @@
 #define EFLAGS_IF         0x00000200                    // Interrupt Enable
 #define EFLAGS_RESERVED   0x00000002                    // Mandatory bit (historically, bit 1 is always 1. If it's 0, some old processors get grumpy)
 #define DEFAULT_EFLAGS    (EFLAGS_IF | EFLAGS_RESERVED) // Default flags for a new process
+
+typedef uint8_t pid_t; 
 
 typedef enum States
 {
@@ -23,7 +27,7 @@ typedef enum States
 typedef struct PCB
 {
     uint32_t esp;            // The current stack pointer (Saved during switch)
-    uint32_t pid;            // Process ID
+    pid_t pid;            // Process ID
     States state;            // Process State
     
     void* pageTableIndex;    // CR3 register value for paging
@@ -34,8 +38,8 @@ typedef struct PCB
     
     uint32_t timeSlice;      // Ticks remaining for this process
     
-    struct PCB* prev;
     struct PCB* next;
+    struct PCB* prev;
 } PCB;
 
 // Queue structure for managing processes
@@ -50,16 +54,9 @@ extern PCB* currentProcess;
 
 extern ProcessQueue readyQueue;
 extern ProcessQueue waitingQueue;
-extern ProcessQueue terminatedQueue;
 
-void initQueue(ProcessQueue* queue);
-void push(ProcessQueue* queue, PCB* process);
-PCB* pop(ProcessQueue* queue);
-void remove(ProcessQueue* queue, PCB* process);
-
+void initQueues();
 PCB* createProcess(void* entryPoint);
-void runToWaiting();
 void exitProcess(const int exitCode);
-void terminateProcess();
 
 #endif
