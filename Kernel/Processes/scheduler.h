@@ -3,15 +3,15 @@
 
 #include "processManager.h"
 
-void initScheduler(void);
+// The assembly function that performs the actual stack swap
+extern void switchTo(uint32_t* old_esp, uint32_t new_esp);
+extern void start_first_process(uint32_t new_esp);
 
-void contextSwitch(PCB* old_pcb, PCB* next_pcb);
+void scheduler();
 void loadFirstProcess(PCB* pcb);
 
-void nextProcess(void);
-void tick(void);
-void yield(void);
 
-void wakeupReadyWaitingProcesses();
+//void tick(void);
+//void yield(void);
 
 #endif
