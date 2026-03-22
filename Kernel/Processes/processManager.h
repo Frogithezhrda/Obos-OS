@@ -49,7 +49,7 @@ extern ProcessQueue waitingQueue;
 extern ProcessQueue terminatedQueue;
 
 void initQueues();
-PCB* createProcess(void* entryPoint);
+PCB* createProcess(uint32_t entryPoint);
 void exitProcess(const int exitCode);
 
 #endif
