@@ -5,6 +5,7 @@
 
 #include "../Memory/heap.h"
 #include "../SystemLib/obosint.h"
+#include "processQueue.h"
 
 #define NULL 0
 #define TIME_SLICE 20
@@ -19,7 +20,8 @@ typedef enum States
 {
     Ready = 0,      // Sitting in the queue waiting for a turn.
     Running = 1,    // Currently owning the CPU.
-    Waiting = 2     // Waiting for an input.
+    Waiting = 2,    // Waiting for an input.
+    Terminated = 3  // Process wouldn't be scheduled again.
 } States;
 
 // Process Control Block
@@ -27,17 +29,16 @@ typedef enum States
 typedef struct PCB
 {
     uint32_t esp;            // The current stack pointer (Saved during switch)
-    pid_t pid;            // Process ID
+    uint32_t eip;            // The current stack pointer (Saved during switch)
+   
+    pid_t pid;               // Process ID
     States state;            // Process State
-    
+
     void* pageTableIndex;    // CR3 register value for paging
-    
-    // Safety: Separate stacks
-    uint32_t kernelStack;    // Base of the kernel stack
-    uint32_t userStack;      // Base of the user stack (if you have one)
-    
     uint32_t timeSlice;      // Ticks remaining for this process
     
+    uint32_t stackBase;      // Base of the allocated stack (for cleanup)
+
     struct PCB* next;
     struct PCB* prev;
 } PCB;
@@ -54,6 +55,7 @@ extern PCB* currentProcess;
 
 extern ProcessQueue readyQueue;
 extern ProcessQueue waitingQueue;
+extern ProcessQueue terminatedQueue;
 
 void initQueues();
 PCB* createProcess(void* entryPoint);

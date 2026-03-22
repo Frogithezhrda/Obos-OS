@@ -1,69 +1,75 @@
 #include "processManager.h"
 
-PCB* currentProcess = 0;
+PCB* currentProcess = NULL;
 
 ProcessQueue readyQueue;
 ProcessQueue waitingQueue;
 ProcessQueue terminatedQueue;
 
-static unsigned int nextPID = 1;
+static pid_t nextPID = 1;
 
-PCB* createProcess(void* entryPoint)
+#define STACK_SIZE 4096
+#define REGISTERS_COUNT 4
+#define FAKE_REGISTER_VALUE 0
+
+void initQueues(){
+    initQueue(&readyQueue);
+    initQueue(&waitingQueue);
+    initQueue(&terminatedQueue);
+}
+
+PCB* createProcess(uint32_t entryPoint)
 {
     PCB* process = (PCB*)kmalloc(sizeof(PCB));
     if(!process) return NULL;
 
-    process->processID = nextPID++;
-    process->parentPID = currentProcess ? currentProcess->processID : 0;
+    // Allocate 4KB for the stack 
+    uint32_t stackBase = (uint32_t)kmalloc(STACK_SIZE); 
+
+    if(!stackBase) {
+        kfree(process);
+        return NULL;
+    }
     
+    // Start at the top
+    uint32_t* sp = (uint32_t*)(stackBase + STACK_SIZE); 
+    
+    // When the assembly 'ret' runs, it pops this address into EIP.
+    *(--sp) = (uint32_t)entryPoint;
+
+    // Push the Fake Registers (Matching the assembly 'pop' order)
+    for(int i = 0; i < REGISTERS_COUNT; i++) {
+        *(--sp) = FAKE_REGISTER_VALUE;  // Fake values for the registers
+    }
+
+    // Set stack pointer to the top of the stack
+    process->esp = (uint32_t)sp;  
+
+    // Set the rest of the PCB fields
+    process->pid = nextPID++;
     process->state = Ready;
-
-    process->cpuContext.eip = (unsigned int)entryPoint;
-    process->cpuContext.eflags = IF; 
     process->timeSlice = TIME_SLICE;
+    process->stackBase = stackBase;
 
-    /*
-    need to add the stack and page directory
-    */
-
-    asm volatile (
-        "mov %[new_esp], %%esp \n\t"  // Jump to the new stack
-        "pushfl \n\t"
-        "push %%ebp \n\t"
-        "push %%ebx \n\t"
-        "push %%esi \n\t"
-        "push %%edi \n\t"
-        : 
-        : [new_esp] "m" (process->esp)
-        : "memory"
-    );
+    // Safety initialization
+    process->next = NULL;
+    process->prev = NULL;
 
     push(&readyQueue, process);
+
+    return process;
 }
 
-void runToWaiting()
-{
-    if(!currentProcess) return;
+void exitProcess(const int exitCode) {
+    // Mark process as terminated
+    currentProcess->state = Terminated;
 
-    currentProcess->state = Waiting;
-    push(&waitingQueue, currentProcess);
-    currentProcess = NULL;
+    // Move the process to the terminated queue
+    push(&terminatedQueue, currentProcess);
+
+    // Call the scheduler to pick the next process.
+    schedule();
+
+    // Halt if the scheduler fails to find a new process
+    for(;;); 
 }
-
-void exitProcess(const int exitCode)
-{
-    if(!currentProcess) return;
-
-    // parents should be aware and kids should be down too?
-    kfree(currentProcess);
-    currentProcess = NULL;
-}
-
-// void terminateProcess()
-// {
-//     if(!currentProcess) return;
-
-//     currentProcess->state = Terminated;
-//     push(&terminatedQueue, currentProcess);
-//     currentProcess = NULL;
-// }
