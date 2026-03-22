@@ -1,6 +1,6 @@
 #include "processQueue.h"
 
-void init(ProcessQueue* q){
+void initQueue(ProcessQueue* q){
     q->head = NULL;
     q->tail = NULL;
     q->size = 0;

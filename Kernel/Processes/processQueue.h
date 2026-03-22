@@ -12,7 +12,7 @@ typedef struct ProcessQueue
     uint32_t size;
 } ProcessQueue;
 
-void init(ProcessQueue* q);
+void initQueue(ProcessQueue* q);
 void push(ProcessQueue* q, PCB* process);
 PCB* pop(ProcessQueue* q);
 int isQueueEmpty(ProcessQueue* q);
