@@ -20,16 +20,15 @@ void push(ProcessQueue* q, PCB* process){
         q->tail->next = process;
         q->tail = process;
     }
-    
+
     // Always true for the new tail
     process->next = NULL;
     q->size++;
 }
 
 PCB* pop(ProcessQueue* q){
-    if (isQueueEmpty(q)) {
-        return NULL;
-    }
+    if (isQueueEmpty(q)) return NULL;
+
     PCB* headProcess = q->head;
     if(!headProcess->next) {
         q->head = NULL;
@@ -38,6 +37,13 @@ PCB* pop(ProcessQueue* q){
         q->head = headProcess->next;
         q->head->prev = NULL;
     }
+
+    // Safety
+    headProcess->next = NULL; 
+    headProcess->prev = NULL; 
+
+    q->size--;
+
     return headProcess;
 }
 
