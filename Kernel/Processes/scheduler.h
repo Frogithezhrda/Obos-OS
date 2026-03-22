@@ -2,6 +2,7 @@
 #define SCHEDULER_H
 
 #include "processManager.h"
+#include "switch.h"
 
 // The assembly function that performs the actual stack swap
 extern void switchTo(uint32_t* old_esp, uint32_t new_esp);
