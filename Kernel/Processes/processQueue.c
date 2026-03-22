@@ -7,17 +7,22 @@ void initQueue(ProcessQueue* q){
 }
 
 void push(ProcessQueue* q, PCB* process){
-    if (!q || !process || isQueueEmpty(q)) {
-        process->prev = NULL;
-        process->next = NULL;
+    if (!q || !process) return;
+
+    if (isQueueEmpty(q)) {
+        // First item in the queue
         q->head = process;
         q->tail = process;
+        process->prev = NULL;
     } else {
-        q->tail->next = process;
+        // Add to the end
         process->prev = q->tail;
-        process->next = NULL;
+        q->tail->next = process;
         q->tail = process;
     }
+    
+    // Always true for the new tail
+    process->next = NULL;
     q->size++;
 }
 
@@ -41,27 +46,20 @@ int isQueueEmpty(ProcessQueue* q){
 }
 
 void removeProcess(ProcessQueue* q, PCB* process){
-    if (!q || !process || isQueueEmpty(q)) {
-        return;
-    }
+    if (!q || !process || isQueueEmpty(q)) return;
 
-    if (process->prev != NULL){
+    if (process->prev != NULL)
         process->prev->next = process->next;
-    }
-    else {
+    else
         q->head = process->next;
-    }
 
-    if (process->next != NULL){
-        process->nect->prev = process->prev;
-    }
-    else {
-        q->tail = proceess->prev;
-    }
+    if (process->next != NULL)
+        process->next->prev = process->prev;
+    else
+        q->tail = process->prev;
 
     process->next = NULL;
     process->prev = NULL;
-
     q->size--;
 }
 
