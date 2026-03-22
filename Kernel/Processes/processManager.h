@@ -29,7 +29,6 @@ typedef enum States
 typedef struct PCB
 {
     uint32_t esp;            // The current stack pointer (Saved during switch)
-    uint32_t eip;            // The current stack pointer (Saved during switch)
    
     pid_t pid;               // Process ID
     States state;            // Process State
@@ -42,14 +41,6 @@ typedef struct PCB
     struct PCB* next;
     struct PCB* prev;
 } PCB;
-
-// Queue structure for managing processes
-typedef struct ProcessQueue
-{
-    PCB* head;
-    PCB* tail;
-    uint32_t count;
-} ProcessQueue;
 
 extern PCB* currentProcess;
 
