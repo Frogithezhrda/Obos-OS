@@ -18,13 +18,6 @@ typedef enum States
     Waiting = 2     // Waiting for an input.
 } States;
 
-// Currently only if flag interrupts and first bit enabled(intel says it must be)
-typedef enum Flags
-{
-    IF = 0x202
-} Flags;
-
-
 // Process Control Block
 // This structure holds all the information about a process.
 typedef struct PCB
@@ -68,6 +61,5 @@ PCB* createProcess(void* entryPoint);
 void runToWaiting();
 void exitProcess(const int exitCode);
 void terminateProcess();
-
 
 #endif
