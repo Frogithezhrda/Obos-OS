@@ -65,12 +65,12 @@ void outw(const unsigned short port, const unsigned short value)
     asm volatile ("outw %0, %1" :: "a"(value), "Nd"(port));
 }
 
-void outl(unsigned short port, unsigned int val)
+void outl(unsigned int port, unsigned int val)
 {
     asm volatile ("outl %0, %1" :: "a"(val), "Nd"(port));
 }
 
-unsigned int inl(const unsigned short port)
+unsigned int inl(const unsigned int port)
 {
     unsigned int value;
     asm volatile ("inl %1, %0" : "=a"(value) : "Nd"(port));

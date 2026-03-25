@@ -32,7 +32,7 @@ void maskAllInterrupts();
 void initializePIC();
 void unmaskAllInterrupts();
 void endOfInterrupt(const unsigned char irq);
-unsigned int inl(const unsigned short port);
-void outl(unsigned short port, unsigned int val);
+unsigned int inl(const unsigned int port);
+void outl(unsigned int port, unsigned int val);
 
 #endif
