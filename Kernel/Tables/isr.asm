@@ -5,7 +5,7 @@ extern keyboardISR
 extern rtcISR
 extern pageFaultHandler
 extern syscallHandler
-extern e1000ISRHandler
+extern RTL8139ISRHandler
 section .text
 %macro ISR_NOERR 1
 isr%1:
@@ -98,7 +98,7 @@ IsrCommon:
 
 e1000ISR:
     pusha
-    call e1000ISRHandler
+    call RTL8139ISRHandler
     popa
     iret
 

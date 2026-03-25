@@ -1,6 +1,6 @@
-rm -f qemu.pcap
-qemu-system-i386 -drive file=Disk/obos.img,format=raw \
-    -netdev user,id=net0 \
-    -device e1000,netdev=net0 \
-    -object filter-dump,id=f1,netdev=net0,file=qemu.pcap \
+sudo qemu-system-i386 \
+    -machine pc,accel=tcg,kernel_irqchip=on \
+    -drive file=Disk/obos.img,format=raw \
+    -netdev tap,id=net0,ifname=tap0,script=no,downscript=no \
+    -device rtl8139,netdev=net0 \
     -monitor stdio

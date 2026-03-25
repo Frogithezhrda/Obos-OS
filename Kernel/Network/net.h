@@ -1,14 +1,16 @@
 #ifndef NET_H
 #define NET_H
 
-#include "netdevice.h"
-#include "icmp.h"
 #include "pci.h"
-#include "e1000.h"
+#include "../Tables/PIC.h"
+#include "../Memory/heap.h"
+#include "rtl.h"
 
-#define E1000_BUS 0
-#define E1000_DEV 3
-#define E1000_FUNC 0
+#define RTL8139_BUS 0
+#define RTL8139_DEV 3
+#define RTL8139_FUNC 0
+
+#define RX_BUFFER 8206
 
 void initializeNet();
 

@@ -265,17 +265,18 @@ void shell()
         {
             showSystemStats();
         }
-        else if(!strcmp(cmd, "ping"))
+        else if(!strcmp(cmd, "pin"))
         {
-            printLineW("Sending ARP request to gateway...");
-            printW("Destination IP: 0x");
-            printHexW(QEMU_GATEWAY);
-            printLineW("");
-            arpRequest(QEMU_GATEWAY);
-            printLineW("ARP request sent, waiting for interrupt...");
-            e1000SendRaw();
+            // printLineW("Sending ARP request to gateway...");
+            // printW("Destination IP: 0x");
+            // printHexW(QEMU_GATEWAY);
+            // printLineW("");
+            // arpRequest(QEMU_GATEWAY);
+            // printLineW("ARP request sent, waiting for interrupt...");
+            // e1000SendRaw();
 
-            sleep(1000);
+            // sleep(1000);
+            sendTestPacket();
         }
         else if(!strcmp(cmd, "createDir"))
         {

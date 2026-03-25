@@ -53,7 +53,7 @@ void initalizeException()
     registerInterruptHandler(KEYBOARD_INTERRUPT_VECTOR, ExceptionHandlers[KEYBOARD_INTERRUPT_VECTOR], CODE_SEGMENT, GATE);
     registerInterruptHandler(RTC_INTERRUPT_VECTOR, ExceptionHandlers[RTC_INTERRUPT_VECTOR], CODE_SEGMENT, GATE); //RTC interrupt vector is 40
     registerInterruptHandler(PAGE_FAULT_INTERRUPT_VECTOR, pageFaultISR, CODE_SEGMENT, GATE);
-    registerInterruptHandler(E1000_INTERRUPT_VECTOR, e1000ISR, CODE_SEGMENT, GATE);
+    registerInterruptHandler(RTL8139_INTERRUPT_VECTOR, e1000ISR, CODE_SEGMENT, GATE);
     registerInterruptHandler(USER_INTERRUPT, syscallStub, CODE_SEGMENT, USER_GATE);
 
     if (idt[0].offsetLow == 0 && idt[0].offsetHigh == 0) 

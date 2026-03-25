@@ -12,7 +12,7 @@
 #define KEYBOARD_TIMER_MASK 0xFC
 #define KEYBOARD_TIMER_CASCADE_MASK 0xF8
 #define RTC_MASK 0xFE
-#define E1000_MASK 0xF7
+#define RTL8139_MASK 0xF7
 
 #define EOI 0x20 //EOI - end of interrupt
 #define ICW1 0x11
