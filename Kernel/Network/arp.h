@@ -45,6 +45,8 @@ void arpReceive(void* data, unsigned int length);
  
 unsigned char* arpLookup(unsigned int ip);
 
+void arpPrintCache(void);
+
 extern unsigned int myIP;
 
 #endif

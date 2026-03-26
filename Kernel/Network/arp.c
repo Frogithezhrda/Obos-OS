@@ -1,5 +1,6 @@
 #include "arp.h"
 #include "ethernet.h"
+#include "../Drivers/consoleDriver.h"
 
 static NetDevice* arpDev = 0;
 static ArpEntry arpCache[ARP_CACHE_SIZE];
@@ -16,13 +17,12 @@ void arpRequest(unsigned int ip)
     {
         return;
     }
-    printLineW("arp sended");
     ArpPacket pkt;
-    pkt.htype     = htons(ARP_HTYPE_ETHERNET);
-    pkt.ptype     = htons(ARP_PTYPE_IP);
-    pkt.hlen      = ARP_HLEN;
-    pkt.plen      = ARP_PLEN;
-    pkt.op        = htons(ARP_OP_REQUEST);
+    pkt.htype = htons(ARP_HTYPE_ETHERNET);
+    pkt.ptype = htons(ARP_PTYPE_IP);
+    pkt.hlen = ARP_HLEN;
+    pkt.plen = ARP_PLEN;
+    pkt.op = htons(ARP_OP_REQUEST);
     // sender is me
     pkt.senderMac[0] = arpDev->mac[0];
     pkt.senderMac[1] = arpDev->mac[1];
@@ -62,7 +62,7 @@ static void arpCacheInsert(unsigned int ip, unsigned char* mac)
     {
         if (!arpCache[i].valid)
         {
-            arpCache[i].ip    = ip;
+            arpCache[i].ip = ip;
             arpCache[i].mac[0] = mac[0];
             arpCache[i].mac[1] = mac[1];
             arpCache[i].mac[2] = mac[2];
@@ -125,4 +125,38 @@ unsigned char* arpLookup(unsigned int ip)
         }
     }
     return 0;
+}
+
+void arpPrintCache()
+{
+    printLineW("ARP Cache:");
+    for (int i = 0; i < ARP_CACHE_SIZE; i++)
+    {
+        if (arpCache[i].valid)
+        {
+            unsigned int ip = arpCache[i].ip;
+            printW("  IP: ");
+            printNumberW((ip >> 24) & 0xFF);
+            printW(".");
+            printNumberW((ip >> 16) & 0xFF);
+            printW(".");
+            printNumberW((ip >> 8) & 0xFF);
+            printW(".");
+            printNumberW(ip & 0xFF);
+            
+            printW(" MAC: ");
+            printHexW(arpCache[i].mac[0]);
+            printW(":");
+            printHexW(arpCache[i].mac[1]);
+            printW(":");
+            printHexW(arpCache[i].mac[2]);
+            printW(":");
+            printHexW(arpCache[i].mac[3]);
+            printW(":");
+            printHexW(arpCache[i].mac[4]);
+            printW(":");
+            printHexW(arpCache[i].mac[5]);
+            printLineW("");
+        }
+    }
 }

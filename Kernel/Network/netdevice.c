@@ -29,7 +29,6 @@ int netDeviceSend(NetDevice* dev, const void* data, unsigned int len)
 
 void netDeviceReceive(NetDevice* dev, const void* data, unsigned int len)
 {
-    printW("rece");
     if (dev && dev->rx && data && len > 0)
     {
         dev->rx(dev, data, len);

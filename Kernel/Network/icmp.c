@@ -12,10 +12,10 @@ void icmpSendEchoRequest(unsigned int dstIp)
 {
     unsigned char packet[ICMP_HEADER_SIZE];
     ICMPHeader* hdr = (ICMPHeader*)packet;
-    hdr->type     = ICMP_TYPE_ECHO_REQUEST;
-    hdr->code     = ICMP_CODE_ZERO;
+    hdr->type = ICMP_TYPE_ECHO_REQUEST;
+    hdr->code = ICMP_CODE_ZERO;
     hdr->checksum = 0;
-    hdr->id       = htons(1);
+    hdr->id = htons(1);
     hdr->sequence = htons(icmpSeq++);
     hdr->checksum = checksum(hdr, ICMP_HEADER_SIZE);
     ipSend(dstIp, IP_PROTO_ICMP, packet, ICMP_HEADER_SIZE);

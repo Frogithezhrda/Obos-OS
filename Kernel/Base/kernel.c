@@ -267,16 +267,17 @@ void shell()
         }
         else if(!strcmp(cmd, "pin"))
         {
-            // printLineW("Sending ARP request to gateway...");
-            // printW("Destination IP: 0x");
-            // printHexW(QEMU_GATEWAY);
-            // printLineW("");
-            // arpRequest(QEMU_GATEWAY);
-            // printLineW("ARP request sent, waiting for interrupt...");
+            arpPrintCache();
+            sleep(1000);
+            printLineW("Sending ARP request to gateway...");
+            printW("Destination IP: 0x");
+            printHexW(QEMU_GATEWAY);
+            printLineW("");
+            arpRequest(QEMU_GATEWAY);
+            printLineW("ARP request sent, waiting for interrupt...");
+            icmpSendEchoRequest(QEMU_GATEWAY);
             // e1000SendRaw();
-
-            // sleep(1000);
-            sendTestPacket();
+            arpPrintCache();
         }
         else if(!strcmp(cmd, "createDir"))
         {

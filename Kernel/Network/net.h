@@ -6,11 +6,8 @@
 #include "../Memory/heap.h"
 #include "rtl.h"
 
-#define RTL8139_BUS 0
-#define RTL8139_DEV 3
-#define RTL8139_FUNC 0
 
-#define RX_BUFFER 8206
+//those are default bus dev and func values for qemu
 
 void initializeNet();
 

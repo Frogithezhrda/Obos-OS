@@ -45,12 +45,13 @@ void ethernetSend(unsigned char* dstMac, unsigned short ethertype, void* data, u
 
 void ethernetReceive(NetDevice* dev, const void* buffer, unsigned int length)
 {
-    printLineW("ravos");
-    if (length < ETHERNET_HEADER_SIZE) return;
-
+    if (length < ETHERNET_HEADER_SIZE)
+    {
+        printLineW("not ethe len");
+        return;
+    }
     EthernetHeader* hdr = (EthernetHeader*)buffer;
     unsigned short type = ntohs(hdr->type);
-
     void* payload = (unsigned char*)buffer + ETHERNET_HEADER_SIZE;
     unsigned int paylen = length - ETHERNET_HEADER_SIZE;
     switch (type)
