@@ -16,5 +16,6 @@ void rtlInitialize();
 void RTL8139ISRHandler();
 void rtlReceivePacket();
 int rtlNetSend(NetDevice* dev, const void* data, unsigned int len);
-
+void printMAC(unsigned char* mac);
+unsigned char* getMacAddr();
 #endif // RTL_H

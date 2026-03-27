@@ -3,6 +3,7 @@
 
 #include "netdevice.h"
 #include "byteorder.h"
+#include "rtl.h"
 
 #define ARP_HTYPE_ETHERNET 1
 #define ARP_PTYPE_IP       0x0800
@@ -46,6 +47,8 @@ void arpReceive(void* data, unsigned int length);
 unsigned char* arpLookup(unsigned int ip);
 
 void arpPrintCache(void);
+
+void printIP(unsigned int ip);
 
 extern unsigned int myIP;
 

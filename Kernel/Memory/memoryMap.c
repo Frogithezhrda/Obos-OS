@@ -62,8 +62,8 @@ void printMemoryManagerInfo()
     printNumber(usableMB, WHITE);
     printLine(" MB", WHITE);
     
-    print("Total Reserved Memory: ", WHITE);
-    printNumber(reservedMB, WHITE);
+    print("Total Reserved Memory: <", WHITE);
+    printNumber(reservedMB + 1, WHITE);
     printLine(" MB", WHITE);
 }
 

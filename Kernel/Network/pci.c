@@ -30,11 +30,11 @@ unsigned short pciGetBar0(unsigned char bus, unsigned char device, unsigned char
     pciConfigWrite(bus, device, func, 0x04, cmd);
     if (cmd & 4) 
     {
-        printW("Bus Mastering ENABLED\n");
+        printLine("Bus Mastering ENABLED", YELLOW);
     } 
     else 
     {
-        printW("Bus Mastering DISABLED\n");
+        printLine("Bus Mastering DISABLED\n", YELLOW);
     }
     // bit 0 = 0 means memory mapped, mask the lower 4 flag bits
     if (bar0 & 1)

@@ -6,6 +6,17 @@ static NetDevice* arpDev = 0;
 static ArpEntry arpCache[ARP_CACHE_SIZE];
 unsigned int myIP = MY_IP;
 
+void printIP(unsigned int ip)
+{
+    printNumberW((ip >> 24) & 0xFF);
+    printW(".");
+    printNumberW((ip >> 16) & 0xFF);
+    printW(".");
+    printNumberW((ip >> 8) & 0xFF);
+    printW(".");
+    printNumberW(ip & 0xFF);
+}
+
 void arpInit(NetDevice* dev)
 {
     arpDev = dev;
@@ -30,7 +41,7 @@ void arpRequest(unsigned int ip)
     pkt.senderMac[3] = arpDev->mac[3];
     pkt.senderMac[4] = arpDev->mac[4];
     pkt.senderMac[5] = arpDev->mac[5];
-    pkt.senderIp  = htonl(MY_IP);
+    pkt.senderIp = htonl(MY_IP);
 
     pkt.targetMac[0] = 0;
     pkt.targetMac[1] = 0;
@@ -38,7 +49,7 @@ void arpRequest(unsigned int ip)
     pkt.targetMac[3] = 0;
     pkt.targetMac[4] = 0;
     pkt.targetMac[5] = 0;
-    pkt.targetIp  = htonl(ip);
+    pkt.targetIp = htonl(ip);
     unsigned char broadcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
     ethernetSend(broadcast, ETHERTYPE_ARP, &pkt, sizeof(ArpPacket));
 }
@@ -134,29 +145,10 @@ void arpPrintCache()
     {
         if (arpCache[i].valid)
         {
-            unsigned int ip = arpCache[i].ip;
             printW("  IP: ");
-            printNumberW((ip >> 24) & 0xFF);
-            printW(".");
-            printNumberW((ip >> 16) & 0xFF);
-            printW(".");
-            printNumberW((ip >> 8) & 0xFF);
-            printW(".");
-            printNumberW(ip & 0xFF);
-            
+            printIP(arpCache[i].ip);
             printW(" MAC: ");
-            printHexW(arpCache[i].mac[0]);
-            printW(":");
-            printHexW(arpCache[i].mac[1]);
-            printW(":");
-            printHexW(arpCache[i].mac[2]);
-            printW(":");
-            printHexW(arpCache[i].mac[3]);
-            printW(":");
-            printHexW(arpCache[i].mac[4]);
-            printW(":");
-            printHexW(arpCache[i].mac[5]);
-            printLineW("");
+            printMAC(arpCache[i].mac);
         }
     }
 }

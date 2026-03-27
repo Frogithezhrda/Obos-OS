@@ -6,7 +6,9 @@
 #define IP_PROTO_ICMP 1
  
 #define IP_TTL 32
- 
+#define SUBNET_MASK 0xFFFFFF00
+#define SUBNET 0x0A000200
+
 typedef struct IpHeader
 {
     unsigned char versionIhl;
@@ -30,5 +32,9 @@ void ipSend(unsigned int dstIp, unsigned char protocol, void* data, unsigned int
 void ipReceive(void* data, unsigned int length);
 
 unsigned short checksum(void* data, unsigned int length);
+
+unsigned int splitIP(unsigned char* ip);
+
+unsigned char* ipRoute(unsigned int ip);
 
 #endif

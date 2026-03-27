@@ -32,10 +32,10 @@ void icmpReceive(void* data, unsigned int length, unsigned int srcIp)
     {
         unsigned char packet[ETH_FRAME_MAX];
         ICMPHeader* reply = (ICMPHeader*)packet;
-        reply->type     = ICMP_TYPE_ECHO_REPLY;
-        reply->code     = ICMP_CODE_ZERO;
+        reply->type = ICMP_TYPE_ECHO_REPLY;
+        reply->code = ICMP_CODE_ZERO;
         reply->checksum = 0;
-        reply->id       = hdr->id;
+        reply->id = hdr->id;
         reply->sequence = hdr->sequence;
 
         unsigned int paylen = length - ICMP_HEADER_SIZE;

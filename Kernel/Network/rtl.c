@@ -6,17 +6,18 @@ char* rxBuffer = {0};
 static unsigned short ioaddr = 0;
 static int txIndex = 0;
 
-static void printMAC(unsigned char* mac)
+void printMAC(unsigned char* mac)
 {
     char hexChars[] = "0123456789ABCDEF";
 
     for (int i = 0; i < 6; i++)
     {
-        printCharW(hexChars[(mac[i] >> 4) & 0xF]);
-        printCharW(hexChars[mac[i] & 0xF]);
+        printChar(hexChars[(mac[i] >> 4) & 0xF], CYAN);
+        printChar(hexChars[mac[i] & 0xF], CYAN);
 
-        if (i < 5) printCharW(':');
+        if (i < 5) printChar(':', CYAN);
     }
+    printLineW("");
 }
 
 void RTL8139ISRHandler()
@@ -29,6 +30,7 @@ void RTL8139ISRHandler()
     {
         printLineW("Packet received!!!");
         rtlReceivePacket();
+        
     }
 
     if (status & 0x04) 
@@ -37,6 +39,7 @@ void RTL8139ISRHandler()
     }
 
     endOfInterrupt(11);
+    for (volatile int i = 0; i < 100000000; i++);
 }
 
 static void rtlSendPacket(unsigned int length, void* data)
@@ -90,7 +93,7 @@ void rtlInitialize()
     ioaddr = pciGetBar0(RTL8139_BUS, RTL8139_DEV, RTL8139_FUNC);
     if (ioaddr == 0) 
     {
-        printW("RTL8139 BAR0 not found!");
+        printLineW("RTL8139 BAR0 not found!");
         return;
     }
     outb(ioaddr + 0x52, 0x0);
@@ -102,7 +105,7 @@ void rtlInitialize()
     outw(ioaddr + 0x3C, 0x0005);
     outl(ioaddr + 0x44, 0x0F | 128);
     outb(ioaddr + 0x37, 0x0C);
-    printLineW("RTL8139 initialized!");
+    printLine("RTL8139 initialized!", YELLOW);
 
 
     rtlDev.send = rtlNetSend;
@@ -113,7 +116,13 @@ void rtlInitialize()
     {
         rtlDev.mac[i] = inb(ioaddr + i);
     }
+    print("My MAC: ", LIGHT_CYAN);
     printMAC(rtlDev.mac);
     
     netDeviceRegister(&rtlDev);
+}
+
+unsigned char* getMacAddr()
+{
+    return rtlDev.mac;
 }
