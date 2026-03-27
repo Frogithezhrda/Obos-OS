@@ -31,5 +31,11 @@ SECTIONS
     }
     
     . = ALIGN(4096);
+    .user_text : ALIGN(4096)
+    {
+        user_text_start = .;
+        *(.user_text)
+        user_text_end = .;
+    }
     _kernel_physical_end = .;
 }

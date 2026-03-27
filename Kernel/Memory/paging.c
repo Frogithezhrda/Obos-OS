@@ -6,7 +6,8 @@ TSS kernelTSS __attribute__((aligned(4)));
 
 extern char _kernel_physical_start;
 extern char _kernel_physical_end;
-
+extern unsigned int user_text_start;
+extern unsigned int user_text_end;
 
 void initializePaging(void)
 {
@@ -363,4 +364,15 @@ void enterUserMode(void* userEntryPoint)
         : "r"(entry), "r"(stack)
         : "eax", "ebx", "ecx"
     );
+}
+
+void* loadUserFunction()
+{
+    unsigned int size = (unsigned int)&user_text_end - (unsigned int)&user_text_start;
+
+    void* userMem = (void*)USER_SPACE_START;
+
+    memcpy(userMem, (void*)&user_text_start, size);
+
+    return userMem;
 }

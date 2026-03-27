@@ -1,5 +1,5 @@
 #include "kernel.h"
-
+#include "helloworld.h"
 /*
 Few Things to do that in general i didnt do yet that i want to do
 Mark Warnings with
@@ -132,7 +132,10 @@ void obos_main()
     enablePagingNow();
     initKernelHeap();
     initUserHeap();
-    // enterUserMode((void*)USER_SPACE_START);
+
+    initQueues();
+    void* entry = loadUserFunction();
+    enterUserMode((void*)helloWorld);
     // // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
     // unsigned int value = *ptr; //this will cause a page fault
     while (1);

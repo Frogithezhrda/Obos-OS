@@ -68,7 +68,7 @@ void exitProcess(const int exitCode) {
     push(&terminatedQueue, currentProcess);
 
     // Call the scheduler to pick the next process.
-    schedule();
+    scheduler();
 
     // Halt if the scheduler fails to find a new process
     for(;;); 

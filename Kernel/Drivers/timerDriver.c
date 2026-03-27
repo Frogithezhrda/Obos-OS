@@ -5,7 +5,7 @@ static unsigned int tickCounter = 0;
 void timerISR(void)
 {
     tickCounter++;
-    tick();
+    // tick();
     if (tickCounter % 100 == 0) 
     {
         print(".", WHITE);
