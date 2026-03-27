@@ -92,6 +92,11 @@ void initializePaging(void)
                     STACK_PHYSICAL_START,
                     SUPERVISOR_ONLY);
 
+    mapMemoryRegion(E1000_MMIO_BASE,
+                    E1000_MMIO_END - E1000_MMIO_BASE,
+                    E1000_MMIO_BASE,
+                    SUPERVISOR_ONLY);
+
     mapUserPages();
 
 

@@ -117,9 +117,9 @@ void ufree(void* ptr)
 
 void initKernelHeap(void)
 {
-    kernelHeap.start = (void*)VIRTUAL_HEAP_START_ADDRESS;
-    kernelHeap.end = (void*)VIRTUAL_HEAP_END_ADDRESS;
-    kernelHeap.size = VIRTUAL_HEAP_END_ADDRESS - VIRTUAL_HEAP_START_ADDRESS;
+    kernelHeap.start = (void*)HEAP_PHYSICAL_START;
+    kernelHeap.end = (void*)HEAP_PHYSICAL_END;
+    kernelHeap.size = HEAP_PHYSICAL_END - HEAP_PHYSICAL_START;
 
     //its like a linked list(linked list allocator)
     kernelHeap.firstBlock = (HeapBlock*)kernelHeap.start;

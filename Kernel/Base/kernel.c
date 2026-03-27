@@ -263,7 +263,38 @@ void shell()
         }
         else if(!strcmp(cmd, "stats"))
         {
+            printLine("System Stats: ", LIGHT_GREEN);
             showSystemStats();
+            printLine("Ethernet/IP Stats: ", LIGHT_BLUE);
+            print("My MAC: ", LIGHT_CYAN);
+            printMAC(getMacAddr());
+            print("My IP: ", LIGHT_CYAN);
+            printIP(MY_IP);
+            print(" (Default Qemu IP)", LIGHT_CYAN);
+
+        }
+        else if(!strcmp(cmd, "ping"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: ping <ip>");
+                continue;
+            }
+            icmpSendEchoRequest(splitIP(param));
+        }
+        else if(!strcmp(cmd, "arp"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: arp <ip>");
+                continue;
+            }
+            arpPrintCache();
+            sleep(1000);
+            arpRequest(splitIP(param));
+            arpPrintCache();
         }
         else if(!strcmp(cmd, "createDir"))
         {
@@ -297,6 +328,8 @@ void shell()
             printLineW("snake <diff>(optional) - play the snake game");
             printLineW("calc - open the calculator");
             printLineW("stats - show system statistics");
+            printLineW("arp <ip> - send an arp request");
+            printLineW("ping <ip> - just the default ping!");
             printLineW("exit - exit the shell");
         }
         else
@@ -348,8 +381,10 @@ void obos_main()
     initUserHeap();
     clearScreen();
     printTitle(); //this disables interrupts in the os
+    initializeNet(); //net
     loadSuperBlock();
     shell();
+
     //minimal shutdown
     asm volatile("hlt");
     // enterUserMode((void*)USER_SPACE_START);

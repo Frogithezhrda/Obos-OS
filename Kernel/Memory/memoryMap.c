@@ -62,8 +62,8 @@ void printMemoryManagerInfo()
     printNumber(usableMB, WHITE);
     printLine(" MB", WHITE);
     
-    print("Total Reserved Memory: ", WHITE);
-    printNumber(reservedMB, WHITE);
+    print("Total Reserved Memory: <", WHITE);
+    printNumber(reservedMB + 1, WHITE);
     printLine(" MB", WHITE);
 }
 
@@ -167,6 +167,12 @@ void reserveKernelRegions(void)
     // paging structures
     region.start  = 0x300000;
     region.end    = 0x400000;
+    region.type   = MEMORY_TYPE_RESERVED;
+    region.isFree = FALSE;
+    memoryManager.regions[memoryManager.regionCount++] = region;
+
+    region.start  = 0xFEB00000;
+    region.end    = 0xFEBFFFFF;
     region.type   = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
