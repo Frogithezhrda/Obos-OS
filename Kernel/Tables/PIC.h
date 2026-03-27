@@ -12,6 +12,7 @@
 #define KEYBOARD_TIMER_MASK 0xFC
 #define KEYBOARD_TIMER_CASCADE_MASK 0xF8
 #define RTC_MASK 0xFE
+#define RTL8139_MASK 0xF7
 
 #define EOI 0x20 //EOI - end of interrupt
 #define ICW1 0x11
@@ -31,5 +32,7 @@ void maskAllInterrupts();
 void initializePIC();
 void unmaskAllInterrupts();
 void endOfInterrupt(const unsigned char irq);
+unsigned int inl(const unsigned int port);
+void outl(unsigned int port, unsigned int val);
 
 #endif

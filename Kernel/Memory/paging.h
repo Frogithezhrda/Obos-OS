@@ -52,6 +52,9 @@
 #define USER_MAPPING_MB 4  //how much memory we give to user space
 #define USER_MAPPING_PAGES ((USER_MAPPING_MB * MB) / PAGE_SIZE)
 
+#define E1000_MMIO_BASE 0xFEB00000
+#define E1000_MMIO_END  0xFEBFFFFF
+
 #define TSS_SELECTOR 0x28
 
 enum PermissionBits
