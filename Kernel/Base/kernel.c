@@ -236,8 +236,13 @@ void shell()
                 printLineW("Usage: read <filename>");
                 continue;
             }
-            char* buffer = (char*)kmalloc(144);
-            readFile(param, buffer, 144);
+            char* buffer = (char*)kmalloc(256);
+            if(readFile(param, buffer, 256) == ERROR)
+            {
+                printLineW("Failed to read file!");
+                kfree(buffer);
+                continue;
+            }
             printW("File contents:\n");
             printW(buffer);
             kfree(buffer);
@@ -424,10 +429,20 @@ void obos_main()
     playSound(finish, sizeof(finish), SAMPLE_RATE);
     for(volatile int i = 0; i < 10000000; i++);
     stopSound();
+    createFile("users.dat", File);
+    writeFile("users.dat", "omer&2882598092&526223844\nbarak&3721853714&1533733554", 54);
+    if(loginMenu() == ERROR)
+    {
+        printLineW("Failed to login after 3 attempts, shutting down...");
+        sleep(2000);
+        shutdown();
+        return;
+    }
+    //username: omer, password: saban1254, salt: 2882598092, hash: 526223844
+    //username: barak, password: baraksh123, salt: 3721853714, hash: 1533733554
     shell();
 
     //minimal shutdown
-    asm volatile("hlt");
     // enterUserMode((void*)USER_SPACE_START);
     // // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
     // unsigned int value = *ptr; //this will cause a page fault
