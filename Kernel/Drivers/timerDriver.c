@@ -2,14 +2,20 @@
 
 static unsigned int tickCounter = 0;
 
+// Intrtupt Service Routine 
 void timerISR(void)
 {
     tickCounter++;
-    // tick();
+
+    // Check if we need to switch 
+    tick();
+
     if (tickCounter % 100 == 0) 
     {
         print(".", WHITE);
     }
+
+    // Inform the PIC (Programmable Interrupt Controller) that we have handled the interrupt
     endOfInterrupt(0); //IRQ0 is timer
 }
 
