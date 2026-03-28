@@ -8,7 +8,7 @@ static const char scancodeToASCII[LAST_SCAN_CODE] =
     0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
     0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,
     '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'
+    '7', '8', 'v', '-', '4', '>', '6', '<', '1', '2', 'V', '0', '.'
 };
 
 static const char scancodeToASCIIShift[LAST_SCAN_CODE] = 
@@ -49,7 +49,7 @@ void keybosIndex(char* string, const int maxLength, int index)
         
         scanCode = lastScanCode;
         lastScanCode = 0;
-        
+        //72 75 77 80
         if (scanCode & KEYPRESS_MASK)
         {
             if (scanCode == SHIFT_LEFT_RELEASE || scanCode == SHIFT_RIGHT_RELEASE)
