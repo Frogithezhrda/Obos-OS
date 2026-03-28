@@ -35,3 +35,24 @@ void loadFirstProcess(){
     start_first_process(first->esp);
 }
 
+void tick(void){
+    if (currentProcess == NULL) return;
+
+    // Decrement the time slice of the current process
+    if (currentProcess->timeSlice > 0){
+        currentProcess->timeSlice--;
+    }
+
+    // If time slice is exhausted, schedule the next process
+    if (currentProcess->timeSlice <= 0){
+        currentProcess->timeSlice = TIME_SLICE; // Reset time slice
+        scheduler(); // Switch to the next process
+    }
+}
+
+void yield(void){
+    if (currentProcess == NULL) return;
+
+    currentProcess->timeSlice = TIME_SLICE; // Reset time slice
+    scheduler(); // Switch to the next process
+}

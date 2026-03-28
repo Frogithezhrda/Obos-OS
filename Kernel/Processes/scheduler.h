@@ -10,7 +10,7 @@ extern void start_first_process(uint32_t new_esp);
 void scheduler();
 void loadFirstProcess();
 
-//void tick(void);
-//void yield(void);
+void tick(void);
+void yield(void);
 
 #endif
