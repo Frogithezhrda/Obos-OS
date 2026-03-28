@@ -1,7 +1,6 @@
 #ifndef PROCESS_QUEUE_H
 #define PROCESS_QUEUE_H
 
-#include "../SystemLib/obosint.h"
 #include "PCB.h"
 
 #define NULL 0
@@ -10,8 +9,6 @@
 #define EFLAGS_IF         0x00000200                    // Interrupt Enable
 #define EFLAGS_RESERVED   0x00000002                    // Mandatory bit (historically, bit 1 is always 1. If it's 0, some old processors get grumpy)
 #define DEFAULT_EFLAGS    (EFLAGS_IF | EFLAGS_RESERVED) // Default flags for a new process
-
-typedef uint8_t pid_t; 
 
 typedef struct ProcessQueue
 {

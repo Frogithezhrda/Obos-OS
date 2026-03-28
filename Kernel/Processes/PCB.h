@@ -1,6 +1,18 @@
 #ifndef PCB_H
 #define PCB_H
 
+#include "../SystemLib/obosint.h"
+
+typedef uint8_t pid_t;
+
+typedef enum States
+{
+    Ready = 0,      // Sitting in the queue waiting for a turn.
+    Running = 1,    // Currently owning the CPU.
+    Waiting = 2,    // Waiting for an input.
+    Terminated = 3  // Process wouldn't be scheduled again.
+} States;
+
 // Process Control Block
 // This structure holds all the information about a process.
 typedef struct PCB
