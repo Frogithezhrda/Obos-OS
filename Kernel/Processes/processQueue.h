@@ -2,6 +2,8 @@
 #define PROCESS_QUEUE_H
 
 #include "../SystemLib/obosint.h"
+#include "PCB.h"
+
 #define NULL 0
 #define TIME_SLICE 20
 
@@ -10,8 +12,6 @@
 #define DEFAULT_EFLAGS    (EFLAGS_IF | EFLAGS_RESERVED) // Default flags for a new process
 
 typedef uint8_t pid_t; 
-
-struct PCB;
 
 typedef struct ProcessQueue
 {
