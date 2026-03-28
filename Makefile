@@ -9,6 +9,7 @@ KERNEL_BIN = $(COMPONENTS_DIR)/kernel.bin
 KERNEL_ASM_OBJ = $(COMPONENTS_DIR)/kernel_asm.o
 ISR_ASM_OBJ = $(COMPONENTS_DIR)/isr.o 
 SWITCH_ASM_OBJ = $(COMPONENTS_DIR)/switch.o 
+
 # source files
 ATA_SRC = Bootloader/ata.asm
 BOOT_SRC = Bootloader/boot.asm
@@ -48,11 +49,15 @@ $(ISR_ASM_OBJ): $(ISR_ASM)
 	@mkdir -p $(COMPONENTS_DIR)
 	@nasm -f elf32 $(ISR_ASM) -o $(ISR_ASM_OBJ)
 
+$(SWITCH_ASM_OBJ): $(SWITCH_ASM)
+	@echo "------ Assembling process switcher ------"
+	@mkdir -p $(COMPONENTS_DIR)
+	@nasm -f elf32 $(SWITCH_ASM) -o $(SWITCH_ASM_OBJ)
+
 $(KERNEL_ASM_OBJ): $(KERNEL_ASM)
 	@echo "------ Assembling kernel entry ------"
 	@mkdir -p $(COMPONENTS_DIR)
 	@nasm -f elf32 $(KERNEL_ASM) -o $(KERNEL_ASM_OBJ)
-	@nasm -f elf32 $(SWITCH_ASM) -o $(SWITCH_ASM_OBJ)
 
 # generic rule for compiling any C file
 $(COMPONENTS_DIR)/%.o: %.c
