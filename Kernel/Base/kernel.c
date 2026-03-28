@@ -111,6 +111,24 @@ code[5] = 0xFE; // infinite loop
 AND DONT FORGET TO PUT THE COLOR WHEN CALLING THE PRINT
 */
 
+#define BEEP_SAMPLE_RATE 8000
+#define BEEP_FREQ        440
+#define BEEP_LEN         (BEEP_SAMPLE_RATE / BEEP_FREQ)
+
+static char beep_buf[BEEP_LEN];
+
+void beepStart(void) {
+    int half = BEEP_LEN / 2;
+    for (int i = 0; i < BEEP_LEN; i++)
+        beep_buf[i] = i < half ? 0xFF : 0x00;
+
+    playSound(beep_buf, BEEP_LEN, BEEP_SAMPLE_RATE);
+}
+void shutdown()
+{
+    outw(0x604, 0x2000);
+}
+
 void shell()
 {
     char* string = kmalloc(100);
@@ -123,6 +141,19 @@ void shell()
         if(cmd == NULL)
         {
             continue;
+        }
+        else if(!strcmp(cmd, "secret"))
+        {
+            char* buffer = kmalloc(10);
+            printW("password: ");
+            keybos(buffer, 10);
+            if(!strcmp(buffer, "coco123"))
+            {
+                printLineW("Its Time For a BAD TIME:)");
+                playSound(megalovania, sizeof(megalovania), MEGALOVANIA_SAMPLE_RATE);
+                sleep(3000);
+                stopSound();
+            }
         }
         else if(!strcmp(cmd, "calc"))
         {
@@ -168,6 +199,7 @@ void shell()
         else if(!strcmp(cmd, "exit"))
         {
             printLineW("Exiting...");
+            shutdown();
             break;
         }
         else if(!strcmp(cmd, "ls"))
@@ -330,7 +362,7 @@ void shell()
             printLineW("stats - show system statistics");
             printLineW("arp <ip> - send an arp request");
             printLineW("ping <ip> - just the default ping!");
-            printLineW("exit - exit the shell");
+            printLineW("exit - exit the os");
         }
         else
         {
@@ -382,7 +414,16 @@ void obos_main()
     clearScreen();
     printTitle(); //this disables interrupts in the os
     initializeNet(); //net
+    soundBlasterInit();
     loadSuperBlock();
+    generateFinish();
+    generateStart();
+    //simple starting sound for the os, also tests the sound driver and the audio generation
+    playSound(start, sizeof(start), SAMPLE_RATE);
+    for(volatile int i = 0; i < 250000000; i++);
+    playSound(finish, sizeof(finish), SAMPLE_RATE);
+    for(volatile int i = 0; i < 10000000; i++);
+    stopSound();
     shell();
 
     //minimal shutdown
