@@ -423,6 +423,7 @@ void obos_main()
     loadSuperBlock();
     generateFinish();
     generateStart();
+    for(volatile int i = 0; i < 10000000; i++);
     //simple starting sound for the os, also tests the sound driver and the audio generation
     playSound(start, sizeof(start), SAMPLE_RATE);
     for(volatile int i = 0; i < 250000000; i++);
