@@ -52,3 +52,6 @@ To deploy this project run
 * Add VBA mode
 ## Demo
 
+![Demo](Screencast_from_03-29-2026_01_28_03_PM.webm)
+
+![Demo](Screencast_from_03-29-2026_01_34_15_PM.webm)
