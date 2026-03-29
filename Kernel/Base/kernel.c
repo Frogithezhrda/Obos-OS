@@ -111,19 +111,7 @@ code[5] = 0xFE; // infinite loop
 AND DONT FORGET TO PUT THE COLOR WHEN CALLING THE PRINT
 */
 
-#define BEEP_SAMPLE_RATE 8000
-#define BEEP_FREQ        440
-#define BEEP_LEN         (BEEP_SAMPLE_RATE / BEEP_FREQ)
 
-static char beep_buf[BEEP_LEN];
-
-void beepStart(void) {
-    int half = BEEP_LEN / 2;
-    for (int i = 0; i < BEEP_LEN; i++)
-        beep_buf[i] = i < half ? 0xFF : 0x00;
-
-    playSound(beep_buf, BEEP_LEN, BEEP_SAMPLE_RATE);
-}
 void shutdown()
 {
     outw(0x604, 0x2000);

@@ -53,10 +53,29 @@ unsigned int syscallHandler(const unsigned int syscallNumber, unsigned int arg1,
             }
             return FAILED;
             break;
+        case SYSCALL_READ_FILE:
+            //todo
+            if(arg1 && arg2)
+            {
+                return readFile((const char*)arg1, (char*)arg2, 144);
+            }
+            return FAILED;
+            break;
+        case SYSCALL_WRITE_FILE:
+            if(arg1 && arg2)            
+            {
+                writeFile((const char*)arg1, (const char*)arg2, strlen((const char*)arg2));
+                return SUCCESS;
+            }
+            return FAILED;
+            break;
         case SYSCALL_SLEEP:
-            asm volatile ("sti"); //got to enable interrupts
             if(arg1) sleep(arg1);
             return SUCCESS;
+            break;
+        case SYSCALL_RAND:
+            srand(getTicks());
+            return rand();
             break;
         default:
             printLine("Warning: Unknown syscall", YELLOW);
