@@ -50,6 +50,8 @@ void arpPrintCache(void);
 
 void printIP(unsigned int ip);
 
+void arpCacheInsert(unsigned int ip, unsigned char* mac);
+
 extern unsigned int myIP;
 
 #endif

@@ -24,7 +24,7 @@ unsigned char* ipRoute(unsigned int ip)
         if (!mac)
         {
             arpRequest(QEMU_GATEWAY);
-            return 0;
+            return arpLookup(QEMU_GATEWAY);
         }
         return mac;
     }

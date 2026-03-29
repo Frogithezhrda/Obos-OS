@@ -54,7 +54,7 @@ void arpRequest(unsigned int ip)
     ethernetSend(broadcast, ETHERTYPE_ARP, &pkt, sizeof(ArpPacket));
 }
 
-static void arpCacheInsert(unsigned int ip, unsigned char* mac)
+void arpCacheInsert(unsigned int ip, unsigned char* mac)
 {
     for (int i = 0; i < ARP_CACHE_SIZE; i++)
     {

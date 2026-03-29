@@ -423,6 +423,9 @@ void obos_main()
     loadSuperBlock();
     generateFinish();
     generateStart();
+    //default arp cache entry for the gateway so we can have some sort of network without waiting for an arp request from the gateway
+    // arpRequest(QEMU_GATEWAY);
+    // arpCacheInsert(QEMU_GATEWAY, arpLookup(QEMU_GATEWAY));
     for(volatile int i = 0; i < 10000000; i++);
     //simple starting sound for the os, also tests the sound driver and the audio generation
     playSound(start, sizeof(start), SAMPLE_RATE);
