@@ -111,19 +111,7 @@ code[5] = 0xFE; // infinite loop
 AND DONT FORGET TO PUT THE COLOR WHEN CALLING THE PRINT
 */
 
-#define BEEP_SAMPLE_RATE 8000
-#define BEEP_FREQ        440
-#define BEEP_LEN         (BEEP_SAMPLE_RATE / BEEP_FREQ)
 
-static char beep_buf[BEEP_LEN];
-
-void beepStart(void) {
-    int half = BEEP_LEN / 2;
-    for (int i = 0; i < BEEP_LEN; i++)
-        beep_buf[i] = i < half ? 0xFF : 0x00;
-
-    playSound(beep_buf, BEEP_LEN, BEEP_SAMPLE_RATE);
-}
 void shutdown()
 {
     outw(0x604, 0x2000);
@@ -320,6 +308,10 @@ void shell()
             }
             icmpSendEchoRequest(splitIP(param));
         }
+        else if(!strcmp(cmd, "time"))
+        {
+            printCurrentTime();
+        }
         else if(!strcmp(cmd, "arp"))
         {
             char* param = strtok(NULL, " ");
@@ -367,6 +359,7 @@ void shell()
             printLineW("stats - show system statistics");
             printLineW("arp <ip> - send an arp request");
             printLineW("ping <ip> - just the default ping!");
+            printLineW("time - show current time");
             printLineW("exit - exit the os");
         }
         else
@@ -426,22 +419,24 @@ void obos_main()
     //default arp cache entry for the gateway so we can have some sort of network without waiting for an arp request from the gateway
     // arpRequest(QEMU_GATEWAY);
     // arpCacheInsert(QEMU_GATEWAY, arpLookup(QEMU_GATEWAY));
-    for(volatile int i = 0; i < 10000000; i++);
     //simple starting sound for the os, also tests the sound driver and the audio generation
+    sleep(100);
     playSound(start, sizeof(start), SAMPLE_RATE);
-    for(volatile int i = 0; i < 250000000; i++);
+    sleep(1000);
     playSound(finish, sizeof(finish), SAMPLE_RATE);
-    for(volatile int i = 0; i < 10000000; i++);
+    sleep(100);
     stopSound();
     createFile("users.dat", File);
     writeFile("users.dat", "omer&2882598092&526223844\nbarak&3721853714&1533733554", 54);
-    if(loginMenu() == ERROR)
-    {
-        printLineW("Failed to login after 3 attempts, shutting down...");
-        sleep(2000);
-        shutdown();
-        return;
-    }
+    
+    //add on presentation
+    // if(loginMenu() == ERROR)
+    // {
+    //     printLineW("Failed to login after 3 attempts, shutting down...");
+    //     sleep(2000);
+    //     shutdown();
+    //     return;
+    // }
     //username: omer, password: saban1254, salt: 2882598092, hash: 526223844
     //username: barak, password: baraksh123, salt: 3721853714, hash: 1533733554
     shell();
