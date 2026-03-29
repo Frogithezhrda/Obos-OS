@@ -320,6 +320,10 @@ void shell()
             }
             icmpSendEchoRequest(splitIP(param));
         }
+        else if(!strcmp(cmd, "time"))
+        {
+            printCurrentTime();
+        }
         else if(!strcmp(cmd, "arp"))
         {
             char* param = strtok(NULL, " ");
@@ -367,6 +371,7 @@ void shell()
             printLineW("stats - show system statistics");
             printLineW("arp <ip> - send an arp request");
             printLineW("ping <ip> - just the default ping!");
+            printLineW("time - show current time");
             printLineW("exit - exit the os");
         }
         else
@@ -426,22 +431,24 @@ void obos_main()
     //default arp cache entry for the gateway so we can have some sort of network without waiting for an arp request from the gateway
     // arpRequest(QEMU_GATEWAY);
     // arpCacheInsert(QEMU_GATEWAY, arpLookup(QEMU_GATEWAY));
-    for(volatile int i = 0; i < 10000000; i++);
     //simple starting sound for the os, also tests the sound driver and the audio generation
+    sleep(100);
     playSound(start, sizeof(start), SAMPLE_RATE);
-    for(volatile int i = 0; i < 250000000; i++);
+    sleep(1000);
     playSound(finish, sizeof(finish), SAMPLE_RATE);
-    for(volatile int i = 0; i < 10000000; i++);
+    sleep(100);
     stopSound();
     createFile("users.dat", File);
     writeFile("users.dat", "omer&2882598092&526223844\nbarak&3721853714&1533733554", 54);
-    if(loginMenu() == ERROR)
-    {
-        printLineW("Failed to login after 3 attempts, shutting down...");
-        sleep(2000);
-        shutdown();
-        return;
-    }
+    
+    //add on presentation
+    // if(loginMenu() == ERROR)
+    // {
+    //     printLineW("Failed to login after 3 attempts, shutting down...");
+    //     sleep(2000);
+    //     shutdown();
+    //     return;
+    // }
     //username: omer, password: saban1254, salt: 2882598092, hash: 526223844
     //username: barak, password: baraksh123, salt: 3721853714, hash: 1533733554
     shell();
