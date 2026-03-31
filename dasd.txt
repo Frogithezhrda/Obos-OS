@@ -1,43 +1,29 @@
 No.     Time           Source                Destination           Protocol Length Info
-      1 0.000000       RealtekU_12:34:56     Broadcast             ARP      42     Who has 10.0.2.2? Tell 10.0.2.15
+      3 0.232712       10.0.2.15             1.1.1.1               DNS      58     Standard query 0x4d63[Malformed Packet]
 
-Frame 1: 42 bytes on wire (336 bits), 42 bytes captured (336 bits)
-Ethernet II, Src: RealtekU_12:34:56 (52:54:00:12:34:56), Dst: Broadcast (ff:ff:ff:ff:ff:ff)
-Address Resolution Protocol (request)
-
-No.     Time           Source                Destination           Protocol Length Info
-      2 0.000022       52:55:0a:00:02:02     RealtekU_12:34:56     ARP      64     10.0.2.2 is at 52:55:0a:00:02:02
-
-Frame 2: 64 bytes on wire (512 bits), 64 bytes captured (512 bits)
-Ethernet II, Src: 52:55:0a:00:02:02 (52:55:0a:00:02:02), Dst: RealtekU_12:34:56 (52:54:00:12:34:56)
-Address Resolution Protocol (reply)
-
-No.     Time           Source                Destination           Protocol Length Info
-      3 6.791240       RealtekU_12:34:56     Broadcast             ARP      42     Who has 10.0.0.2? Tell 10.0.2.15
-
-Frame 3: 42 bytes on wire (336 bits), 42 bytes captured (336 bits)
-Ethernet II, Src: RealtekU_12:34:56 (52:54:00:12:34:56), Dst: Broadcast (ff:ff:ff:ff:ff:ff)
-Address Resolution Protocol (request)
-
-No.     Time           Source                Destination           Protocol Length Info
-      4 13.399606      10.0.2.15             10.0.2.2              ICMP     42     Echo (ping) request  id=0x0001, seq=1/256, ttl=32 (reply in 5)
-
-Frame 4: 42 bytes on wire (336 bits), 42 bytes captured (336 bits)
+Frame 3: 58 bytes on wire (464 bits), 58 bytes captured (464 bits)
 Ethernet II, Src: RealtekU_12:34:56 (52:54:00:12:34:56), Dst: 52:55:0a:00:02:02 (52:55:0a:00:02:02)
-Internet Protocol Version 4, Src: 10.0.2.15, Dst: 10.0.2.2
-Internet Control Message Protocol
-
-No.     Time           Source                Destination           Protocol Length Info
-      5 13.399680      10.0.2.2              10.0.2.15             ICMP     60     Echo (ping) reply    id=0x0001, seq=1/256, ttl=255 (request in 4)
-
-Frame 5: 60 bytes on wire (480 bits), 60 bytes captured (480 bits)
-Ethernet II, Src: 52:55:0a:00:02:02 (52:55:0a:00:02:02), Dst: RealtekU_12:34:56 (52:54:00:12:34:56)
-Internet Protocol Version 4, Src: 10.0.2.2, Dst: 10.0.2.15
-Internet Control Message Protocol
-
-No.     Time           Source                Destination           Protocol Length Info
-      6 20.533185      RealtekU_12:34:56     Broadcast             ARP      42     Who has 8.8.8.8? Tell 10.0.2.15
-
-Frame 6: 42 bytes on wire (336 bits), 42 bytes captured (336 bits)
-Ethernet II, Src: RealtekU_12:34:56 (52:54:00:12:34:56), Dst: Broadcast (ff:ff:ff:ff:ff:ff)
-Address Resolution Protocol (request)
+    Destination: 52:55:0a:00:02:02 (52:55:0a:00:02:02)
+        Address: 52:55:0a:00:02:02 (52:55:0a:00:02:02)
+        .... ..1. .... .... .... .... = LG bit: Locally administered address (this is NOT the factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Source: RealtekU_12:34:56 (52:54:00:12:34:56)
+        Address: RealtekU_12:34:56 (52:54:00:12:34:56)
+        .... ..1. .... .... .... .... = LG bit: Locally administered address (this is NOT the factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: IPv4 (0x0800)
+Internet Protocol Version 4, Src: 10.0.2.15, Dst: 1.1.1.1
+User Datagram Protocol, Src Port: 12345, Dst Port: 53
+Domain Name System (query)
+    Transaction ID: 0x4d63
+    Flags: 0x0100 Standard query
+    Questions: 1
+    Answer RRs: 0
+    Authority RRs: 0
+    Additional RRs: 0
+    Queries
+[Malformed Packet: DNS]
+    [Expert Info (Error/Malformed): Malformed Packet (Exception occurred)]
+        [Malformed Packet (Exception occurred)]
+        [Severity level: Error]
+        [Group: Malformed]

@@ -130,6 +130,11 @@ void shell()
         {
             continue;
         }
+        else if(!strcmp(cmd, "test"))
+        {
+            dnsSendQuery(MY_IP, 0x01010101, "google.com");
+            printLineW("Test command executed.");
+        }
         else if(!strcmp(cmd, "secret"))
         {
             char* buffer = kmalloc(10);
