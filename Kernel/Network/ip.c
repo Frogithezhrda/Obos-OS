@@ -127,4 +127,8 @@ void ipReceive(void* data, unsigned int length)
     {
         icmpReceive(payload, paylen, myIP);
     }
+    else if(hdr->protocol == IP_PROTO_UDP)
+    {
+        udpReceive(ipDev, payload, paylen);
+    }
 }

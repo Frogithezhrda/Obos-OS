@@ -4,8 +4,9 @@
 #include "arp.h"
 
 #define IP_PROTO_ICMP 1
- 
-#define IP_TTL 32
+#define IP_PROTO_UDP 17
+
+#define IP_TTL 64
 #define SUBNET_MASK 0xFFFFFF00
 #define SUBNET 0x0A000200
 

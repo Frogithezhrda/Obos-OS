@@ -22,6 +22,7 @@ DNS
 */
 
 #define DNS_PORT 53
+#define DNS_SERVER 0x08080808 //Google Public DNS IP in hex
 #define EXAMPLE_PORT 12345
 
 typedef struct DnsHeader 
@@ -36,5 +37,5 @@ typedef struct DnsHeader
 
 int dnsBuildQuery(unsigned char* buffer, const char* domain);
 void dnsSendQuery(unsigned int srcIp, unsigned int dnsIp, const char* domain);
-
+void dnsReceive(void* data, unsigned int length);
 #endif

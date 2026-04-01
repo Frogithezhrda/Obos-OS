@@ -5,6 +5,10 @@
 
 #define UDP_PROTOCOL 17
 
+//protocols
+#define DNS_PORT 53
+
+
 #define UDP_HEADER_SIZE 8
 
 typedef struct UdpHeader

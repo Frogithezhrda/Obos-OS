@@ -56,3 +56,69 @@ void dnsSendQuery(unsigned int srcIp, unsigned int dnsIp, const char* domain)
     int queryLen = dnsBuildQuery(buffer, domain);
     udpSend(srcIp, dnsIp, EXAMPLE_PORT, DNS_PORT, buffer, queryLen);
 }
+
+void dnsReceive(void* data, unsigned int length)
+{
+    if (length < sizeof(DnsHeader))
+    {
+        return;
+    }
+    DnsHeader* hdr = (DnsHeader*)data;
+    unsigned short qdcount = ntohs(hdr->qdcount);
+    unsigned short ancount = ntohs(hdr->ancount);
+    printLineW("DNS Response received!");
+    unsigned char* ptr = (unsigned char*)data + sizeof(DnsHeader);
+    for (int i = 0; i < qdcount; i++)
+    {
+        //skip the qname
+        while (*ptr != 0)
+        {
+            ptr += (*ptr) + 1;
+        }
+        ptr++; // skip the null byte
+        unsigned short qtype = ntohs(*(unsigned short*)ptr);
+        ptr += 2;
+        unsigned short qclass = ntohs(*(unsigned short*)ptr);
+        ptr += 2;
+
+    }
+    for (int i = 0; i < ancount; i++)
+    {
+        // handle name (compressed or not)
+        if ((*ptr & 0xC0) == 0xC0)
+        {
+            ptr += 2;
+        }
+        else
+        {
+            while (*ptr != 0)
+            {
+                ptr += (*ptr) + 1;
+            }
+            ptr++;
+        }
+
+        unsigned short atype = ntohs(*(unsigned short*)ptr);
+        ptr += 2;
+
+        unsigned short aclass = ntohs(*(unsigned short*)ptr);
+        ptr += 2;
+
+        unsigned int ttl = ntohl(*(unsigned int*)ptr);
+        ptr += 4;
+
+        unsigned short rdlength = ntohs(*(unsigned short*)ptr);
+        ptr += 2;
+
+        if (atype == 1 && aclass == 1 && rdlength == 4)
+        {
+            unsigned int ip = ntohl(*(unsigned int*)ptr);
+
+            printW("Resolved IP: ");
+            printIP(ip);
+            printLineW("");
+        }
+
+        ptr += rdlength;
+    }
+}

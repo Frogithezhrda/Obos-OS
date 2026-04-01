@@ -130,10 +130,15 @@ void shell()
         {
             continue;
         }
-        else if(!strcmp(cmd, "test"))
+        else if(!strcmp(cmd, "nslookup"))
         {
-            dnsSendQuery(MY_IP, 0x01010101, "google.com");
-            printLineW("Test command executed.");
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: nslookup <domain>");
+                continue;
+            }
+            dnsSendQuery(MY_IP, DNS_SERVER, param); //
         }
         else if(!strcmp(cmd, "secret"))
         {
