@@ -130,6 +130,10 @@ void shell()
         {
             continue;
         }
+        else if(!strcmp(cmd, "gui"))
+        {
+            initalizeWindowGUI();
+        }
         else if(!strcmp(cmd, "dns"))
         {
             printDnsTable();
@@ -427,7 +431,7 @@ void printTitle()
     printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
     printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
     printLine("                                 \\|_________|", GREEN);
-    printLine("Version: 0.7", LIGHT_BLUE);
+    printLine("Version: 0.8", LIGHT_BLUE);
     printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
 }
 
@@ -466,7 +470,7 @@ void obos_main()
     sleep(100);
     arpRequest(gateway);
     loadSuperBlock();
-
+    mouseInit();
     //default arp cache entry for the gateway so we can have some sort of network without waiting for an arp request from the gateway
     // arpRequest(QEMU_GATEWAY);
     // arpCacheInsert(QEMU_GATEWAY, arpLookup(QEMU_GATEWAY));

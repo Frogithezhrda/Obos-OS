@@ -37,6 +37,7 @@ void initializePIC()
     outb(MASTER_PIC_DATA_PORT, KEYBOARD_TIMER_CASCADE_MASK);
     outb(SLAVE_PIC_DATA_PORT, RTC_MASK);
     outb(SLAVE_PIC_DATA_PORT, RTL8139_MASK);
+    outb(SLAVE_PIC_DATA_PORT, MOUSE_MASK);
 }
 
 void unmaskAllInterrupts()

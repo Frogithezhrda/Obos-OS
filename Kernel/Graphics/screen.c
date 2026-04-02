@@ -8,9 +8,9 @@ void printPixel(Pixel pixel)
         return;
     }
     unsigned int offset = OFFSET(pixel);
-    fb[offset] = pixel.color.r;  // R
+    fb[offset] = pixel.color.b;  // R
     fb[offset + 1] = pixel.color.g;  // G
-    fb[offset + 2] = pixel.color.b;  // B
+    fb[offset + 2] = pixel.color.r;  // B
 }
 
 Color getPixelColor(unsigned int x, unsigned int y)
@@ -23,9 +23,9 @@ Color getPixelColor(unsigned int x, unsigned int y)
     Pixel p = {x, y, {0, 0, 0}};
     unsigned int offset = OFFSET(p);
     Color color;
-    color.r = fb[offset];      // R
+    color.b = fb[offset];      // R
     color.g = fb[offset + 1];  // G
-    color.b = fb[offset + 2];  // B
+    color.r = fb[offset + 2];  // B
     return color;
 }
 
