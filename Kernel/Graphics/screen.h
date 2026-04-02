@@ -26,7 +26,7 @@ typedef struct Pixel
 #define OFFSET(pixel) ((pixel.y * SCREEN_WIDTH + pixel.x) * 3)
 
 void printPixel(Pixel p);
-// void clearScreen();
+Color getPixelColor(unsigned int x, unsigned int y);
 void printCharVBE(char c, unsigned int x, unsigned int y, Color color);
 void printStringVBE(const char* str, unsigned int x, unsigned int y, Color color);
 #endif

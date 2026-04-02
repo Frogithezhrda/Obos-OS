@@ -18,8 +18,8 @@
 #define CHAR_W (8 * FONT_SCALE)
 #define CHAR_H (8 * FONT_SCALE)
 
-#define COLS   (SCREEN_WIDTH  / CHAR_W)
-#define ROWS   (SCREEN_HEIGHT / CHAR_H)
+#define COLS (SCREEN_WIDTH  / CHAR_W)
+#define ROWS (SCREEN_HEIGHT / (CHAR_H + 4))
 // enum VGAColor 
 // {
 //     BLACK = 0,

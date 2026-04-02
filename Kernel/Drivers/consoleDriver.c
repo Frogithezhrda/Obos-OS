@@ -23,6 +23,29 @@ static unsigned int positionY = 0;
 static unsigned int cursorBlinkingTicks = 0;
 static int isVisibleCursor = 0;
 
+static void scrollScreen()
+{
+    for (unsigned int y = 0; y < SCREEN_HEIGHT - (CHAR_H + 4); y++)
+    {
+        for (unsigned int x = 0; x < SCREEN_WIDTH; x++)
+        {
+            Pixel src = {x, y + (CHAR_H + 4), BLACK};
+            Color color = getPixelColor(src.x, src.y);
+            Pixel p = {x, y, color};
+            printPixel(p);
+        }
+    }
+
+    for (unsigned int y = SCREEN_HEIGHT - (CHAR_H + 4); y < SCREEN_HEIGHT; y++)
+    {
+        for (unsigned int x = 0; x < SCREEN_WIDTH; x++)
+        {
+            Pixel p = {x, y, BLACK};
+            printPixel(p);
+        }
+    }
+}
+
 static void eraseCursor()
 {
     for (unsigned int row = 0; row < CHAR_H + 4; row++)
@@ -80,7 +103,8 @@ void printChar(const char character, const Color color)
         positionY++;
         if(positionY >= ROWS)
         {
-            positionY = 0; //quick fix for now should scroll instead
+            scrollScreen();
+            positionY = ROWS - 1;
         }
         return;
     }

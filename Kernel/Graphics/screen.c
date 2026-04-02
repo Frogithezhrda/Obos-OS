@@ -12,6 +12,23 @@ void printPixel(Pixel pixel)
     fb[offset + 1] = pixel.color.g;  // G
     fb[offset + 2] = pixel.color.b;  // B
 }
+
+Color getPixelColor(unsigned int x, unsigned int y)
+{
+    unsigned char* fb = (unsigned char*)FB_BASE;
+    if (x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT)
+    {
+        return (Color){0, 0, 0};
+    }
+    Pixel p = {x, y, {0, 0, 0}};
+    unsigned int offset = OFFSET(p);
+    Color color;
+    color.r = fb[offset];      // R
+    color.g = fb[offset + 1];  // G
+    color.b = fb[offset + 2];  // B
+    return color;
+}
+
 void printCharVBE(char c, unsigned int x, unsigned int y, Color color)
 {
     unsigned char* glyph = font[(unsigned char)c];
