@@ -48,6 +48,7 @@ void dnsSendQuery(unsigned int srcIp, unsigned int dnsIp, const char* domain);
 void dnsReceive(void* data, unsigned int length);
 void dnsAddEntry(const char* domain, unsigned int ip);
 unsigned int dnsResolve(const char* domain);
+void printDnsTable();
 
 extern DnsTableEntry dnsTable[DNS_TABLE_SIZE];
 

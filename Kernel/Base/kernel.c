@@ -130,6 +130,10 @@ void shell()
         {
             continue;
         }
+        else if(!strcmp(cmd, "dns"))
+        {
+            printDnsTable();
+        }
         else if(!strcmp(cmd, "clear"))
         {
             clearScreen();

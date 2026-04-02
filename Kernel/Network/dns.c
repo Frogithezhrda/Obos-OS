@@ -162,3 +162,18 @@ unsigned int dnsResolve(const char* domain)
     }
     return 0;
 }
+
+void printDnsTable()
+{
+    for (int i = 0; i < DNS_TABLE_SIZE; i++)
+    {
+        if (strcmp(dnsTable[i].domain, "") != 0)
+        {
+            printW("Domain: ");
+            printLineW(dnsTable[i].domain);
+            printW("IP: ");
+            printIP(dnsTable[i].ip);
+            printLineW("");
+        }
+    }
+}
