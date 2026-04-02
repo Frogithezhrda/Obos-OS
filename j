@@ -5,4 +5,5 @@ qemu-system-i386 \
     -device rtl8139,netdev=net0 \
     -object filter-dump,id=f1,netdev=net0,file=net.pcap \
     -audiodev pa,id=audio0,server=/run/user/1000/pulse/native \
-    -device sb16,audiodev=audio0
+    -device sb16,audiodev=audio0 \
+    -vga std

@@ -23,7 +23,7 @@ KERNEL_C_OBJECTS = $(patsubst %.c,$(COMPONENTS_DIR)/%.o,$(notdir $(KERNEL_C_SOUR
 CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector -nostdlib -nodefaultlibs -Wall -Wextra
 
 # search paths for source files
-vpath %.c Kernel/Base Kernel/Drivers Kernel/Tables Kernel/SystemLib Kernel/Memory Kernel/Processes Kernel/Fs Kernel/Network Kernel/Apps
+vpath %.c Kernel/Base Kernel/Drivers Kernel/Tables Kernel/SystemLib Kernel/Memory Kernel/Processes Kernel/Fs Kernel/Network Kernel/Apps Kernel/Graphics
 
 all: $(DISK_IMAGE_FILE_PATH)
 

@@ -11,7 +11,7 @@
 #include "../Network/dhcp.h"
 #include "../Drivers/soundDriver.h"
 #include "../Apps/audio.h"
-
+#include "../Graphics/screen.h"
 void obos_main();
 
 #endif  
