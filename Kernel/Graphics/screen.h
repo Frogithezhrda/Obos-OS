@@ -1,10 +1,13 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
+#include "fonts.h"
+
 #define FB_BASE 0xFD000000
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
+#define FONT_SCALE 1
 
 typedef struct Color
 {
@@ -20,10 +23,10 @@ typedef struct Pixel
     Color color;
 } Pixel;
 
-#define OFFSET(pixel) (pixel.y * SCREEN_WIDTH + pixel.x) * 3;
+#define OFFSET(pixel) ((pixel.y * SCREEN_WIDTH + pixel.x) * 3)
 
 void printPixel(Pixel p);
 // void clearScreen();
-// void printChar(char c, unsigned char color);
+void printCharVBE(char c, unsigned int x, unsigned int y, Color color);
 
 #endif

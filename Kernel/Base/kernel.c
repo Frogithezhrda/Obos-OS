@@ -434,19 +434,10 @@ void printTitle()
 void obos_main()
 {
     //basic initalization
-    for (unsigned int y = 0; y < SCREEN_HEIGHT; y++)
-    {
-        for (unsigned int x = 0; x < SCREEN_WIDTH; x++)
-        {
-            Pixel pixel;
-            pixel.x = x;
-            pixel.y = y;
-            pixel.color.r = 0;
-            pixel.color.g = 255;
-            pixel.color.b = 0;
-            printPixel(pixel);
-        }
-    }
+    printCharVBE('O', 0, 10, (Color){124, 124, 1});
+    printCharVBE('B', 8, 10, (Color){124, 124, 1});
+    printCharVBE('O', 16, 10, (Color){124, 124, 1});
+    printCharVBE('S', 24, 10, (Color){124, 124, 1});
 
     // clearScreen();
     // disableInterrupts();
