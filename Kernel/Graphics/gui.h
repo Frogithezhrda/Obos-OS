@@ -35,6 +35,9 @@ typedef struct Label
     Color textColor;
 } Label;
 
+void drawButton(Button* button);
+void drawIcon(Icon* icon);
+void drawLabel(Label* label);
 void drawWindow(Window* win);
 void initalizeWindowGUI();
 
