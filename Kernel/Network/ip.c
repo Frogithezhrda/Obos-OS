@@ -3,28 +3,29 @@
 
 static NetDevice* ipDev = 0;
 
+unsigned int subnetMask = SUBNET_MASK;
+unsigned int subnet = SUBNET;
+
 
 unsigned char* ipRoute(unsigned int ip)
 {
     unsigned char* mac;
     
-    if ((ip & SUBNET_MASK) == (SUBNET & SUBNET_MASK))
+    if ((ip & subnetMask) == (subnet & subnetMask))
     {
         mac = arpLookup(ip);
         if (!mac)
         {
-            arpRequest(ip);
             return 0;
         }
         return mac;
     }
     else
     {
-        mac = arpLookup(QEMU_GATEWAY);
+        mac = arpLookup(gateway);
         if (!mac)
         {
-            arpRequest(QEMU_GATEWAY);
-            return arpLookup(QEMU_GATEWAY);
+            return 0;
         }
         return mac;
     }
@@ -87,7 +88,12 @@ void ipSend(unsigned int dstIp, unsigned char protocol, void* data, unsigned int
         return;
     }
     unsigned char* dstMac = ipRoute(dstIp);
-    if (!dstMac)
+    if(!dstMac && protocol == (unsigned char)IP_PROTO_UDP)
+    {
+        printLineW("DHCP: sending to broadcast");
+        dstMac = (unsigned char*)"\xFF\xFF\xFF\xFF\xFF\xFF"; //broadcast for dhcp
+    }
+    else if (!dstMac)
     {
         printLineW("no route yet");
         return;
@@ -126,5 +132,9 @@ void ipReceive(void* data, unsigned int length)
     if (hdr->protocol == IP_PROTO_ICMP)
     {
         icmpReceive(payload, paylen, myIP);
+    }
+    else if(hdr->protocol == IP_PROTO_UDP || hdr->protocol == IP_PROTO_DHCP)
+    {
+        udpReceive(ipDev, payload, paylen);
     }
 }

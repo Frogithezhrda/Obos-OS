@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+TAP=tap0
+
+# Create TAP device
+sudo ip tuntap add dev $TAP mode tap
+
+# Bring it up
+sudo ip link set $TAP up
+
+# Assign IP to host side
+sudo ip addr add 192.168.100.1/24 dev $TAP
+
+echo "[+] TAP interface $TAP ready (192.168.100.1)"
