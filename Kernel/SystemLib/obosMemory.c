@@ -81,3 +81,20 @@ int atoi(char *p) {
      }
      return k;
 }
+char* strcpy(char* destination, const char* source) {
+    if(destination == NULL)
+        return NULL;
+
+    char *ptr = destination;  // pointer to destination str
+
+    // copy char from source
+    while(*source != '\0'){
+        *destination = *source;
+        destination++;
+        source++;
+    }
+
+    *destination = '\0'; // add null terminator 
+
+    return ptr;
+}

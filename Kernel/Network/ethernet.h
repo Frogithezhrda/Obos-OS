@@ -7,7 +7,7 @@
 #define ETHERTYPE_IP    0x0800
 #define ETHERTYPE_ARP   0x0806
 
-typedef struct
+typedef struct EthernetHeader
 {
     unsigned char dest[6];
     unsigned char src[6];

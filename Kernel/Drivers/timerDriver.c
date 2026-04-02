@@ -29,10 +29,10 @@ unsigned int getTicks()
 
 void sleep(unsigned int ms)
 {
-    unsigned int targetTicks = tickCounter + (ms / 10);
-    //hlt until target ticks reached
-    while (tickCounter < targetTicks);
-    // asm volatile ("hlt");
+    if (ms == 0) return;
+    unsigned int ticks = (ms + 9) / 10;  // round UP so sleep(1) waits 1 tick not 0
+    unsigned int targetTicks = tickCounter + ticks;
+    while (tickCounter < targetTicks) asm volatile ("sti; hlt");
 }
 unsigned int getSeconds(void)
 {
@@ -92,7 +92,7 @@ void printCurrentTime(void)
     {
         print("0", WHITE);
     }
-    printNumber(currentTime.hours, WHITE);
+    printNumber(currentTime.hours + 3, WHITE);
     print(":", WHITE);
     if(currentTime.minutes < 10)
     {

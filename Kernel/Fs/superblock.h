@@ -7,7 +7,7 @@
 #define TOTAL_BLOCKS 1024
 #define SUPERBLOCK_BLOCK 200
 #define MAGIC_NUMBER 0x4F424653
-#define MAX_BLOCKS_PER_FILE 16
+#define MAX_BLOCKS_PER_FILE 64 //32
 #define MAX_FILES 128
 #define FILE_NAME_LENGTH 64
 #define DIR_ENTRY_SIZE (sizeof(DirectoryEntry))

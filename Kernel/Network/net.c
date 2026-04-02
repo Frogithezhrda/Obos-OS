@@ -12,5 +12,6 @@ void initializeNet()
     arpInit(eth0);
     ipInit(eth0);
     icmpInit(eth0);
+    udpInit(eth0);
 }
 

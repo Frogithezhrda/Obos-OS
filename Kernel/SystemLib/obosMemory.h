@@ -10,4 +10,5 @@ char* strtok(char *str, const char *delim);
 char* strchr(const char* str, int c);
 unsigned int strlen(const char *str);
 int atoi(char *p);
+char* strcpy(char* destination, const char* source);
 #endif
