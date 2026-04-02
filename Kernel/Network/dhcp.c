@@ -1,8 +1,69 @@
 #include "dhcp.h"
 
+unsigned int dhcpXid;
+unsigned int dhcpServerIP;
+unsigned int dhcpIP;
+unsigned int dhcpGatewayIP;
+unsigned int dhcpSubnetMask;
+unsigned int dhcpSubnet;
+
 void requestDhcp()
 {
+    char* buffer = (char*)kmalloc(548);
+    memset(buffer, 0, 548);
+    myIP = DHCP_SRC_IP;
 
+    DhcpPacket* hdr = (DhcpPacket*)buffer;
+
+    hdr->op = 1;
+    hdr->htype = 1;
+    hdr->hlen = 6;
+    hdr->hops = 0;
+
+    hdr->xid = dhcpXid;
+
+    hdr->secs = 0;
+    hdr->flags = htons(0x8000);
+
+    hdr->ciaddr = 0;
+    hdr->yiaddr = 0;
+    hdr->siaddr = 0;
+    hdr->giaddr = 0;
+
+    memcpy(hdr->chaddr, udpDev->mac, 6);
+
+    unsigned char* opt = (unsigned char*)buffer + sizeof(DhcpPacket);
+
+    *(unsigned int*)opt = htonl(0x63825363);
+    opt += 4;
+
+    *opt++ = 53; 
+    *opt++ = 1;
+    *opt++ = 3; //request
+
+    //ip
+    *opt++ = 50;
+    *opt++ = 4;
+    *(unsigned int*)opt = htonl(dhcpIP);
+    opt += 4;
+
+    //server ip
+    *opt++ = 54;
+    *opt++ = 4;
+    *(unsigned int*)opt = htonl(dhcpServerIP);
+    opt += 4;
+    //param request list
+    *opt++ = 55;
+    *opt++ = 3;
+    *opt++ = 1;
+    *opt++ = 3;
+    *opt++ = 6;
+
+    *opt++ = 255;
+
+    unsigned int size = opt - (unsigned char*)buffer;
+    printLineW("Sending DHCP Request...");
+    udpSend(DHCP_SRC_IP, DHCP_BROADCAST_IP, DHCP_CLIENT_PORT, DHCP_SERVER_PORT, buffer, size);
 }
 
 void receiveDhcp(void* data, unsigned int length)
@@ -16,6 +77,7 @@ void receiveDhcp(void* data, unsigned int length)
     {
         return;
     }
+    unsigned char messageType = 0;
     unsigned int yiaddr = ntohl(pkt->yiaddr);
     unsigned int subnetMaskLocal = ntohl(*(unsigned int*)(pkt->sname)); //subnet mask is stored in sname for some reason
     unsigned int gatewayLocal = ntohl(*(unsigned int*)(pkt->sname + 4)); //gateway is stored in sname + 4 for some reason
@@ -24,12 +86,13 @@ void receiveDhcp(void* data, unsigned int length)
     while (*opt < 255)
     {
         unsigned char type = *opt++;
-
         if (type == 0) continue; // padding
-
         unsigned char len = *opt++;
-
-        if (type == 1 && len == 4) // subnet mask
+        if(type == 53 && len == 1)
+        {
+            messageType = *opt;
+        } 
+        else if (type == 1 && len == 4) // subnet mask
         {
             subnetMaskLocal = ntohl(*(unsigned int*)opt);
         }
@@ -49,20 +112,40 @@ void receiveDhcp(void* data, unsigned int length)
         subnet = SUBNET; //default subnet
         return;
     }
-    myIP = yiaddr;
-    gateway = gatewayLocal;
-    subnetMask = subnetMaskLocal;
-    subnet = yiaddr & subnetMaskLocal;
+    if(messageType == 2) // offer
+    {
+        printLineW("DHCP Offer received, sending request...");
+        dhcpIP = yiaddr;
+        dhcpGatewayIP = gatewayLocal;
+        dhcpSubnetMask = subnetMaskLocal;
+        dhcpSubnet = yiaddr & subnetMaskLocal;
+        dhcpServerIP = ntohl(pkt->siaddr);
+        return;
+    }
+    else if(messageType == 5) // ack
+    {
+        myIP = yiaddr;
+        gateway = gatewayLocal;
+        subnetMask = subnetMaskLocal;
+        subnet = yiaddr & subnetMaskLocal;
+        printW("DHCP Server IP: ");
+        printIP(dhcpServerIP);
+        printW("\nAssigned IP: ");
+        printIP(yiaddr);
+        printW("\nSubnet Mask: ");
+        printIP(subnetMask);
+        printW("\nGateway: ");
+        printIP(gateway);
+        printW("\nSubnet: ");
+        printIP(subnet);
+        printLineW("");
+    }
+    else if(messageType != 5) // we only handle ack
+    {
+        printLineW("DHCP Request Failed: No ACK received");
+        return;
+    }
     printLineW("DHCP Acquired!");
-    printW("Assigned IP: ");
-    printIP(yiaddr);
-    printW("\nSubnet Mask: ");
-    printIP(subnetMask);
-    printW("\nGateway: ");
-    printIP(gateway);
-    printW("\nSubnet: ");
-    printIP(subnet);
-    printLineW("");
 }
 
 void discoverDhcp()
@@ -79,7 +162,6 @@ void discoverDhcp()
     hdr->hops = 0;
 
     hdr->xid = htonl(randRange(0, 0xFFFF0000));
-
     hdr->secs = 0;
     hdr->flags = htons(0x8000);
 

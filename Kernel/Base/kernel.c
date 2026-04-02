@@ -141,6 +141,7 @@ void shell()
         else if(!strcmp(cmd, "dhcp"))
         {
             discoverDhcp();
+            requestDhcp();
         }
         else if(!strcmp(cmd, "nslookup"))
         {
@@ -461,6 +462,7 @@ void obos_main()
     sleep(100);
     initializeNet(); //net
     discoverDhcp(); //dhcp
+    requestDhcp();
     sleep(100);
     arpRequest(gateway);
     loadSuperBlock();
