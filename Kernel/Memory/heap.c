@@ -73,7 +73,7 @@ void* kmalloc(unsigned long size)
     }
     splitBlock(block, totalSize);
     block->free = OCCUPIED;
-
+    memset((void*)((char*)block + HEAP_BLOCK_HEADER_SIZE), 0, block->size - HEAP_BLOCK_HEADER_SIZE);
     return (void*)((char*)block + HEAP_BLOCK_HEADER_SIZE);
 }
 

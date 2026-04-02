@@ -17,7 +17,7 @@
 #define SYSCALL_READ_FILE        12
 #define SYSCALL_WRITE_FILE       13
 #define SYSCALL_CREATE_DIRECTORY 14
-
+#define SYSCALL_RAND    15
 
 #define SUCCESS 1
 #define FAILED  0

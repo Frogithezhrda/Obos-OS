@@ -111,6 +111,12 @@ code[5] = 0xFE; // infinite loop
 AND DONT FORGET TO PUT THE COLOR WHEN CALLING THE PRINT
 */
 
+
+void shutdown()
+{
+    outw(0x604, 0x2000);
+}
+
 void shell()
 {
     char* string = kmalloc(100);
@@ -123,6 +129,42 @@ void shell()
         if(cmd == NULL)
         {
             continue;
+        }
+        else if(!strcmp(cmd, "dns"))
+        {
+            printDnsTable();
+        }
+        else if(!strcmp(cmd, "clear"))
+        {
+            clearScreen();
+        }
+        else if(!strcmp(cmd, "dhcp"))
+        {
+            discoverDhcp();
+            requestDhcp();
+        }
+        else if(!strcmp(cmd, "nslookup"))
+        {
+            char* param = strtok(NULL, " ");
+            if(param == NULL)
+            {
+                printLineW("Usage: nslookup <domain>");
+                continue;
+            }
+            dnsSendQuery(MY_IP, DNS_SERVER, param); //
+        }
+        else if(!strcmp(cmd, "secret"))
+        {
+            char* buffer = kmalloc(10);
+            printW("password: ");
+            keybos(buffer, 10);
+            if(!strcmp(buffer, "coco123"))
+            {
+                printLineW("Its Time For a BAD TIME:)");
+                playSound(megalovania, sizeof(megalovania), MEGALOVANIA_SAMPLE_RATE);
+                sleep(3000);
+                stopSound();
+            }
         }
         else if(!strcmp(cmd, "calc"))
         {
@@ -168,6 +210,7 @@ void shell()
         else if(!strcmp(cmd, "exit"))
         {
             printLineW("Exiting...");
+            shutdown();
             break;
         }
         else if(!strcmp(cmd, "ls"))
@@ -204,8 +247,13 @@ void shell()
                 printLineW("Usage: read <filename>");
                 continue;
             }
-            char* buffer = (char*)kmalloc(144);
-            readFile(param, buffer, 144);
+            char* buffer = (char*)kmalloc(256);
+            if(readFile(param, buffer, 256) == ERROR)
+            {
+                printLineW("Failed to read file!");
+                kfree(buffer);
+                continue;
+            }
             printW("File contents:\n");
             printW(buffer);
             kfree(buffer);
@@ -269,9 +317,14 @@ void shell()
             print("My MAC: ", LIGHT_CYAN);
             printMAC(getMacAddr());
             print("My IP: ", LIGHT_CYAN);
-            printIP(MY_IP);
-            print(" (Default Qemu IP)", LIGHT_CYAN);
-
+            printIP(myIP);
+            printLineW("");
+            print("My Subnet Mask: ", LIGHT_CYAN);
+            printIP(subnetMask);
+            printLineW("");
+            print("My Gateway: ", LIGHT_CYAN);
+            printIP(gateway);
+            printLineW("");
         }
         else if(!strcmp(cmd, "ping"))
         {
@@ -281,7 +334,27 @@ void shell()
                 printLineW("Usage: ping <ip>");
                 continue;
             }
-            icmpSendEchoRequest(splitIP(param));
+            unsigned int ip = splitIP(param);
+            if(ip == 0)
+            {
+                printLineW("Trying DNS...");
+                ip = dnsResolve(param);
+                if(!ip)
+                {
+                    dnsSendQuery(myIP, DNS_SERVER, param);
+                    ip = dnsResolve(param);
+                } 
+            }
+            if(ip == 0)
+            {
+                printLineW("Invalid IP address!");
+                continue;
+            }
+            icmpSendEchoRequest(ip);
+        }
+        else if(!strcmp(cmd, "time"))
+        {
+            printCurrentTime();
         }
         else if(!strcmp(cmd, "arp"))
         {
@@ -330,7 +403,11 @@ void shell()
             printLineW("stats - show system statistics");
             printLineW("arp <ip> - send an arp request");
             printLineW("ping <ip> - just the default ping!");
-            printLineW("exit - exit the shell");
+            printLineW("time - show current time");
+            printLineW("nslookup <hostname> - resolve hostname to IP");
+            printLineW("dhcp - request an IP via DHCP");
+            printLineW("clear - clear the screen");
+            printLineW("exit - exit the os");
         }
         else
         {
@@ -350,9 +427,8 @@ void printTitle()
     printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
     printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
     printLine("                                 \\|_________|", GREEN);
-    printLine("Version: 0.6", LIGHT_BLUE);
+    printLine("Version: 0.7", LIGHT_BLUE);
     printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
-    disableInterrupts();
 }
 
 void obos_main()
@@ -379,14 +455,45 @@ void obos_main()
     enablePagingNow();
     initKernelHeap();
     initUserHeap();
-    clearScreen();
-    printTitle(); //this disables interrupts in the os
+    sleep(100);
+    soundBlasterInit();
+    generateFinish();
+    generateStart();
+    sleep(100);
     initializeNet(); //net
+    discoverDhcp(); //dhcp
+    requestDhcp();
+    sleep(100);
+    arpRequest(gateway);
     loadSuperBlock();
+
+    //default arp cache entry for the gateway so we can have some sort of network without waiting for an arp request from the gateway
+    // arpRequest(QEMU_GATEWAY);
+    // arpCacheInsert(QEMU_GATEWAY, arpLookup(QEMU_GATEWAY));
+    //simple starting sound for the os, also tests the sound driver and the audio generation
+    sleep(100);
+    playSound(start, sizeof(start), SAMPLE_RATE);
+    sleep(1000);
+    playSound(finish, sizeof(finish), SAMPLE_RATE);
+    sleep(100);
+    stopSound();
+    createFile("users.dat", File);
+    writeFile("users.dat", "omer&2882598092&526223844\nbarak&3721853714&1533733554", 54);
+    clearScreen();
+    printTitle();
+    //add on presentation
+    // if(loginMenu() == ERROR)
+    // {
+    //     printLineW("Failed to login after 3 attempts, shutting down...");
+    //     sleep(2000);
+    //     shutdown();
+    //     return;
+    // }
+    //username: omer, password: saban1254, salt: 2882598092, hash: 526223844
+    //username: barak, password: baraksh123, salt: 3721853714, hash: 1533733554
     shell();
 
     //minimal shutdown
-    asm volatile("hlt");
     // enterUserMode((void*)USER_SPACE_START);
     // // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
     // unsigned int value = *ptr; //this will cause a page fault

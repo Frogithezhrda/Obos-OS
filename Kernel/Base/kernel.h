@@ -7,6 +7,11 @@
 #include "../SystemLib/obosMemory.h"
 #include "../Fs/superblock.h"
 #include "../Network/icmp.h"
+#include "../Network/dns.h"
+#include "../Network/dhcp.h"
+#include "../Drivers/soundDriver.h"
+#include "../Apps/audio.h"
+
 void obos_main();
 
 #endif  

@@ -86,3 +86,92 @@ void sleepo(unsigned int ms)
         : "eax", "ebx"
     );
 }
+
+unsigned int createFileo(const char* filename)
+{
+    int result;
+    asm volatile(
+        "mov $9, %%eax\n"
+        "mov %1, %%ebx\n"        // arg1 = filename
+        "int $0x80\n"
+        "mov %%eax, %0\n"        // get return value
+        : "=r"(result)
+        : "r"(filename)
+        : "eax", "ebx"
+    );
+    return result;
+}
+unsigned int deleteFileo(const char* filename)
+{
+    int result;
+    asm volatile(
+        "mov $10, %%eax\n"
+        "mov %1, %%ebx\n"        // arg1 = filename
+        "int $0x80\n"
+        "mov %%eax, %0\n"        // get return value
+        : "=r"(result)
+        : "r"(filename)
+        : "eax", "ebx"
+    );
+    return result;
+}
+unsigned int createDiro(const char* dirname)
+{
+    int result;
+    asm volatile(
+        "mov $14, %%eax\n"
+        "mov %1, %%ebx\n"        // arg1 = dirname
+        "int $0x80\n"
+        "mov %%eax, %0\n"        // get return value
+        : "=r"(result)
+        : "r"(dirname)
+        : "eax", "ebx"
+    );
+    return result;
+}
+unsigned int readFileo(const char* filename, char* buffer, unsigned int size)
+{
+    int result;
+    asm volatile(
+        "mov $12, %%eax\n"
+        "mov %1, %%ebx\n"        // arg1 = filename
+        "mov %2, %%ecx\n"        // arg2 = buffer
+        "mov %3, %%edx\n"        // arg3 = size
+        "int $0x80\n"
+        "mov %%eax, %0\n"        // get return value (bytes read)
+        : "=a"(result)
+        : "r"(filename), "r"(buffer), "r"(size)
+        : "ebx", "ecx", "edx"
+    );
+    return result;
+}
+unsigned int writeFileo(const char* filename, const char* data, unsigned int size)
+{
+    int result;
+    asm volatile(
+        "mov $13, %%eax\n"
+        "mov %1, %%ebx\n"        // arg1 = filename
+        "mov %2, %%ecx\n"        // arg2 = data
+        "mov %3, %%edx\n"        // arg3 = size
+        "int $0x80\n"
+        "mov %%eax, %0\n"        // get return value (bytes written)
+        : "=a"(result)
+        : "r"(filename), "r"(data), "r"(size)
+        : "ebx", "ecx", "edx"
+    );
+    return result;
+}
+
+unsigned int rando()
+{
+    int result;
+    asm volatile(
+        "mov $15, %%eax\n"
+        "int $0x80\n"
+        "mov %%eax, %0\n"
+        : "=r"(result)
+        :
+        : "eax"
+    );
+    return result;
+}

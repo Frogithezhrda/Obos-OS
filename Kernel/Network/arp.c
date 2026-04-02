@@ -4,7 +4,8 @@
 
 static NetDevice* arpDev = 0;
 static ArpEntry arpCache[ARP_CACHE_SIZE];
-unsigned int myIP = MY_IP;
+unsigned int myIP = 0x00000000;
+unsigned int gateway = 0xFFFFFFFF;
 
 void printIP(unsigned int ip)
 {
@@ -41,7 +42,7 @@ void arpRequest(unsigned int ip)
     pkt.senderMac[3] = arpDev->mac[3];
     pkt.senderMac[4] = arpDev->mac[4];
     pkt.senderMac[5] = arpDev->mac[5];
-    pkt.senderIp = htonl(MY_IP);
+    pkt.senderIp = htonl(myIP);
 
     pkt.targetMac[0] = 0;
     pkt.targetMac[1] = 0;
@@ -54,7 +55,7 @@ void arpRequest(unsigned int ip)
     ethernetSend(broadcast, ETHERTYPE_ARP, &pkt, sizeof(ArpPacket));
 }
 
-static void arpCacheInsert(unsigned int ip, unsigned char* mac)
+void arpCacheInsert(unsigned int ip, unsigned char* mac)
 {
     for (int i = 0; i < ARP_CACHE_SIZE; i++)
     {
@@ -101,11 +102,11 @@ void arpReceive(void* data, unsigned int length)
     if (op == ARP_OP_REQUEST && ntohl(pkt->targetIp) == myIP)
     {
         ArpPacket reply;
-        reply.htype     = htons(ARP_HTYPE_ETHERNET);
-        reply.ptype     = htons(ARP_PTYPE_IP);
-        reply.hlen      = ARP_HLEN;
-        reply.plen      = ARP_PLEN;
-        reply.op        = htons(ARP_OP_REPLY);
+        reply.htype = htons(ARP_HTYPE_ETHERNET);
+        reply.ptype = htons(ARP_PTYPE_IP);
+        reply.hlen = ARP_HLEN;
+        reply.plen = ARP_PLEN;
+        reply.op = htons(ARP_OP_REPLY);
         // we are the sender
         reply.senderMac[0] = arpDev->mac[0];
         reply.senderMac[1] = arpDev->mac[1];
