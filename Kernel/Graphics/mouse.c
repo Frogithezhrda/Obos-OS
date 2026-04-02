@@ -7,6 +7,8 @@ int mouseY = SCREEN_HEIGHT / 2;
 int prevMouseX = SCREEN_WIDTH / 2;
 int prevMouseY = SCREEN_HEIGHT / 2;
 
+Color mouseBuffer[8][8];
+
 int shape[8][8] = 
 {
     {1,0,0,0,0,0,0,0},
@@ -19,6 +21,20 @@ int shape[8][8] =
     {1,0,0,0,0,0,0,0},
 };
 
+static void saveMouseBackground()
+{
+    for(int y = 0; y < 8; y++)
+    {
+        for(int x = 0; x < 8; x++)
+        {
+            if(shape[y][x])
+            {
+                mouseBuffer[y][x] = getPixelColor(mouseX + x, mouseY + y);
+            }
+        }
+    }
+}
+
 static void eraseMouse()
 {
     for(int y = 0; y < 8; y++)
@@ -27,11 +43,12 @@ static void eraseMouse()
         {
             if(shape[y][x])
             {
-                Pixel p = {prevMouseX + x, prevMouseY + y, BLACK};
+                Pixel p = {prevMouseX + x, prevMouseY + y, mouseBuffer[y][x]};
                 printPixel(p);
             }
         }
-    }}
+    }
+}
 
 static void drawMouse()
 {
@@ -63,9 +80,11 @@ static void processMousePacket()
     if (mouseX >= SCREEN_WIDTH) mouseX = SCREEN_WIDTH - 1;
     if (mouseY >= SCREEN_HEIGHT) mouseY = SCREEN_HEIGHT - 1;
 
+    saveMouseBackground();
+
+    drawMouse();
     prevMouseX = mouseX;
     prevMouseY = mouseY;
-    drawMouse();
 }
 
 static void mouseWaitRead()
