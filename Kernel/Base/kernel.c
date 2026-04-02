@@ -329,7 +329,23 @@ void shell()
                 printLineW("Usage: ping <ip>");
                 continue;
             }
-            icmpSendEchoRequest(splitIP(param));
+            unsigned int ip = splitIP(param);
+            if(ip == 0)
+            {
+                printLineW("Trying DNS...");
+                ip = dnsResolve(param);
+                if(!ip)
+                {
+                    dnsSendQuery(myIP, DNS_SERVER, param);
+                    ip = dnsResolve(param);
+                } 
+            }
+            if(ip == 0)
+            {
+                printLineW("Invalid IP address!");
+                continue;
+            }
+            icmpSendEchoRequest(ip);
         }
         else if(!strcmp(cmd, "time"))
         {

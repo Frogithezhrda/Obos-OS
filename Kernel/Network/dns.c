@@ -1,5 +1,9 @@
 #include "dns.h"
 
+
+DnsTableEntry dnsTable[DNS_TABLE_SIZE];
+unsigned int dnsTablePos = 0;
+
 int dnsBuildQuery(unsigned char* buffer, const char* domain)
 {
     DnsHeader* hdr = (DnsHeader*)buffer;
@@ -63,6 +67,8 @@ void dnsReceive(void* data, unsigned int length)
     {
         return;
     }
+    char domain[256];
+    unsigned int pos = 0;
     DnsHeader* hdr = (DnsHeader*)data;
     unsigned short qdcount = ntohs(hdr->qdcount);
     unsigned short ancount = ntohs(hdr->ancount);
@@ -70,21 +76,33 @@ void dnsReceive(void* data, unsigned int length)
     unsigned char* ptr = (unsigned char*)data + sizeof(DnsHeader);
     for (int i = 0; i < qdcount; i++)
     {
-        //skip the qname
         while (*ptr != 0)
         {
-            ptr += (*ptr) + 1;
-        }
-        ptr++; // skip the null byte
-        unsigned short qtype = ntohs(*(unsigned short*)ptr);
-        ptr += 2;
-        unsigned short qclass = ntohs(*(unsigned short*)ptr);
-        ptr += 2;
+            unsigned char len = *ptr++;
+            
+            for (int j = 0; j < len; j++)
+            {
+                domain[pos++] = *ptr++;
+            }
 
+            domain[pos++] = '.';
+        }
+
+        if (pos > 0)
+        {
+            pos--; //remove last dot
+        }
+
+        domain[pos] = 0;
+
+        ptr++; //null
+
+        ptr += 2; //qtype
+        ptr += 2; //qclass
     }
     for (int i = 0; i < ancount; i++)
     {
-        // handle name (compressed or not)
+        //handle name (compressed or not)
         if ((*ptr & 0xC0) == 0xC0)
         {
             ptr += 2;
@@ -117,8 +135,30 @@ void dnsReceive(void* data, unsigned int length)
             printW("Resolved IP: ");
             printIP(ip);
             printLineW("");
+
+            dnsAddEntry(domain, ip);
         }
 
         ptr += rdlength;
     }
+}
+
+void dnsAddEntry(const char* domain, unsigned int ip)
+{
+    dnsTable[dnsTablePos].ip = ip;
+    strcpy(dnsTable[dnsTablePos].domain, domain);
+    dnsTable[dnsTablePos].domain[255] = 0; //just in case
+    dnsTablePos = (dnsTablePos + 1) % DNS_TABLE_SIZE;
+}
+
+unsigned int dnsResolve(const char* domain)
+{
+    for (int i = 0; i < DNS_TABLE_SIZE; i++)
+    {
+        if (!strcmp(dnsTable[i].domain, domain))
+        {
+            return dnsTable[i].ip;
+        }
+    }
+    return 0;
 }

@@ -24,6 +24,14 @@ DNS
 #define DNS_PORT 53
 #define DNS_SERVER 0x08080808 //Google Public DNS IP in hex
 #define EXAMPLE_PORT 12345
+#define DNS_TABLE_SIZE 16
+
+
+typedef struct DnsTableEntry
+{
+    char domain[256];
+    unsigned int ip;
+} DnsTableEntry;
 
 typedef struct DnsHeader 
 {
@@ -38,4 +46,9 @@ typedef struct DnsHeader
 int dnsBuildQuery(unsigned char* buffer, const char* domain);
 void dnsSendQuery(unsigned int srcIp, unsigned int dnsIp, const char* domain);
 void dnsReceive(void* data, unsigned int length);
+void dnsAddEntry(const char* domain, unsigned int ip);
+unsigned int dnsResolve(const char* domain);
+
+extern DnsTableEntry dnsTable[DNS_TABLE_SIZE];
+
 #endif
