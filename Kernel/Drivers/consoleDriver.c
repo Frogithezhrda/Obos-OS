@@ -49,11 +49,13 @@ static void scrollScreen()
 static void eraseCursor()
 {
     for (unsigned int row = 0; row < CHAR_H + 4; row++)
+    {
         for (unsigned int col = 0; col < 2; col++)
         {
-            Pixel p = {positionX * CHAR_W + col, positionY * (CHAR_H + 4) + row, BLACK};
+            Pixel p = {positionX * CHAR_W + col, positionY * (CHAR_H + 4) + row - 2, BLACK};
             printPixel(p);
         }
+    }
 }
 
 static void drawCursor(int visible)
@@ -63,7 +65,7 @@ static void drawCursor(int visible)
     {
         for (unsigned int col = 0; col < 2; col++)
         {
-            Pixel p = {positionX * CHAR_W + col, positionY * (CHAR_H + 4) + row, c};
+            Pixel p = {positionX * CHAR_W + col, positionY * (CHAR_H + 4) + row - 2, c};
             printPixel(p);
         }
     }
