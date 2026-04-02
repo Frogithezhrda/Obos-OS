@@ -40,7 +40,8 @@ To deploy this project run
 * Snake game
 * Calculator
 * System stats tool
-
+* DNS & DHCP
+* UDP
 
 ## Roadmap
 
@@ -49,7 +50,7 @@ To deploy this project run
 * Enhance memory management
 * Upgrade file system
 * Fix and expand system stats
-* Add VBA mode
+* Add VBE mode
 ## Demo
 
 ![Demo](Screencast_from_03-29-2026_01_28_03_PM.webm)
