@@ -434,58 +434,53 @@ void printTitle()
 void obos_main()
 {
     //basic initalization
-    printCharVBE('O', 0, 10, (Color){124, 124, 1});
-    printCharVBE('B', 8, 10, (Color){124, 124, 1});
-    printCharVBE('O', 16, 10, (Color){124, 124, 1});
-    printCharVBE('S', 24, 10, (Color){124, 124, 1});
-
-    // clearScreen();
-    // disableInterrupts();
-    // setupIDT();
-    // printLine("IDT Setup Complete...", LIGHT_BLUE);
-    // initalizeException();
-    // printLine("Exception Handling Initialized...", LIGHT_BLUE);
-    // initializePIC();
-    // printLine("PIC Initialized...", LIGHT_BLUE);
-    // loadIDT();
-    // printLine("IDT Loaded...", LIGHT_BLUE);
-    // initializeTimer();
-    // printLine("Timer Initialized...", LIGHT_BLUE);
+    clearScreen();
+    disableInterrupts();
+    setupIDT();
+    printLine("\nIDT Setup Complete...", LIGHT_BLUE);
+    initalizeException();
+    printLine("Exception Handling Initialized...", LIGHT_BLUE);
+    initializePIC();
+    printLine("PIC Initialized...", LIGHT_BLUE);
+    loadIDT();
+    printLine("IDT Loaded...", LIGHT_BLUE);
+    initializeTimer();
+    printLine("Timer Initialized...", LIGHT_BLUE);
     // // maskAllInterrupts(); //no need to maksk interrupts here
-    // enableInterrupts();
+    enableInterrupts();
     // clearScreen();
-    // initializeMemoryManager();
-    // // printMemoryManagerInfo();
-    // initializePaging();
-    // enablePagingNow();
-    // initKernelHeap();
-    // initUserHeap();
-    // sleep(100);
-    // soundBlasterInit();
-    // generateFinish();
-    // generateStart();
-    // sleep(100);
-    // initializeNet(); //net
-    // discoverDhcp(); //dhcp
-    // requestDhcp();
-    // sleep(100);
-    // arpRequest(gateway);
-    // loadSuperBlock();
+    initializeMemoryManager();
+    // printMemoryManagerInfo();
+    initializePaging();
+    enablePagingNow();
+    initKernelHeap();
+    initUserHeap();
+    sleep(100);
+    soundBlasterInit();
+    generateFinish();
+    generateStart();
+    sleep(100);
+    initializeNet(); //net
+    discoverDhcp(); //dhcp
+    requestDhcp();
+    sleep(100);
+    arpRequest(gateway);
+    loadSuperBlock();
 
-    // //default arp cache entry for the gateway so we can have some sort of network without waiting for an arp request from the gateway
-    // // arpRequest(QEMU_GATEWAY);
-    // // arpCacheInsert(QEMU_GATEWAY, arpLookup(QEMU_GATEWAY));
-    // //simple starting sound for the os, also tests the sound driver and the audio generation
-    // sleep(100);
-    // playSound(start, sizeof(start), SAMPLE_RATE);
-    // sleep(1000);
-    // playSound(finish, sizeof(finish), SAMPLE_RATE);
-    // sleep(100);
-    // stopSound();
-    // createFile("users.dat", File);
-    // writeFile("users.dat", "omer&2882598092&526223844\nbarak&3721853714&1533733554", 54);
-    // clearScreen();
-    // printTitle();
+    //default arp cache entry for the gateway so we can have some sort of network without waiting for an arp request from the gateway
+    // arpRequest(QEMU_GATEWAY);
+    // arpCacheInsert(QEMU_GATEWAY, arpLookup(QEMU_GATEWAY));
+    //simple starting sound for the os, also tests the sound driver and the audio generation
+    sleep(100);
+    playSound(start, sizeof(start), SAMPLE_RATE);
+    sleep(1000);
+    playSound(finish, sizeof(finish), SAMPLE_RATE);
+    sleep(100);
+    stopSound();
+    createFile("users.dat", File);
+    writeFile("users.dat", "omer&2882598092&526223844\nbarak&3721853714&1533733554", 54);
+    clearScreen();
+    printTitle();
     // //add on presentation
     // // if(loginMenu() == ERROR)
     // // {
@@ -496,7 +491,7 @@ void obos_main()
     // // }
     // //username: omer, password: saban1254, salt: 2882598092, hash: 526223844
     // //username: barak, password: baraksh123, salt: 3721853714, hash: 1533733554
-    // shell();
+    shell();
 
     //minimal shutdown
     // enterUserMode((void*)USER_SPACE_START);

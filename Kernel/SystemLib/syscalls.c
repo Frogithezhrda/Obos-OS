@@ -9,7 +9,10 @@ unsigned int syscallHandler(const unsigned int syscallNumber, unsigned int arg1,
             if(arg2 == 0)
                 printLineW((const char*)arg1);
             else
-                printLine((const char*)arg1, arg2);
+            {
+                Color color = {255, 255, 255};
+                printLine((const char*)arg1, color);
+            }
             return SUCCESS;
             break;
         case SYSCALL_GET_TICKS:

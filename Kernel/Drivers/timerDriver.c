@@ -1,5 +1,5 @@
 #include "timerDriver.h"
-
+#include "consoleDriver.h"
 static unsigned int tickCounter = 0;
 static unsigned int rseed = 2463534242;
 
@@ -7,9 +7,7 @@ void timerISR(void)
 {
     tickCounter++;
     tick();
-    if (tickCounter % 100 == 0) 
-    {
-    }
+    updateCursor();
     endOfInterrupt(0); //IRQ0 is timer
 }
 

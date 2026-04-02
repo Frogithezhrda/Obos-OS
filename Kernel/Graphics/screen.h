@@ -28,5 +28,5 @@ typedef struct Pixel
 void printPixel(Pixel p);
 // void clearScreen();
 void printCharVBE(char c, unsigned int x, unsigned int y, Color color);
-
+void printStringVBE(const char* str, unsigned int x, unsigned int y, Color color);
 #endif

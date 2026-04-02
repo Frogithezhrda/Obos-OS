@@ -12,11 +12,6 @@ void printPixel(Pixel pixel)
     fb[offset + 1] = pixel.color.g;  // G
     fb[offset + 2] = pixel.color.b;  // B
 }
-// void clearScreen()
-// {
-
-// }
-
 void printCharVBE(char c, unsigned int x, unsigned int y, Color color)
 {
     unsigned char* glyph = font[(unsigned char)c];
@@ -26,9 +21,33 @@ void printCharVBE(char c, unsigned int x, unsigned int y, Color color)
         {
             if (glyph[row] & (0x80 >> col))
             {
-                Pixel p = {x + col * FONT_SCALE, y + row, color};
-                printPixel(p);
+                for (unsigned int sy = 0; sy < FONT_SCALE; sy++)
+                {
+                    for (unsigned int sx = 0; sx < FONT_SCALE; sx++)
+                    {
+                        Pixel p = {x + col * FONT_SCALE + sx, y + row * FONT_SCALE + sy, color};
+                        printPixel(p);
+                    }
+                }
             }
+        }
+    }
+}
+
+void printStringVBE(const char* str, unsigned int x, unsigned int y, Color color)
+{
+    unsigned int origX = x;
+    for (unsigned int i = 0; str[i] != '\0'; i++)
+    {
+        if (str[i] == '\n')
+        {
+            y += 8 * FONT_SCALE;
+            x = origX;
+        }
+        else
+        {
+            printCharVBE(str[i], x, y, color);
+            x += 8 * FONT_SCALE;
         }
     }
 }

@@ -72,11 +72,6 @@ void initializePaging(void)
     unsigned int kernelPhysEnd = (unsigned int)&_kernel_physical_end;
     unsigned int kernelSize = kernelPhysEnd - kernelPhysStart;
     
-    mapMemoryRegion(VIRTUAL_VGA_ADDRESS, 
-                    PAGE_SIZE, 
-                    VGA_PHYSICAL_ADDRESS, 
-                    SUPERVISOR_ONLY);
-    
     mapMemoryRegion(VIRTUAL_KERNEL_START_ADDRESS,
                     VIRTUAL_KERNEL_END_ADDRESS - VIRTUAL_KERNEL_START_ADDRESS,
                     KERNEL_PHYSICAL_START,
@@ -92,9 +87,9 @@ void initializePaging(void)
                     STACK_PHYSICAL_START,
                     SUPERVISOR_ONLY);
 
-    mapMemoryRegion(E1000_MMIO_BASE,
-                    E1000_MMIO_END - E1000_MMIO_BASE,
-                    E1000_MMIO_BASE,
+    mapMemoryRegion(VBE_FRAMEBUFFER_START,
+                    VBE_FRAMEBUFFER_END - VBE_FRAMEBUFFER_START,
+                    VBE_FRAMEBUFFER_START,
                     SUPERVISOR_ONLY);
 
     mapUserPages();
@@ -114,7 +109,7 @@ void enablePagingNow(void)
     asm volatile(
         "movl %[stack_top], %%esp\n\t"
         :
-        : [stack_top] "r" (VIRTUAL_KERNEL_STACK_TOP)
+        : [stack_top] "r" (STACK_PHYSICAL_END)
     );
     
     asm volatile("mov %%esp, %0" : "=r"(esp));

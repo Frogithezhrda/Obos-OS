@@ -171,8 +171,8 @@ void reserveKernelRegions(void)
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
 
-    region.start  = 0xFEB00000;
-    region.end    = 0xFEBFFFFF;
+    region.start  = 0xFD000000;
+    region.end    = 0xFDFFFFFF;
     region.type   = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
