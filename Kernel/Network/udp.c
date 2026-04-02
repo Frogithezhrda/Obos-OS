@@ -1,7 +1,8 @@
 #include "udp.h"
 #include "dns.h"
+#include "dhcp.h"
 
-static NetDevice* udpDev = 0;
+NetDevice* udpDev = 0;
 
 void udpInit(NetDevice* dev)
 {
@@ -55,6 +56,10 @@ void udpReceive(NetDevice* dev, const void* buffer, unsigned int length)
     if(ntohs(hdr->srcPort) == DNS_PORT)
     {
         dnsReceive(payload, dataLength);
+    }
+    else if(ntohs(hdr->srcPort) == DHCP_SERVER_PORT || ntohs(hdr->srcPort) == DHCP_CLIENT_PORT)
+    {
+        receiveDhcp(payload, dataLength);
     }
 
 }

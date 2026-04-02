@@ -130,6 +130,14 @@ void shell()
         {
             continue;
         }
+        else if(!strcmp(cmd, "clear"))
+        {
+            clearScreen();
+        }
+        else if(!strcmp(cmd, "dhcp"))
+        {
+            discoverDhcp();
+        }
         else if(!strcmp(cmd, "nslookup"))
         {
             char* param = strtok(NULL, " ");
@@ -304,9 +312,14 @@ void shell()
             print("My MAC: ", LIGHT_CYAN);
             printMAC(getMacAddr());
             print("My IP: ", LIGHT_CYAN);
-            printIP(MY_IP);
-            print(" (Default Qemu IP)", LIGHT_CYAN);
-
+            printIP(myIP);
+            printLineW("");
+            print("My Subnet Mask: ", LIGHT_CYAN);
+            printIP(subnetMask);
+            printLineW("");
+            print("My Gateway: ", LIGHT_CYAN);
+            printIP(gateway);
+            printLineW("");
         }
         else if(!strcmp(cmd, "ping"))
         {
@@ -370,6 +383,9 @@ void shell()
             printLineW("arp <ip> - send an arp request");
             printLineW("ping <ip> - just the default ping!");
             printLineW("time - show current time");
+            printLineW("nslookup <hostname> - resolve hostname to IP");
+            printLineW("dhcp - request an IP via DHCP");
+            printLineW("clear - clear the screen");
             printLineW("exit - exit the os");
         }
         else
@@ -390,9 +406,8 @@ void printTitle()
     printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
     printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
     printLine("                                 \\|_________|", GREEN);
-    printLine("Version: 0.6", LIGHT_BLUE);
+    printLine("Version: 0.7", LIGHT_BLUE);
     printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
-    disableInterrupts();
 }
 
 void obos_main()
@@ -419,13 +434,17 @@ void obos_main()
     enablePagingNow();
     initKernelHeap();
     initUserHeap();
-    clearScreen();
-    printTitle(); //this disables interrupts in the os
-    initializeNet(); //net
+    sleep(100);
     soundBlasterInit();
-    loadSuperBlock();
     generateFinish();
     generateStart();
+    sleep(100);
+    initializeNet(); //net
+    discoverDhcp(); //dhcp
+    sleep(100);
+    arpRequest(gateway);
+    loadSuperBlock();
+
     //default arp cache entry for the gateway so we can have some sort of network without waiting for an arp request from the gateway
     // arpRequest(QEMU_GATEWAY);
     // arpCacheInsert(QEMU_GATEWAY, arpLookup(QEMU_GATEWAY));
@@ -438,7 +457,8 @@ void obos_main()
     stopSound();
     createFile("users.dat", File);
     writeFile("users.dat", "omer&2882598092&526223844\nbarak&3721853714&1533733554", 54);
-    
+    clearScreen();
+    printTitle();
     //add on presentation
     // if(loginMenu() == ERROR)
     // {

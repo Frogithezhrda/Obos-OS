@@ -5,6 +5,7 @@
 
 #define IP_PROTO_ICMP 1
 #define IP_PROTO_UDP 17
+#define IP_PROTO_DHCP 67
 
 #define IP_TTL 64
 #define SUBNET_MASK 0xFFFFFF00
@@ -37,5 +38,8 @@ unsigned short checksum(void* data, unsigned int length);
 unsigned int splitIP(unsigned char* ip);
 
 unsigned char* ipRoute(unsigned int ip);
+
+extern unsigned int subnetMask;
+extern unsigned int subnet;
 
 #endif

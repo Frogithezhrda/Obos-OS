@@ -7,7 +7,8 @@
 
 //protocols
 #define DNS_PORT 53
-
+#define DHCP_SERVER_PORT 67
+#define DHCP_CLIENT_PORT 68
 
 #define UDP_HEADER_SIZE 8
 
@@ -25,5 +26,7 @@ void udpSend(unsigned int srcIp, unsigned int dstIp, unsigned short srcPort, uns
 void udpReceive(NetDevice* dev, const void* buffer, unsigned int length);
 
 unsigned short udpChecksum(unsigned int srcIp, unsigned int dstIp, void* data, unsigned int length);
+
+extern NetDevice* udpDev;
 
 #endif
