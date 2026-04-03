@@ -2,6 +2,7 @@
 #define GUI_H
 
 #include "../Drivers/consoleDriver.h"
+#include "icons.h"
 
 #define VISIBLE 1
 #define INVISIBLE 0
@@ -40,5 +41,7 @@ void drawIcon(Icon* icon);
 void drawLabel(Label* label);
 void drawWindow(Window* win);
 void initalizeWindowGUI();
+
+extern unsigned int isGUIInitialized;
 
 #endif

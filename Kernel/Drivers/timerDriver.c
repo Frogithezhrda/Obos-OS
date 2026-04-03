@@ -7,7 +7,7 @@ void timerISR(void)
 {
     tickCounter++;
     tick();
-    updateCursor();
+    if(!isGUIInitialized) updateCursor();
     endOfInterrupt(0); //IRQ0 is timer
 }
 
