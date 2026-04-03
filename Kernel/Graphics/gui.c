@@ -1,9 +1,12 @@
 #include "gui.h"
+#include "apps.h"
+
 
 unsigned int isGUIInitialized = 0;
 
 static Icon fileIcon;
 static Icon consoleIcon;
+Button exitButton;
 
 static int isPointInWindow(Window* win, unsigned int x, unsigned int y)
 {
@@ -25,6 +28,53 @@ static void drawPixel(Pixel p)
     }
 }
 
+//printing characters on screen(using graphics)
+static void printCharGUI(char c, unsigned int x, unsigned int y, Color color, unsigned int size)
+{
+
+    //is it duplicate code? yes, i dont give a shit
+    unsigned char* glyph = font[(unsigned char)c];
+    for (unsigned int row = 0; row < 8; row++)
+    {
+        for (unsigned int col = 0; col < 8; col++)
+        {
+            if (glyph[row] & (0x80 >> col))
+            {
+                for (unsigned int sy = 0; sy < size; sy++)
+                {
+                    for (unsigned int sx = 0; sx < size; sx++)
+                    {
+                        Pixel p = {x + col * size + sx, y + row * size + sy, color};
+                        printPixel(p);
+                    }
+                }
+            }
+        }
+    }
+}
+
+static void printStringGUI(const char* str, unsigned int x, unsigned int y, Color color, unsigned int size)
+{
+    unsigned int origX = x;
+    while (*str)
+    {
+        if (*str == '\n')
+        {
+            y += 8 * size;
+            x = origX;
+        }
+        else
+        {
+            printCharGUI(*str, x, y, color, size);
+            x += 8 * size + 1;
+        }
+        str++;
+    }
+}
+
+
+
+//handling click on window
 void handleClick(unsigned int mouseX, unsigned int mouseY)
 {
     if (isPointInWindow(&consoleIcon.window, mouseX, mouseY))
@@ -36,107 +86,17 @@ void handleClick(unsigned int mouseX, unsigned int mouseY)
     {
         if (fileIcon.onClick) fileIcon.onClick();
     }
-}
 
-void openTerminal()
-{
-    Window termWin = {100, 100, 600, 400, BLACK};
-    drawWindow(&termWin);
-    //draw a border
-    Window border = {98, 98, 604, 404, DARK_GREY};
-    drawWindow(&border);
-    drawWindow(&termWin);
-    //title bar
-    Window titleBar = {98, 98, 604, 24, LIGHT_GREY};
-    drawWindow(&titleBar);
-    Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "Terminal", BLACK};
-    drawLabel(&title);
-}
-
-void openFileManager()
-{
-    Window fmWin = {100, 100, 600, 400, WHITE};
-    drawWindow(&fmWin);
-    Window border = {98, 98, 604, 404, DARK_GREY};
-    drawWindow(&border);
-    drawWindow(&fmWin);
-    Window titleBar = {98, 98, 604, 24, LIGHT_GREY};
-    drawWindow(&titleBar);
-    Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "File Manager", BLACK};
-    drawLabel(&title);
-}
-
-static void printCharGUI(char c, unsigned int x, unsigned int y, Color color)
-{
-
-    //is it duplicate code? yes, i dont give a shit
-    unsigned char* glyph = font[(unsigned char)c];
-    for (unsigned int row = 0; row < 8; row++)
+    if (isPointInWindow(&exitButton.window, mouseX, mouseY))
     {
-        for (unsigned int col = 0; col < 8; col++)
-        {
-            if (glyph[row] & (0x80 >> col))
-            {
-                for (unsigned int sy = 0; sy < GUI_FONT_SCALE; sy++)
-                {
-                    for (unsigned int sx = 0; sx < GUI_FONT_SCALE; sx++)
-                    {
-                        Pixel p = {x + col * GUI_FONT_SCALE + sx, y + row * GUI_FONT_SCALE + sy, color};
-                        printPixel(p);
-                    }
-                }
-            }
-        }
+        if (exitButton.onClick) exitButton.onClick();
     }
+
 }
 
-static void printStringGUI(const char* str, unsigned int x, unsigned int y, Color color)
-{
-    unsigned int origX = x;
-    while (*str)
-    {
-        if (*str == '\n')
-        {
-            y += 8 * GUI_FONT_SCALE;
-            x = origX;
-        }
-        else
-        {
-            printCharGUI(*str, x, y, color);
-            x += 8 * GUI_FONT_SCALE + 1;
-        }
-        str++;
-    }
-}
 
-void initalizeWindowGUI()
-{
-    isGUIInitialized = 1;
-    sleep(400);
-    Window myWindow = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHT_BLUE, VISIBLE};
-    drawWindow(&myWindow);
-    Window toolbar = {0, SCREEN_HEIGHT - 80, SCREEN_WIDTH, 80, LIGHT_GREY, VISIBLE};
-    drawWindow(&toolbar);
-    Window toolbarDown = {0, SCREEN_HEIGHT - 10, SCREEN_WIDTH, 10, DARK_GREY, VISIBLE};
-    drawWindow(&toolbarDown);
-    Window toolbarUp = {0, SCREEN_HEIGHT - 80, SCREEN_WIDTH, 10, DARK_GREY, VISIBLE};
-    drawWindow(&toolbarUp);
 
-    //filesystem icon
-    fileIcon.window = (Window){SCREEN_WIDTH - 160, SCREEN_HEIGHT - 80, 40, 40, {69, 174, 255}, VISIBLE};
-    fileIcon.iconData = folder16;
-    fileIcon.onClick = openFileManager;
-    drawIcon(&fileIcon);
-
-    // //console
-    consoleIcon.window = (Window){SCREEN_WIDTH - 80, SCREEN_HEIGHT - 80, 40, 40, {69, 174, 255}, VISIBLE};
-    consoleIcon.iconData = console16;
-    consoleIcon.onClick = openTerminal;
-    drawIcon(&consoleIcon);
-    
-    while (1); 
-}
-
+//draw functions
 void drawButton(Button* button)
 {
     if (!button->window.isVisible) return;
@@ -148,8 +108,9 @@ void drawButton(Button* button)
     unsigned int textHeight = CHAR_H;
     unsigned int textX = button->window.x + (button->window.width  - textWidth)  / 2;
     unsigned int textY = button->window.y + (button->window.height - textHeight) / 2;
-    printStringGUI(button->text, textX, textY, button->textColor);
+    printStringGUI(button->text, textX, textY, button->textColor, FONT_SCALE);
 }
+
 void drawIcon(Icon* icon)
 {
     int scale = 5;
@@ -173,7 +134,7 @@ void drawLabel(Label* label)
 {
     if (!label->window.isVisible) return;
     drawWindow(&label->window);
-    printStringGUI(label->text, label->window.x + 8, label->window.y - 2 + (label->window.height - CHAR_H) / 2, label->textColor);
+    printStringGUI(label->text, label->window.x + 8, label->window.y - 2 + (label->window.height - CHAR_H) / 2, label->textColor, label->size);
 }
 
 void drawTimeLabel(Time time)
@@ -185,7 +146,7 @@ void drawTimeLabel(Time time)
     timeStr[3] = (time.minutes / 10) + '0';
     timeStr[4] = (time.minutes % 10) + '0';
     timeStr[5] = '\0';
-    drawLabel(&(Label){ {0, SCREEN_HEIGHT - 70, 100, 60, {222, 222, 222}, VISIBLE}, timeStr, {102, 102, 102} });
+    drawLabel(&(Label){ {0, SCREEN_HEIGHT - 70, 100, 60, {222, 222, 222}, VISIBLE}, timeStr, 2,  {102, 102, 102} });
 }
 
 
@@ -200,4 +161,29 @@ void drawWindow(Window* win)
             printPixel(p);
         }
     }
+}
+
+
+//main graphics function
+void initalizeWindowGUI()
+{
+    isGUIInitialized = 1;
+    sleep(100);
+    Window myWindow = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHT_BLUE, VISIBLE};
+    drawWindow(&myWindow);
+    Window toolbar = {0, SCREEN_HEIGHT - 80, SCREEN_WIDTH, 80, LIGHT_GREY, VISIBLE};
+    drawWindow(&toolbar);
+    Window toolbarDown = {0, SCREEN_HEIGHT - 10, SCREEN_WIDTH, 10, DARK_GREY, VISIBLE};
+    drawWindow(&toolbarDown);
+    Window toolbarUp = {0, SCREEN_HEIGHT - 80, SCREEN_WIDTH, 10, DARK_GREY, VISIBLE};
+    drawWindow(&toolbarUp);
+
+    initializeApps(&fileIcon, &consoleIcon);
+
+    while (1); 
+}
+
+void eraseWindow()
+{
+    initalizeWindowGUI();
 }

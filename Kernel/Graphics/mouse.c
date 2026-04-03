@@ -79,7 +79,6 @@ static void processMousePacket()
     }
     if (rightClick)
     {
-        printLineW("Right CLICK");
     }
     mouseX += xMove;
     mouseY -= yMove;

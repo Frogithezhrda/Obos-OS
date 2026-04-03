@@ -40,6 +40,7 @@ typedef struct Label
 {
     Window window;
     char* text;
+    unsigned int size;
     Color textColor;
 } Label;
 
@@ -50,6 +51,8 @@ void drawWindow(Window* win);
 void initalizeWindowGUI();
 void handleClick(unsigned int mouseX, unsigned int mouseY);
 
-extern unsigned int isGUIInitialized;
+void eraseWindow();
 
+extern unsigned int isGUIInitialized;
+extern Button exitButton;
 #endif
