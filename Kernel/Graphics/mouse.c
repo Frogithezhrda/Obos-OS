@@ -70,7 +70,17 @@ static void processMousePacket()
     eraseMouse();
     int xMove = mousePacket[1];
     int yMove = mousePacket[2];
+    int leftClick  = mousePacket[0] & 0x01;
+    int rightClick = mousePacket[0] & 0x02;
 
+    if (leftClick)
+    {
+        handleClick(mouseX, mouseY);
+    }
+    if (rightClick)
+    {
+        printLineW("Right CLICK");
+    }
     mouseX += xMove;
     mouseY -= yMove;
 

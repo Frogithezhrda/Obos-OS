@@ -3,7 +3,7 @@
 
 #include "../Tables/PIC.h"
 #include "../Drivers/consoleDriver.h"
-
+#include "gui.h"
 void mouseIRQHandler();
 void mouseInit();
 

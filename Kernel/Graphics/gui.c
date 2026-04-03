@@ -2,6 +2,14 @@
 
 unsigned int isGUIInitialized = 0;
 
+static Icon fileIcon;
+static Icon consoleIcon;
+
+static int isPointInWindow(Window* win, unsigned int x, unsigned int y)
+{
+    return x >= win->x && x <= win->x + win->width * 2 && y >= win->y && y <= win->y + win->height * 2;
+}
+
 static void drawPixel(Pixel p)
 {
     int baseX = p.x;
@@ -15,6 +23,47 @@ static void drawPixel(Pixel p)
             printPixel(newP);
         }
     }
+}
+
+void handleClick(unsigned int mouseX, unsigned int mouseY)
+{
+    if (isPointInWindow(&consoleIcon.window, mouseX, mouseY))
+    {
+        if (consoleIcon.onClick) consoleIcon.onClick();
+    }
+
+    if (isPointInWindow(&fileIcon.window, mouseX, mouseY))
+    {
+        if (fileIcon.onClick) fileIcon.onClick();
+    }
+}
+
+void openTerminal()
+{
+    Window termWin = {100, 100, 600, 400, BLACK};
+    drawWindow(&termWin);
+    //draw a border
+    Window border = {98, 98, 604, 404, DARK_GREY};
+    drawWindow(&border);
+    drawWindow(&termWin);
+    //title bar
+    Window titleBar = {98, 98, 604, 24, LIGHT_GREY};
+    drawWindow(&titleBar);
+    Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "Terminal", BLACK};
+    drawLabel(&title);
+}
+
+void openFileManager()
+{
+    Window fmWin = {100, 100, 600, 400, WHITE};
+    drawWindow(&fmWin);
+    Window border = {98, 98, 604, 404, DARK_GREY};
+    drawWindow(&border);
+    drawWindow(&fmWin);
+    Window titleBar = {98, 98, 604, 24, LIGHT_GREY};
+    drawWindow(&titleBar);
+    Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "File Manager", BLACK};
+    drawLabel(&title);
 }
 
 static void printCharGUI(char c, unsigned int x, unsigned int y, Color color)
@@ -74,13 +123,15 @@ void initalizeWindowGUI()
     drawWindow(&toolbarUp);
 
     //filesystem icon
-    Icon fileIcon = {SCREEN_WIDTH - 160, SCREEN_HEIGHT - 80, 40, 40, {69, 174, 255}, VISIBLE};
+    fileIcon.window = (Window){SCREEN_WIDTH - 160, SCREEN_HEIGHT - 80, 40, 40, {69, 174, 255}, VISIBLE};
     fileIcon.iconData = folder16;
+    fileIcon.onClick = openFileManager;
     drawIcon(&fileIcon);
 
     // //console
-    Icon consoleIcon = {SCREEN_WIDTH - 80, SCREEN_HEIGHT - 80, 40, 40, {69, 174, 255}, VISIBLE};
+    consoleIcon.window = (Window){SCREEN_WIDTH - 80, SCREEN_HEIGHT - 80, 40, 40, {69, 174, 255}, VISIBLE};
     consoleIcon.iconData = console16;
+    consoleIcon.onClick = openTerminal;
     drawIcon(&consoleIcon);
     
     while (1); 

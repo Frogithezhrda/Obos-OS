@@ -32,6 +32,8 @@ typedef struct Icon
 {
     Window window;
     unsigned char (*iconData)[16]; //2D array to store the icon's pixel data (1 byte per pixel, 0 for transparent, 1 for foreground color)
+    void (*onClick)();
+
 } Icon;
 
 typedef struct Label
@@ -46,6 +48,7 @@ void drawIcon(Icon* icon);
 void drawLabel(Label* label);
 void drawWindow(Window* win);
 void initalizeWindowGUI();
+void handleClick(unsigned int mouseX, unsigned int mouseY);
 
 extern unsigned int isGUIInitialized;
 

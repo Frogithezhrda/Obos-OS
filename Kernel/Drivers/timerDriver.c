@@ -14,7 +14,7 @@ void timerISR(void)
     {
         updateCursor();
     }
-    else
+    else if (tickCounter % 100 == 0) //update time every second
     {
         drawTimeLabel(getRTCTime());
     }
