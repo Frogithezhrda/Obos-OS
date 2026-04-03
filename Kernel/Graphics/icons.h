@@ -3,7 +3,8 @@
 
 #include "screen.h"
 
-extern int folder16[16][16];
-extern Color palette[12];
+extern unsigned char folder16[16][16];
+extern unsigned char console16[16][16];
+extern Color palette[14];
 
 #endif

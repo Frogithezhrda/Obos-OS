@@ -1,5 +1,7 @@
 #include "timerDriver.h"
 #include "consoleDriver.h"
+#include "../Graphics/gui.h"
+
 static unsigned int tickCounter = 0;
 static unsigned int rseed = 2463534242;
 
@@ -7,7 +9,15 @@ void timerISR(void)
 {
     tickCounter++;
     tick();
-    if(!isGUIInitialized) updateCursor();
+
+    if(!isGUIInitialized)
+    {
+        updateCursor();
+    }
+    else
+    {
+        drawTimeLabel(getRTCTime());
+    }
     endOfInterrupt(0); //IRQ0 is timer
 }
 
@@ -66,7 +76,7 @@ void rtcISR(void)
 Time getRTCTime(void)
 {
     Time t;
-    t.hours   = bcdToDec(readRTC(HOUR_REG)); 
+    t.hours = bcdToDec(readRTC(HOUR_REG)); 
     t.minutes = bcdToDec(readRTC(MINUTE_REG)); 
     t.seconds = bcdToDec(readRTC(SECOND_REG));
 
