@@ -4,6 +4,7 @@
 static void exitApp()
 {
     eraseWindow();
+    redrawMouse();
 }
 
 static void appBar(unsigned int x, unsigned int y, unsigned int width, char* title)
@@ -41,17 +42,18 @@ static void openTerminal()
     // Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "Terminal", BLACK};
     // drawLabel(&title);
     appBar(100, 100, 600, "Terminal");
+
 }
 
 static void openFileManager()
 {
-    Window fmWin = {100, 100, 600, 400, WHITE};
-    drawWindow(&fmWin);
-    Window border = {98, 98, 604, 404, DARK_GREY};
+    Window termWin = {100, 120, 600, 400, {239, 255, 172}, VISIBLE};
+    drawWindow(&termWin);
+    //draw a border
+    Window border = {98, 98, 604, 404, DARK_GREY, VISIBLE};
     drawWindow(&border);
-    drawWindow(&fmWin);
-    Window titleBar = {98, 98, 604, 24, LIGHT_GREY};
-    drawWindow(&titleBar);
+    drawWindow(&termWin);
+    appBar(100, 100, 600, "File System");
     // Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "File Manager", BLACK};
     // drawLabel(&title);
 }

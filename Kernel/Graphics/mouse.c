@@ -6,6 +6,7 @@ int mouseX = SCREEN_WIDTH / 2;
 int mouseY = SCREEN_HEIGHT / 2;
 int prevMouseX = SCREEN_WIDTH / 2;
 int prevMouseY = SCREEN_HEIGHT / 2;
+volatile int mouseErased = 0;
 
 Color mouseBuffer[8][8];
 
@@ -35,7 +36,9 @@ static void saveMouseBackground()
     }
 }
 
-static void eraseMouse()
+
+
+void eraseMouse()
 {
     for(int y = 0; y < 8; y++)
     {
@@ -65,35 +68,37 @@ static void drawMouse()
     }
 }
 
+void redrawMouse()
+{
+    if (mouseErased) return;
+    saveMouseBackground();
+    drawMouse();
+}
+
 static void processMousePacket()
 {
-    eraseMouse();
-    int xMove = mousePacket[1];
-    int yMove = mousePacket[2];
-    int leftClick  = mousePacket[0] & 0x01;
+    int xMove = (signed char)mousePacket[1];
+    int yMove = (signed char)mousePacket[2];
+    int leftClick = mousePacket[0] & 0x01;
     int rightClick = mousePacket[0] & 0x02;
 
-    if (leftClick)
-    {
-        handleClick(mouseX, mouseY);
-    }
-    if (rightClick)
-    {
-    }
+    prevMouseX = mouseX;
+    prevMouseY = mouseY;
+    eraseMouse();
+    mouseErased = 1;
+
     mouseX += xMove;
     mouseY -= yMove;
 
-    //clamp to screen
     if (mouseX < 0) mouseX = 0;
     if (mouseY < 0) mouseY = 0;
     if (mouseX >= SCREEN_WIDTH) mouseX = SCREEN_WIDTH - 1;
     if (mouseY >= SCREEN_HEIGHT) mouseY = SCREEN_HEIGHT - 1;
 
+    if (leftClick) handleClick(mouseX, mouseY);
+    mouseErased = 0;
     saveMouseBackground();
-
     drawMouse();
-    prevMouseX = mouseX;
-    prevMouseY = mouseY;
 }
 
 static void mouseWaitRead()

@@ -146,7 +146,7 @@ void drawTimeLabel(Time time)
     timeStr[3] = (time.minutes / 10) + '0';
     timeStr[4] = (time.minutes % 10) + '0';
     timeStr[5] = '\0';
-    drawLabel(&(Label){ {0, SCREEN_HEIGHT - 70, 100, 60, {222, 222, 222}, VISIBLE}, timeStr, 2,  {102, 102, 102} });
+    drawLabel(&(Label){ {4, SCREEN_HEIGHT - 60, 100, 40, LIGHT_GREY, VISIBLE}, timeStr, 2,  {82, 204, 255} });
 }
 
 
@@ -173,17 +173,37 @@ void initalizeWindowGUI()
     drawWindow(&myWindow);
     Window toolbar = {0, SCREEN_HEIGHT - 80, SCREEN_WIDTH, 80, LIGHT_GREY, VISIBLE};
     drawWindow(&toolbar);
-    Window toolbarDown = {0, SCREEN_HEIGHT - 10, SCREEN_WIDTH, 10, DARK_GREY, VISIBLE};
+    Window toolbarDown = {0, SCREEN_HEIGHT - 3, SCREEN_WIDTH, 3, DARK_GREY, VISIBLE};
+    Window toolbarUp = {0, SCREEN_HEIGHT - 80, SCREEN_WIDTH, 3, DARK_GREY, VISIBLE};  // thin top border
+    Window toolbarLeft = {0, SCREEN_HEIGHT - 80, 3, 80,  DARK_GREY, VISIBLE};  // left border
+    Window toolbarRight = {SCREEN_WIDTH - 3, SCREEN_HEIGHT - 80, 3, 80, DARK_GREY, VISIBLE}; // right border
+    
     drawWindow(&toolbarDown);
-    Window toolbarUp = {0, SCREEN_HEIGHT - 80, SCREEN_WIDTH, 10, DARK_GREY, VISIBLE};
     drawWindow(&toolbarUp);
+    drawWindow(&toolbarLeft);
+    drawWindow(&toolbarRight);
 
     initializeApps(&fileIcon, &consoleIcon);
 
+    redrawMouse();
     while (1); 
 }
 
 void eraseWindow()
 {
-    initalizeWindowGUI();
+    Window myWindow = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, LIGHT_BLUE, VISIBLE};
+    drawWindow(&myWindow);
+    Window toolbar = {0, SCREEN_HEIGHT - 80, SCREEN_WIDTH, 80, LIGHT_GREY, VISIBLE};
+    drawWindow(&toolbar);
+    Window toolbarDown = {0, SCREEN_HEIGHT - 3, SCREEN_WIDTH, 3, DARK_GREY, VISIBLE};
+    Window toolbarUp = {0, SCREEN_HEIGHT - 80, SCREEN_WIDTH, 3, DARK_GREY, VISIBLE};  // thin top border
+    Window toolbarLeft = {0, SCREEN_HEIGHT - 80, 3, 80,  DARK_GREY, VISIBLE};  // left border
+    Window toolbarRight = {SCREEN_WIDTH - 3, SCREEN_HEIGHT - 80, 3, 80, DARK_GREY, VISIBLE}; // right border
+    
+    drawWindow(&toolbarDown);
+    drawWindow(&toolbarUp);
+    drawWindow(&toolbarLeft);
+    drawWindow(&toolbarRight);
+    initializeApps(&fileIcon, &consoleIcon);
+    redrawMouse();
 }

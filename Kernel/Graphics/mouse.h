@@ -6,5 +6,9 @@
 #include "gui.h"
 void mouseIRQHandler();
 void mouseInit();
+void redrawMouse();
+void eraseMouse();
+
+extern volatile int mouseErased;
 
 #endif
