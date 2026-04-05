@@ -5,7 +5,7 @@
 // #define VGA_DATA_PORT 0x3D5
 // #define VIDEO_LOCATION 0xB8000
 // #define VIDEO_LOCATION 0xC00B8000
-#include "../Graphics/screen.h"
+#include "../Graphics/gui.h"
 // #define VGA_VIRTUAL_ADDRESS 0xC00B8000
 
 //can print now using White without writing the color each time

@@ -1,5 +1,5 @@
 #include "apps.h"
-
+#include "../Apps/terminal.h"
 
 static void exitApp()
 {
@@ -7,53 +7,63 @@ static void exitApp()
     redrawMouse();
 }
 
-static void appBar(unsigned int x, unsigned int y, unsigned int width, char* title)
+static InfoBar appBar(unsigned int x, unsigned int y, unsigned int width, char* title)
 {
+    InfoBar bar;
     //current bar implementaion later with a struct
-    Window bar = {x, y - 5, width, 20, LIGHT_GREY, VISIBLE};
-    Label titleLabel = {{x + 2, y - 5, 20, 20, LIGHT_GREY, VISIBLE}, title, 1, BLACK};
-    //{{x + width - 20, y - 5, 20, 20, LIGHT_GREY, VISIBLE}, "X", RED, exitApp};
-    exitButton.window.x = x + width - 20;
-    exitButton.window.y = y - 5;
-    exitButton.window.width = 20;
-    exitButton.window.height = 20;
-    exitButton.window.bgColor = LIGHT_GREY;
-    exitButton.window.isVisible = VISIBLE;
-    exitButton.text = "X";
-    exitButton.textColor = RED;
-    exitButton.onClick = exitApp;
-    drawWindow(&bar);
-    drawLabel(&titleLabel);
-    drawButton(&exitButton);
+    Window barWin = createWindow(x, y - 5, width, 20, LIGHT_GREY, VISIBLE);
+    Window titleWin = createWindow(x + 2, y - 5, 20, 20, LIGHT_GREY, VISIBLE);
+    Label titleLabel = createLabel(&titleWin, title, 1, BLACK);
+    Window buttonWin = createWindow(x + width - 20, y - 5, 20, 20, LIGHT_GREY, VISIBLE);
+    Label buttonLabel = createLabel(&buttonWin, "X", 1, RED);
+    exitButton = createButton(&buttonLabel, exitApp);
+    bar.bar = barWin;
+    bar.title = titleLabel;
+    bar.exit = &exitButton;
+    // drawWindow(&bar);
+    // drawLabel(&titleLabel);
+    // drawButton(&exitButton);
+    return bar;
+}
+
+static void drawApp(App* app)
+{
+    drawWindow(&app->border);
+    drawWindow(&app->mainWin);
+
+    drawWindow(&app->bar.bar);
+    drawLabel(&app->bar.title);
+    drawButton(app->bar.exit);
 }
 
 
 static void openTerminal()
 {
+    App termApp;
     Window termWin = {100, 100, 600, 400, BLACK, VISIBLE};
-    drawWindow(&termWin);
+    termApp.mainWin = termWin;
+    // drawWindow(&termWin);
     //draw a border
     Window border = {98, 98, 604, 404, DARK_GREY, VISIBLE};
-    drawWindow(&border);
-    drawWindow(&termWin);
-    //title bar
-    // Window titleBar = {98, 98, 604, 24, LIGHT_GREY};
-    // drawWindow(&titleBar);
-    // Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "Terminal", BLACK};
-    // drawLabel(&title);
-    appBar(100, 100, 600, "Terminal");
+    // drawWindow(&border);
+    termApp.border = border;
+    termApp.bar = appBar(100, 100, 600, "Terminal");
 
+    drawApp(&termApp);
+    terminalOpen(&termApp);
 }
 
 static void openFileManager()
 {
-    Window termWin = {100, 120, 600, 400, {239, 255, 172}, VISIBLE};
-    drawWindow(&termWin);
+    App fileApp;
+    Window termWin = {100, 100, 600, 400, {239, 255, 172}, VISIBLE};
+    fileApp.mainWin = termWin;
     //draw a border
     Window border = {98, 98, 604, 404, DARK_GREY, VISIBLE};
-    drawWindow(&border);
-    drawWindow(&termWin);
-    appBar(100, 100, 600, "File System");
+    fileApp.border = border;
+    fileApp.bar = appBar(100, 100, 600, "File System");
+
+    drawApp(&fileApp);
     // Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "File Manager", BLACK};
     // drawLabel(&title);
 }

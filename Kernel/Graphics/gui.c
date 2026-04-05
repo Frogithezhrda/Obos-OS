@@ -87,7 +87,7 @@ void handleClick(unsigned int mouseX, unsigned int mouseY)
         if (fileIcon.onClick) fileIcon.onClick();
     }
 
-    if (isPointInWindow(&exitButton.window, mouseX, mouseY))
+    if (isPointInWindow(&exitButton.label.window, mouseX, mouseY))
     {
         if (exitButton.onClick) exitButton.onClick();
     }
@@ -99,16 +99,15 @@ void handleClick(unsigned int mouseX, unsigned int mouseY)
 //draw functions
 void drawButton(Button* button)
 {
-    if (!button->window.isVisible) return;
-    drawWindow(&button->window);
-
+    if (!button->label.window.isVisible) return;
+    drawWindow(&button->label.window);
     unsigned int textLen = 0;
-    while (button->text[textLen]) textLen++;
+    while (button->label.text[textLen]) textLen++;
     unsigned int textWidth  = textLen * CHAR_W;
     unsigned int textHeight = CHAR_H;
-    unsigned int textX = button->window.x + (button->window.width  - textWidth)  / 2;
-    unsigned int textY = button->window.y + (button->window.height - textHeight) / 2;
-    printStringGUI(button->text, textX, textY, button->textColor, FONT_SCALE);
+    unsigned int textX = button->label.window.x + (button->label.window.width  - textWidth)  / 2;
+    unsigned int textY = button->label.window.y + (button->label.window.height - textHeight) / 2;
+    printStringGUI(button->label.text, textX, textY, button->label.textColor, FONT_SCALE);
 }
 
 void drawIcon(Icon* icon)
@@ -163,6 +162,47 @@ void drawWindow(Window* win)
     }
 }
 
+
+//create
+
+Window createWindow(unsigned int x, unsigned int y, unsigned int width, unsigned int height, Color color, char isVisible)
+{
+    Window win;
+    win.bgColor = color;
+    win.x = x;
+    win.y = y;
+    win.width = width;
+    win.height = height;
+    win.isVisible = isVisible;
+    return win;
+}
+
+Icon createIcon(Window* window, unsigned char (*iconData)[16], void (*onClick)())
+{
+    Icon icon;
+    icon.window = *window;
+    icon.iconData = iconData;
+    icon.onClick = onClick;
+    return icon;
+}
+
+Label createLabel(Window* window, char* text, unsigned int size, Color color)
+{
+    Label label;
+    label.size = size;
+    label.window = *window;
+    label.textColor = color;
+    label.text = text;
+    return label;
+}
+
+Button createButton(Label* label, void (*onClick)())
+{
+    Button but;
+    but.label = *label;
+    but.onClick = onClick;
+    return but;
+}
 
 //main graphics function
 void initalizeWindowGUI()

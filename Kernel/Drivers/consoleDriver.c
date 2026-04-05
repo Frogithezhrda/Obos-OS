@@ -98,6 +98,7 @@ void clearScreen()
 
 void printChar(const char character, const Color color)
 {
+    if(isGUIInitialized) return;
     eraseCursor();
     if(character == '\n')
     {
@@ -143,12 +144,14 @@ void printChar(const char character, const Color color)
 
 void printLine(const char* string, const Color color)
 {
+    if(isGUIInitialized) return;
     print(string, color);
     printChar('\n', color);
 }
 
 void printNumber(int number, const Color color)
 {
+    if(isGUIInitialized) return;
     int isNegative = 0;
     char buffer[12]; //enough for int
     int i = 0;
@@ -186,6 +189,7 @@ void printNumber(int number, const Color color)
 
 void print(const char* string, const Color color)
 {
+    if(isGUIInitialized) return;
     for(unsigned int i = 0; string[i] != '\0'; i++)
     {
         printChar(string[i], color);
@@ -194,6 +198,7 @@ void print(const char* string, const Color color)
 
 void printHexNumber(unsigned int number, const Color color)
 {
+    if(isGUIInitialized) return;
     char hexChars[] = "0123456789ABCDEF";
     for (int i = 7; i >= 0; i--)
     {

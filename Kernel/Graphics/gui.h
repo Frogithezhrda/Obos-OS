@@ -1,7 +1,7 @@
 #ifndef GUI_H
 #define GUI_H
 
-#include "../Drivers/consoleDriver.h"
+// #include "../Drivers/consoleDriver.h"
 #include "icons.h"
 #include "../Drivers/timerDriver.h"
 
@@ -17,24 +17,8 @@ typedef struct Window
     unsigned int width;
     unsigned int height;
     Color bgColor;
-    int isVisible;
+    char isVisible;
 } Window;
-
-typedef struct Button
-{
-    Window window;
-    char* text;
-    Color textColor;
-    void (*onClick)();
-} Button;
-
-typedef struct Icon
-{
-    Window window;
-    unsigned char (*iconData)[16]; //2D array to store the icon's pixel data (1 byte per pixel, 0 for transparent, 1 for foreground color)
-    void (*onClick)();
-
-} Icon;
 
 typedef struct Label
 {
@@ -44,10 +28,38 @@ typedef struct Label
     Color textColor;
 } Label;
 
+typedef struct Button
+{
+    Label label;
+    void (*onClick)();
+} Button;
+
+typedef struct TextBox
+{
+    Label label;
+    unsigned int maxSize;
+};
+
+typedef struct Icon
+{
+    Window window;
+    unsigned char (*iconData)[16]; //2D array to store the icon's pixel data (1 byte per pixel, 0 for transparent, 1 for foreground color)
+    void (*onClick)();
+} Icon;
+
+
+
+
 void drawButton(Button* button);
 void drawIcon(Icon* icon);
 void drawLabel(Label* label);
 void drawWindow(Window* win);
+
+Window createWindow(unsigned int x, unsigned int y, unsigned int width, unsigned int height, Color color, char isVisible);
+Icon createIcon(Window* window, unsigned char (*iconData)[16], void (*onClick)());
+Label createLabel(Window* window, char* text, unsigned int size, Color color);
+Button createButton(Label* label, void (*onClick)());
+
 void initalizeWindowGUI();
 void handleClick(unsigned int mouseX, unsigned int mouseY);
 
