@@ -15,5 +15,6 @@ extern ProcessQueue terminatedQueue;
 void initQueues();
 PCB* createProcess(uint32_t entryPoint);
 void exitProcess(const int exitCode);
+void wakeupProcess(PCB* process);
 
 #endif

@@ -73,3 +73,14 @@ void exitProcess(const int exitCode) {
     // Halt if the scheduler fails to find a new process
     for(;;); 
 }
+
+void wakeupProcess(PCB* process) {
+    if (!process) return;
+
+    // Move the process from waiting to ready state
+    process->state = Ready;
+
+    // Push it back to the ready queue
+    push(&readyQueue, process);
+    remove(&waitingQueue, process);
+}
