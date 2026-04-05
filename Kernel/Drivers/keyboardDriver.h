@@ -4,6 +4,7 @@
 #include "consoleDriver.h"
 #include "../Tables/PIC.h"
 #include "../SystemLib/obosMemory.h"
+#include "../Graphics/gui.h"
 
 #define KEYBOARD_BUFFER_SIZE 256
 #define KEYBOARD_SCAN_CODE_PORT 0x60
@@ -20,4 +21,6 @@ void keybos(char* string, const int maxLength);
 void keybosIndex(char* string, const int maxLength, int index);
 char keybosChar();
 void handleKeyRelease(void);
+void keybosGUI(TextBox* tb);
+
 #endif

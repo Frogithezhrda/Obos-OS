@@ -23,6 +23,5 @@ typedef struct Terminal
 
 
 void terminalOpen(App* app);
-void terminalHandleKey(char c);
 
 #endif

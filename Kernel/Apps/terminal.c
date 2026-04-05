@@ -1,7 +1,7 @@
 #include "terminal.h"
 
 static Terminal term;
-
+static Label labelStart;
 unsigned int x;
 unsigned int y;
 unsigned int width;
@@ -9,7 +9,11 @@ unsigned int height;
 
 #define PADDING      8
 #define LINE_HEIGHT  20
-#define MAX_LINES    20
+#define MAX_LINES    18
+
+//terminal works now we just need to build on it
+
+static TextBox inputTextBox;
 
 static void terminalRedrawOutput()
 {
@@ -21,38 +25,21 @@ static void terminalRedrawOutput()
     for (unsigned int i = 0; i < term.lineCount; i++)
     {
         term.outputLines[i].window.x = x + PADDING;
-        term.outputLines[i].window.y       = y + 25 + i * LINE_HEIGHT;
-        term.outputLines[i].window.width   = width - PADDING * 2;
-        term.outputLines[i].window.height  = LINE_HEIGHT;
+        term.outputLines[i].window.y = y + 25 + i * LINE_HEIGHT;
+        term.outputLines[i].window.width = width - PADDING * 2;
+        term.outputLines[i].window.height = LINE_HEIGHT;
         term.outputLines[i].window.bgColor = BLACK;
         term.outputLines[i].window.isVisible = VISIBLE;
-        term.outputLines[i].text           = term.lineBuffers[i];
-        term.outputLines[i].textColor      = WHITE;
-        term.outputLines[i].size           = 1;
+        term.outputLines[i].text = term.lineBuffers[i];
+        // term.outputLines[i].textColor = WHITE;
+        term.outputLines[i].size = 1;
         drawLabel(&term.outputLines[i]);
     }
-}
 
-static void terminalRedrawInput()
-{
-    // clear input bar
-    Window inputArea = {x, y + 24, width, 24, (Color){30, 30, 30}, VISIBLE};
-    drawWindow(&inputArea);
-
-    char display[258];
-    display[0] = '>';
-    display[1] = ' ';
-    unsigned int i;
-    for (i = 0; i < term.inputLen; i++)
-        display[i + 2] = term.inputBuffer[i];
-    display[i + 2] = '_';
-    display[i + 3] = '\0';
-
-    Label inputLabel = {
-        {x + PADDING, y + 22, width - PADDING * 2, 20, (Color){30, 30, 30}, VISIBLE},
-        display, 1, GREEN
-    };
-    drawLabel(&inputLabel);
+    Window inputBar = createWindow(x, y + 24, width, 24, BLACK, VISIBLE);
+    drawWindow(&inputBar);
+    drawLabel(&labelStart);
+    drawTextBox(&inputTextBox);
 }
 
 static void terminalPushLine(const char* text, Color color)
@@ -85,6 +72,30 @@ static void terminalPushLine(const char* text, Color color)
     terminalRedrawOutput();
 }
 
+static void terminalShell(char* str)
+{
+    if(!strcmp("help", str))
+    {
+        terminalPushLine("help - help command", LIGHT_CYAN);
+    }
+    else
+    {
+        terminalPushLine("Unknown Command!", RED);
+    }
+}
+
+static void terminalOnEnter(TextBox* tb)
+{
+    // terminalPushLine(tb->label.text, WHITE);
+    terminalShell(tb->label.text);
+
+    tb->cursorPos = 0;
+    tb->label.text[0] = '\0';
+    drawTextBox(tb);
+}
+
+
+
 
 void terminalOpen(App* app)
 {
@@ -98,13 +109,18 @@ void terminalOpen(App* app)
     Window inputBar = createWindow(x, y + 24, width, 24, BLACK, VISIBLE);
     
     drawWindow(&inputBar);
+    terminalPushLine("", CYAN);
     terminalPushLine("OBOS Terminal v1.0", CYAN);
     terminalPushLine("Type 'help' for commands.", LIGHT_GREY);
-
-    terminalRedrawInput();
-}
-
-void terminalHandleKey(char c)
-{
-
+    term.inputBuffer[0] = '\0';
+    Window textWin = createWindow(x + 24, y + 24, width - 24, 24, BLACK, VISIBLE);
+    Label labelTxt = createLabel(&textWin, term.inputBuffer, 1, WHITE);
+    Window startWin = createWindow(x, y + 24, width, 24, BLACK, VISIBLE);
+    labelStart = createLabel(&startWin, ">>", 1, LIGHT_GREEN);
+    inputTextBox = createTextBox(&labelTxt, 40);
+    inputTextBox.onEnter = terminalOnEnter;
+    drawTextBox(&inputTextBox);
+    drawLabel(&labelStart);
+    setFocusedTextBox(&inputTextBox);
+    // terminalRedrawInput();
 }

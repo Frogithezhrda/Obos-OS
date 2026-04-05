@@ -3,6 +3,7 @@
 
 static void exitApp()
 {
+    focusedTextBox = NULL;
     eraseWindow();
     redrawMouse();
 }

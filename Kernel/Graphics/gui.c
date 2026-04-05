@@ -1,12 +1,13 @@
 #include "gui.h"
 #include "apps.h"
-
+#include "../Drivers/keyboardDriver.h"
 
 unsigned int isGUIInitialized = 0;
 
 static Icon fileIcon;
 static Icon consoleIcon;
 Button exitButton;
+TextBox* focusedTextBox;
 
 static int isPointInWindow(Window* win, unsigned int x, unsigned int y)
 {
@@ -162,8 +163,34 @@ void drawWindow(Window* win)
     }
 }
 
+void drawTextBox(TextBox* textBox)
+{
+    drawLabel(&textBox->label);
+}
+
+
+void textBoxHandleKey()
+{
+    // if (focusedTextBox == 0) return;
+    // if(strlen(focusedTextBox->label.text) >= focusedTextBox->maxSize) return;
+    keybosGUI(focusedTextBox);
+}
+
+void setFocusedTextBox(TextBox* txtBox)
+{
+    focusedTextBox = txtBox;
+}
 
 //create
+
+TextBox createTextBox(Label* label, unsigned int size)
+{
+    TextBox textBox;
+    textBox.label = *label;
+    textBox.maxSize = size;
+    textBox.cursorPos = 0;
+    return textBox;
+}
 
 Window createWindow(unsigned int x, unsigned int y, unsigned int width, unsigned int height, Color color, char isVisible)
 {
@@ -226,7 +253,10 @@ void initalizeWindowGUI()
     initializeApps(&fileIcon, &consoleIcon);
 
     redrawMouse();
-    while (1); 
+    while (1)
+    {
+        if (focusedTextBox) textBoxHandleKey();
+    }
 }
 
 void eraseWindow()

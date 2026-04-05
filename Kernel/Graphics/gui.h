@@ -38,7 +38,9 @@ typedef struct TextBox
 {
     Label label;
     unsigned int maxSize;
-};
+    unsigned int cursorPos;
+    void (*onEnter)(struct TextBox* tb);
+} TextBox;
 
 typedef struct Icon
 {
@@ -48,23 +50,26 @@ typedef struct Icon
 } Icon;
 
 
-
-
 void drawButton(Button* button);
 void drawIcon(Icon* icon);
 void drawLabel(Label* label);
 void drawWindow(Window* win);
+void drawTextBox(TextBox* textBox);
 
 Window createWindow(unsigned int x, unsigned int y, unsigned int width, unsigned int height, Color color, char isVisible);
 Icon createIcon(Window* window, unsigned char (*iconData)[16], void (*onClick)());
 Label createLabel(Window* window, char* text, unsigned int size, Color color);
 Button createButton(Label* label, void (*onClick)());
+TextBox createTextBox(Label* label, unsigned int size);
 
 void initalizeWindowGUI();
 void handleClick(unsigned int mouseX, unsigned int mouseY);
-
+void textBoxHandleKey();
+void setFocusedTextBox(TextBox* txtBox);
 void eraseWindow();
 
+
+extern TextBox* focusedTextBox;
 extern unsigned int isGUIInitialized;
 extern Button exitButton;
 #endif
