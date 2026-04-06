@@ -101,6 +101,10 @@ void handleClick(unsigned int mouseX, unsigned int mouseY)
     {
         if (folderIconFM.onClick) folderIconFM.onClick();
     }
+    if (isPointInWindow(&deleteIconFM.label.window, mouseX, mouseY))
+    {
+        if (deleteIconFM.onClick) deleteIconFM.onClick();
+    }
     for (int i = 0; i < fileCount; i++)
     {
         if (isPointInWindow(&fileIcons[i].window, mouseX, mouseY))
@@ -125,7 +129,7 @@ void drawButton(Button* button)
     unsigned int textHeight = CHAR_H;
     unsigned int textX = button->label.window.x + (button->label.window.width  - textWidth)  / 2;
     unsigned int textY = button->label.window.y + (button->label.window.height - textHeight) / 2;
-    printStringGUI(button->label.text, textX, textY, button->label.textColor, FONT_SCALE);
+    printStringGUI(button->label.text, textX, textY, button->label.textColor, button->label.size);
 }
 
 void drawIcon(Icon* icon, unsigned int iconscale)
@@ -150,9 +154,8 @@ void drawIcon(Icon* icon, unsigned int iconscale)
 void drawLabel(Label* label)
 {
     if (!label->window.isVisible) return;
-    drawWindow(&label->window);
-    printStringGUI(label->text, label->window.x + 8, label->window.y - 2 + (label->window.height - CHAR_H) / 2, label->textColor, label->size);
-}
+    unsigned int charH = 8 * label->size;
+    printStringGUI(label->text, label->window.x + 4, label->window.y + (label->window.height - charH) / 2, label->textColor, label->size);}
 
 void drawTimeLabel(Time time)
 {
@@ -180,9 +183,12 @@ void drawWindow(Window* win)
     }
 }
 
-void drawTextBox(TextBox* textBox)
+void drawTextBox(TextBox* tb)
 {
-    drawLabel(&textBox->label);
+    drawWindow(&tb->label.window);
+
+    unsigned int charH = 8 * tb->label.size;
+    printStringGUI(tb->label.text, tb->label.window.x + 4, tb->label.window.y + (tb->label.window.height - charH) / 2, tb->label.textColor, tb->label.size);
 }
 
 

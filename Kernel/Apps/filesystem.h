@@ -13,5 +13,6 @@ extern Icon folderIconFM;
 extern Icon fileIcons[];
 extern int fileCount;
 extern int clickedFileIndex;
+extern Button deleteIconFM;
 
 #endif
