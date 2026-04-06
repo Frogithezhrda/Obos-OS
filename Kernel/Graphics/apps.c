@@ -9,6 +9,11 @@ static void exitApp()
     redrawMouse();
 }
 
+static void powerOff()
+{
+    outw(0x604, 0x2000);
+}
+
 InfoBar appBar(unsigned int x, unsigned int y, unsigned int width, char* title)
 {
     InfoBar bar;
@@ -72,16 +77,21 @@ void openFileManager()
     // drawLabel(&title);
 }
 
-void initializeApps(Icon* fileIcon, Icon* consoleIcon)
+void initializeApps(Icon* fileIcon, Icon* consoleIcon, Icon* powerIcon)
 {
     //filesystem icon
-    fileIcon->window = (Window){SCREEN_WIDTH - 160, SCREEN_HEIGHT - 80, 80, 80, {69, 174, 255}, VISIBLE};
+    fileIcon->window = (Window){SCREEN_WIDTH - 240, SCREEN_HEIGHT - 80, 80, 80, {69, 174, 255}, VISIBLE};
     fileIcon->iconData = folder16;
     fileIcon->onClick = openFileManager;
     drawIcon(fileIcon, 5);
     // //console
-    consoleIcon->window = (Window){SCREEN_WIDTH - 80, SCREEN_HEIGHT - 80, 80, 80, {69, 174, 255}, VISIBLE};
+    consoleIcon->window = (Window){SCREEN_WIDTH - 160, SCREEN_HEIGHT - 80, 80, 80, {69, 174, 255}, VISIBLE};
     consoleIcon->iconData = console16;
     consoleIcon->onClick = openTerminal;
     drawIcon(consoleIcon, 5);
+
+    powerIcon->window = (Window){SCREEN_WIDTH - 80, SCREEN_HEIGHT - 80, 80, 80, {69, 174, 255}, VISIBLE};
+    powerIcon->iconData = power16;
+    powerIcon->onClick = powerOff;
+    drawIcon(powerIcon, 5);
 }

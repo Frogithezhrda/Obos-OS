@@ -6,6 +6,7 @@ unsigned int isGUIInitialized = 0;
 
 static Icon fileIcon;
 static Icon consoleIcon;
+static Icon powerIcon;
 Button exitButton;
 TextBox* focusedTextBox;
 
@@ -104,6 +105,10 @@ void handleClick(unsigned int mouseX, unsigned int mouseY)
     if (isPointInWindow(&deleteIconFM.label.window, mouseX, mouseY))
     {
         if (deleteIconFM.onClick) deleteIconFM.onClick();
+    }
+    if (isPointInWindow(&powerIcon.window, mouseX, mouseY))
+    {
+        if (powerIcon.onClick) powerIcon.onClick();
     }
     for (int i = 0; i < fileCount; i++)
     {
@@ -274,7 +279,7 @@ void initalizeWindowGUI()
     drawWindow(&toolbarLeft);
     drawWindow(&toolbarRight);
     drawTimeLabel(getRTCTime());
-    initializeApps(&fileIcon, &consoleIcon);
+    initializeApps(&fileIcon, &consoleIcon, &powerIcon);
 
     redrawMouse();
     while (1)
@@ -300,6 +305,6 @@ void eraseWindow()
     drawWindow(&toolbarLeft);
     drawWindow(&toolbarRight);
     drawTimeLabel(getRTCTime());
-    initializeApps(&fileIcon, &consoleIcon);
+    initializeApps(&fileIcon, &consoleIcon, &powerIcon);
     redrawMouse();
 }
