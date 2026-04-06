@@ -742,3 +742,50 @@ int deleteFile(const char* name)
     flushInodeTable();
     return SUCCESS;
 }
+
+
+//graphics
+
+
+int getDirectoryEntries(FileEntry* outEntries, int maxEntries)
+{
+    INode* dir = &inodeTable->inodes[currentDirINode];
+
+    if (!dir->isUsed || dir->type != Directory)
+        return 0;
+
+    unsigned int totalEntries = dir->fileSize / DIR_ENTRY_SIZE;
+    unsigned int entriesRead = 0;
+
+    Block* block = (Block*)kmalloc(sizeof(Block));
+    if (!block) return 0;
+
+    int outCount = 0;
+
+    for (unsigned int b = 0; b < MAX_BLOCKS_PER_FILE && entriesRead < totalEntries; b++)
+    {
+        if (dir->blocks[b] == 0) break;
+
+        readBlock(dir->blocks[b], block);
+
+        unsigned int entriesPerBlock = BLOCK_SIZE / DIR_ENTRY_SIZE;
+
+        for (unsigned int e = 0; e < entriesPerBlock && entriesRead < totalEntries; e++, entriesRead++)
+        {
+            if (outCount >= maxEntries) break;
+
+            unsigned char* ptr = block->block + (e * DIR_ENTRY_SIZE);
+            unsigned int inodeIdx = *((unsigned int*)ptr);
+            char* name = (char*)(ptr + 4);
+
+            // fill struct instead of printing
+            FileEntry* entry = &outEntries[outCount++];
+            strcpy(entry->name, name);
+            entry->inodeIdx = inodeIdx;
+            entry->type = inodeTable->inodes[inodeIdx].type;
+        }
+    }
+
+    kfree(block);
+    return outCount;
+}

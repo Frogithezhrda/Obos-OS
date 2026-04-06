@@ -1,5 +1,6 @@
 #include "apps.h"
 #include "../Apps/terminal.h"
+#include "../Apps/filesystem.h"
 
 static void exitApp()
 {
@@ -65,6 +66,7 @@ static void openFileManager()
     fileApp.bar = appBar(100, 100, 600, "File System");
 
     drawApp(&fileApp);
+    drawFsFiles();
     // Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "File Manager", BLACK};
     // drawLabel(&title);
 }
@@ -76,11 +78,11 @@ void initializeApps(Icon* fileIcon, Icon* consoleIcon)
     fileIcon->window = (Window){SCREEN_WIDTH - 160, SCREEN_HEIGHT - 80, 40, 40, {69, 174, 255}, VISIBLE};
     fileIcon->iconData = folder16;
     fileIcon->onClick = openFileManager;
-    drawIcon(fileIcon);
+    drawIcon(fileIcon, 5);
 
     // //console
     consoleIcon->window = (Window){SCREEN_WIDTH - 80, SCREEN_HEIGHT - 80, 40, 40, {69, 174, 255}, VISIBLE};
     consoleIcon->iconData = console16;
     consoleIcon->onClick = openTerminal;
-    drawIcon(consoleIcon);
+    drawIcon(consoleIcon, 5);
 }

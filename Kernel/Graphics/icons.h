@@ -5,6 +5,7 @@
 
 extern unsigned char folder16[16][16];
 extern unsigned char console16[16][16];
-extern Color palette[14];
+extern unsigned char file16[16][16];
+extern Color palette[22];
 
 #endif

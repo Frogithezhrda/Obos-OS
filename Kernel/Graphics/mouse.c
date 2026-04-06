@@ -61,7 +61,7 @@ static void drawMouse()
         {
             if(shape[y][x])
             {
-                Pixel p = {mouseX + x, mouseY + y, WHITE};
+                Pixel p = {mouseX + x, mouseY + y, {154, 154, 154}};
                 printPixel(p);
             }
         }

@@ -36,6 +36,13 @@ typedef struct DirectoryEntry
     char name[FILE_NAME_LENGTH];
 } DirectoryEntry;
 
+typedef struct FileEntry
+{
+    char name[64];
+    unsigned int inodeIdx;
+    Type type;
+} FileEntry;
+
 typedef struct SuperBlock
 {
     unsigned int magicNumber;
@@ -205,4 +212,6 @@ unsigned int getFreeBlocksCount();
 
 #define createFileF(name) createFile(name, File)
 
+
+int getDirectoryEntries(FileEntry* outEntries, int maxEntries);
 #endif

@@ -111,9 +111,9 @@ void drawButton(Button* button)
     printStringGUI(button->label.text, textX, textY, button->label.textColor, FONT_SCALE);
 }
 
-void drawIcon(Icon* icon)
+void drawIcon(Icon* icon, unsigned int iconscale)
 {
-    int scale = 5;
+    int scale = iconscale;
     if (!icon->window.isVisible) return;
     for (int i = 0; i < 16; i++)
     {
@@ -256,6 +256,7 @@ void initalizeWindowGUI()
     while (1)
     {
         if (focusedTextBox) textBoxHandleKey();
+        if(getTicks() % 100 == 0) drawTimeLabel(getRTCTime());
     }
 }
 

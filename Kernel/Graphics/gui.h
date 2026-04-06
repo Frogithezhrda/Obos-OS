@@ -51,7 +51,7 @@ typedef struct Icon
 
 
 void drawButton(Button* button);
-void drawIcon(Icon* icon);
+void drawIcon(Icon* icon, unsigned int scale);
 void drawLabel(Label* label);
 void drawWindow(Window* win);
 void drawTextBox(TextBox* textBox);
