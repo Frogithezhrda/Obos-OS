@@ -1,4 +1,5 @@
 #include "mouse.h"
+#include "../Apps/paint.h"
 
 int mouseCycle = 0;
 char mousePacket[3];
@@ -95,7 +96,11 @@ static void processMousePacket()
     if (mouseX >= SCREEN_WIDTH) mouseX = SCREEN_WIDTH - 1;
     if (mouseY >= SCREEN_HEIGHT) mouseY = SCREEN_HEIGHT - 1;
 
-    if (leftClick) handleClick(mouseX, mouseY);
+    if (leftClick)
+    {
+        handleClick(mouseX, mouseY);
+        handlePaint(mouseX, mouseY);
+    } 
     mouseErased = 0;
     saveMouseBackground();
     drawMouse();

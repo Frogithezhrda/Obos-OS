@@ -7,6 +7,7 @@ unsigned int isGUIInitialized = 0;
 static Icon fileIcon;
 static Icon consoleIcon;
 static Icon powerIcon;
+static Icon paintIcon;
 Button exitButton;
 TextBox* focusedTextBox;
 
@@ -15,7 +16,7 @@ static int isPointInWindow(Window* win, unsigned int x, unsigned int y)
     return x >= win->x && x <= win->x + win->width && y >= win->y && y <= win->y + win->height;
 }
 
-static void drawPixel(Pixel p)
+void drawPixel(Pixel p)
 {
     int baseX = p.x;
     int baseY = p.y;
@@ -110,6 +111,10 @@ void handleClick(unsigned int mouseX, unsigned int mouseY)
     {
         if (powerIcon.onClick) powerIcon.onClick();
     }
+    if (isPointInWindow(&paintIcon.window, mouseX, mouseY))
+    {
+        if (paintIcon.onClick) paintIcon.onClick();
+    }
     for (int i = 0; i < fileCount; i++)
     {
         if (isPointInWindow(&fileIcons[i].window, mouseX, mouseY))
@@ -161,7 +166,8 @@ void drawLabel(Label* label)
     if (!label->window.isVisible) return;
     drawWindow(&label->window);
     unsigned int charH = 8 * label->size;
-    printStringGUI(label->text, label->window.x + 4, label->window.y + (label->window.height - charH) / 2, label->textColor, label->size);}
+    printStringGUI(label->text, label->window.x + 4, label->window.y + (label->window.height - charH) / 2, label->textColor, label->size);
+}
 
 void drawTimeLabel(Time time)
 {
@@ -279,7 +285,7 @@ void initalizeWindowGUI()
     drawWindow(&toolbarLeft);
     drawWindow(&toolbarRight);
     drawTimeLabel(getRTCTime());
-    initializeApps(&fileIcon, &consoleIcon, &powerIcon);
+    initializeApps(&fileIcon, &consoleIcon, &powerIcon, &paintIcon);
 
     redrawMouse();
     while (1)
@@ -305,6 +311,6 @@ void eraseWindow()
     drawWindow(&toolbarLeft);
     drawWindow(&toolbarRight);
     drawTimeLabel(getRTCTime());
-    initializeApps(&fileIcon, &consoleIcon, &powerIcon);
+    initializeApps(&fileIcon, &consoleIcon, &powerIcon, &paintIcon);
     redrawMouse();
 }

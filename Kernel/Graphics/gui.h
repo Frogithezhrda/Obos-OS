@@ -55,6 +55,7 @@ void drawIcon(Icon* icon, unsigned int scale);
 void drawLabel(Label* label);
 void drawWindow(Window* win);
 void drawTextBox(TextBox* textBox);
+void drawPixel(Pixel p);
 
 Window createWindow(unsigned int x, unsigned int y, unsigned int width, unsigned int height, Color color, char isVisible);
 Icon createIcon(Window* window, unsigned char (*iconData)[16], void (*onClick)());
