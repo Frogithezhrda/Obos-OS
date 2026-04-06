@@ -81,9 +81,10 @@ void openFileManager()
 void initializeApps(Icon* fileIcon, Icon* consoleIcon, Icon* powerIcon, Icon* paintIcon)
 {
     paintIcon->window = (Window){SCREEN_WIDTH - 320, SCREEN_HEIGHT - 80, 80, 80, {69, 174, 255}, VISIBLE};
-    paintIcon->iconData = folder16;
+    paintIcon->iconData = paint16;
     paintIcon->onClick = openPaint;
     drawIcon(paintIcon, 5);
+    
     //filesystem icon
     fileIcon->window = (Window){SCREEN_WIDTH - 240, SCREEN_HEIGHT - 80, 80, 80, {69, 174, 255}, VISIBLE};
     fileIcon->iconData = folder16;
