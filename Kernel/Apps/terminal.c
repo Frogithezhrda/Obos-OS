@@ -77,6 +77,12 @@ static void terminalShell(char* str)
     if(!strcmp("help", str))
     {
         terminalPushLine("help - help command", LIGHT_CYAN);
+        terminalPushLine("clear - clears the screen", LIGHT_CYAN);
+    }     
+    else if (!strcmp("clear", str))
+    {
+        term.lineCount = 1;
+        terminalRedrawOutput();
     }
     else
     {
@@ -109,6 +115,8 @@ void terminalOpen(App* app)
     Window inputBar = createWindow(x, y + 24, width, 24, BLACK, VISIBLE);
     
     drawWindow(&inputBar);
+    term.lineCount = 1;
+    terminalRedrawOutput();
     terminalPushLine("", CYAN);
     terminalPushLine("OBOS Terminal v1.0", CYAN);
     terminalPushLine("Type 'help' for commands.", LIGHT_GREY);

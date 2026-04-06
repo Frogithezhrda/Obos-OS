@@ -55,7 +55,7 @@ static void openTerminal()
     terminalOpen(&termApp);
 }
 
-static void openFileManager()
+void openFileManager()
 {
     App fileApp;
     Window termWin = {100, 100, 600, 400, {239, 255, 172}, VISIBLE};
@@ -64,8 +64,9 @@ static void openFileManager()
     Window border = {98, 98, 604, 404, DARK_GREY, VISIBLE};
     fileApp.border = border;
     fileApp.bar = appBar(100, 100, 600, "File System");
-
+    
     drawApp(&fileApp);
+    drawCreationIcon();
     drawFsFiles();
     // Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "File Manager", BLACK};
     // drawLabel(&title);
@@ -75,13 +76,12 @@ static void openFileManager()
 void initializeApps(Icon* fileIcon, Icon* consoleIcon)
 {
     //filesystem icon
-    fileIcon->window = (Window){SCREEN_WIDTH - 160, SCREEN_HEIGHT - 80, 40, 40, {69, 174, 255}, VISIBLE};
+    fileIcon->window = (Window){SCREEN_WIDTH - 160, SCREEN_HEIGHT - 80, 80, 80, {69, 174, 255}, VISIBLE};
     fileIcon->iconData = folder16;
     fileIcon->onClick = openFileManager;
     drawIcon(fileIcon, 5);
-
     // //console
-    consoleIcon->window = (Window){SCREEN_WIDTH - 80, SCREEN_HEIGHT - 80, 40, 40, {69, 174, 255}, VISIBLE};
+    consoleIcon->window = (Window){SCREEN_WIDTH - 80, SCREEN_HEIGHT - 80, 80, 80, {69, 174, 255}, VISIBLE};
     consoleIcon->iconData = console16;
     consoleIcon->onClick = openTerminal;
     drawIcon(consoleIcon, 5);

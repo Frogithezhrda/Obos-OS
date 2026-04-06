@@ -22,5 +22,6 @@ typedef struct App
 
 
 void initializeApps(Icon* fileIcon, Icon* consoleIcon);
+void openFileManager();
 
 #endif

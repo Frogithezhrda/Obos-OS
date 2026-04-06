@@ -1,7 +1,7 @@
 #include "gui.h"
 #include "apps.h"
 #include "../Drivers/keyboardDriver.h"
-
+#include "../Apps/filesystem.h"
 unsigned int isGUIInitialized = 0;
 
 static Icon fileIcon;
@@ -11,7 +11,7 @@ TextBox* focusedTextBox;
 
 static int isPointInWindow(Window* win, unsigned int x, unsigned int y)
 {
-    return x >= win->x && x <= win->x + win->width * 2 && y >= win->y && y <= win->y + win->height * 2;
+    return x >= win->x && x <= win->x + win->width && y >= win->y && y <= win->y + win->height;
 }
 
 static void drawPixel(Pixel p)
@@ -93,6 +93,23 @@ void handleClick(unsigned int mouseX, unsigned int mouseY)
         if (exitButton.onClick) exitButton.onClick();
     }
 
+    if (isPointInWindow(&fileIconFM.window, mouseX, mouseY))
+    {
+        if (fileIconFM.onClick) fileIconFM.onClick();
+    }
+    if (isPointInWindow(&folderIconFM.window, mouseX, mouseY))
+    {
+        if (folderIconFM.onClick) folderIconFM.onClick();
+    }
+    for (int i = 0; i < fileCount; i++)
+    {
+        if (isPointInWindow(&fileIcons[i].window, mouseX, mouseY))
+        {
+            clickedFileIndex = i;
+            if (fileIcons[i].onClick) fileIcons[i].onClick();
+            break;
+        }
+    }
 }
 
 
@@ -146,7 +163,7 @@ void drawTimeLabel(Time time)
     timeStr[3] = (time.minutes / 10) + '0';
     timeStr[4] = (time.minutes % 10) + '0';
     timeStr[5] = '\0';
-    drawLabel(&(Label){ {4, SCREEN_HEIGHT - 60, 100, 40, LIGHT_GREY, VISIBLE}, timeStr, 2,  {82, 204, 255} });
+    drawLabel(&(Label){ {4, SCREEN_HEIGHT - 60, 100, 40, LIGHT_GREY, VISIBLE}, timeStr, 2,  {71, 71, 71} });
 }
 
 
@@ -249,14 +266,14 @@ void initalizeWindowGUI()
     drawWindow(&toolbarUp);
     drawWindow(&toolbarLeft);
     drawWindow(&toolbarRight);
-
+    drawTimeLabel(getRTCTime());
     initializeApps(&fileIcon, &consoleIcon);
 
     redrawMouse();
     while (1)
     {
         if (focusedTextBox) textBoxHandleKey();
-        if(getTicks() % 100 == 0) drawTimeLabel(getRTCTime());
+        if(getTicks() % 200 == 0) drawTimeLabel(getRTCTime());
     }
 }
 
@@ -275,6 +292,7 @@ void eraseWindow()
     drawWindow(&toolbarUp);
     drawWindow(&toolbarLeft);
     drawWindow(&toolbarRight);
+    drawTimeLabel(getRTCTime());
     initializeApps(&fileIcon, &consoleIcon);
     redrawMouse();
 }
