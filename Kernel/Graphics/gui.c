@@ -154,6 +154,7 @@ void drawIcon(Icon* icon, unsigned int iconscale)
 void drawLabel(Label* label)
 {
     if (!label->window.isVisible) return;
+    drawWindow(&label->window);
     unsigned int charH = 8 * label->size;
     printStringGUI(label->text, label->window.x + 4, label->window.y + (label->window.height - charH) / 2, label->textColor, label->size);}
 
@@ -185,10 +186,10 @@ void drawWindow(Window* win)
 
 void drawTextBox(TextBox* tb)
 {
-    drawWindow(&tb->label.window);
+    drawLabel(&tb->label);
 
-    unsigned int charH = 8 * tb->label.size;
-    printStringGUI(tb->label.text, tb->label.window.x + 4, tb->label.window.y + (tb->label.window.height - charH) / 2, tb->label.textColor, tb->label.size);
+    // unsigned int charH = 8 * tb->label.size;
+    // printStringGUI(tb->label.text, tb->label.window.x + 4, tb->label.window.y + (tb->label.window.height - charH) / 2, tb->label.textColor, tb->label.size);
 }
 
 
@@ -278,8 +279,8 @@ void initalizeWindowGUI()
     redrawMouse();
     while (1)
     {
-        if (focusedTextBox) textBoxHandleKey();
         if(getTicks() % 200 == 0) drawTimeLabel(getRTCTime());
+        if (focusedTextBox) textBoxHandleKey();
     }
 }
 

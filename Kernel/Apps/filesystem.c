@@ -72,7 +72,7 @@ void showDeletePopup()
     drawTextBox(&popupTextBox);
     setFocusedTextBox(&popupTextBox);
 
-    Window hintWin = createWindow(258, 258, 280, 16, (Color){255, 210, 210}, VISIBLE);
+    Window hintWin = createWindow(258, 258, 280, 16, (Color){210, 230, 150}, VISIBLE);
     Label hintLabel = createLabel(&hintWin, "Press Enter to confirm", 1, BLACK);
     drawLabel(&hintLabel);
 
