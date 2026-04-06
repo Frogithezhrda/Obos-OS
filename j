@@ -1,4 +1,3 @@
-make clean && make
 qemu-system-i386 \
     -machine pc,accel=tcg,kernel_irqchip=on \
     -drive file=Disk/obos.img,format=raw \

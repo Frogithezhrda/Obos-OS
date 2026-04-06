@@ -23,5 +23,7 @@ typedef struct App
 
 void initializeApps(Icon* fileIcon, Icon* consoleIcon);
 void openFileManager();
+InfoBar appBar(unsigned int x, unsigned int y, unsigned int width, char* title);
+void drawApp(App* app);
 
 #endif

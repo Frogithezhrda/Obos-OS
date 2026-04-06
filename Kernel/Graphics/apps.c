@@ -9,7 +9,7 @@ static void exitApp()
     redrawMouse();
 }
 
-static InfoBar appBar(unsigned int x, unsigned int y, unsigned int width, char* title)
+InfoBar appBar(unsigned int x, unsigned int y, unsigned int width, char* title)
 {
     InfoBar bar;
     //current bar implementaion later with a struct
@@ -28,7 +28,7 @@ static InfoBar appBar(unsigned int x, unsigned int y, unsigned int width, char* 
     return bar;
 }
 
-static void drawApp(App* app)
+void drawApp(App* app)
 {
     drawWindow(&app->border);
     drawWindow(&app->mainWin);
@@ -71,7 +71,6 @@ void openFileManager()
     // Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "File Manager", BLACK};
     // drawLabel(&title);
 }
-
 
 void initializeApps(Icon* fileIcon, Icon* consoleIcon)
 {

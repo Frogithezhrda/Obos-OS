@@ -1,4 +1,5 @@
 #include "filesystem.h"
+#include "../Apps/textEditor.h"
 
 static Label fileLabels[MAX_FILES];
 Icon fileIcons[MAX_FILES];
@@ -128,6 +129,23 @@ static void createFileGUI()
     showCreatePopup(0);
 }
 
+void openFileEditor()
+{
+    if(clickedFileIndex == -1) return;
+    eraseMouse();
+    App editorApp;
+    editorApp.mainWin = createWindow(400, 150, 600, 400, (Color){255, 255, 240}, VISIBLE);
+    editorApp.border = (Window){398, 148, 604, 404, DARK_GREY, VISIBLE};
+    char buffer[128] = "Editor - ";
+
+    strcat(buffer, fileLabels[clickedFileIndex].text);
+    editorApp.bar = appBar(400, 150, 600, buffer);
+    drawApp(&editorApp);
+    editorOpen(&editorApp, fileLabels[clickedFileIndex].text);
+    redrawMouse();
+
+}
+
 static void changeDir()
 {
     if(clickedFileIndex == -1) return;
@@ -167,7 +185,7 @@ void drawFsFiles()
 
         Window iconWin = createWindow(baseX, baseY, 24, 24, (Color){239, 255, 188}, VISIBLE);
 
-        fileIcons[i] = createIcon(&iconWin, iconData, (fileEntries[i].type == Directory) ? changeDir : NULL);
+        fileIcons[i] = createIcon(&iconWin, iconData, (fileEntries[i].type == Directory) ? changeDir : openFileEditor);
         drawIcon(&fileIcons[i], 2);
 
         Window textWin = createWindow(baseX + 40, baseY + 12, 120, 16, (Color){239, 255, 188}, VISIBLE);
