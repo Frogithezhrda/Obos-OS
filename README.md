@@ -42,15 +42,17 @@ To deploy this project run
 * System stats tool
 * DNS & DHCP
 * UDP
+* Graphic Interface
 
 ## Roadmap
 
 * Improve sound driver
-* Add graphical user interface (GUI)
+* Imporve graphical user interface (GUI)
 * Enhance memory management
 * Upgrade file system
 * Fix and expand system stats
-* Add VBE mode
+* Better User Space
+* Better User Programs
 ## Demo
 
 ![Demo](Screencast_from_03-29-2026_01_28_03_PM.webm)
