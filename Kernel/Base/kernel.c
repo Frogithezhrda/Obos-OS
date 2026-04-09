@@ -495,11 +495,11 @@ void obos_main()
     // // }
     // //username: omer, password: saban1254, salt: 2882598092, hash: 526223844
     // //username: barak, password: baraksh123, salt: 3721853714, hash: 1533733554
-    shell();
-
+    // shell();
+// 
     //minimal shutdown
-    // enterUserMode((void*)USER_SPACE_START);
-    // // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
+    enterUserMode((void*)USER_SPACE_START);
+    // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
     // unsigned int value = *ptr; //this will cause a page fault
     while (1);
 }

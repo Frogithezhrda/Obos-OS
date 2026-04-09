@@ -53,16 +53,22 @@
 #define USER_MAPPING_PAGES ((USER_MAPPING_MB * MB) / PAGE_SIZE)
 
 #define VBE_FRAMEBUFFER_START 0xFD000000
-#define VBE_FRAMEBUFFER_END   0xE1000000
+#define VBE_FRAMEBUFFER_END   0xFDFFFFFF
 
 #define TSS_SELECTOR 0x28
 
-enum PermissionBits
+
+//user is 0 kernel is 1
+enum PageRW
 {
-    READ_WRITE = 1, // currently changed it did a bug
     READ_ONLY = 0,
-    USER_SUPERVISOR = 1,
-    SUPERVISOR_ONLY = 0
+    READ_WRITE = 1
+};
+
+enum PageUS
+{
+    SUPERVISOR_ONLY = 0,
+    USER_SUPERVISOR = 1
 };
 
 typedef struct TSS

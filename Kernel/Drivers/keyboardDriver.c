@@ -118,7 +118,10 @@ char keybosChar()
 
         scanCode = lastScanCode;
         lastScanCode = 0;
-
+        if (scanCode & 0x80)
+        {
+            return 0;
+        }
         if (scanCode >= LAST_SCAN_CODE)
         {
             return 0;
@@ -129,6 +132,7 @@ char keybosChar()
         {
             return 0;
         }
+        printChar(asciiChar, WHITE);
         return asciiChar;
     }
     return 0;

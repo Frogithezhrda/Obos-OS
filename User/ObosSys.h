@@ -25,6 +25,7 @@ unsigned int createDiro(const char* dirname);
 unsigned int readFileo(const char* filename, char* buffer, unsigned int size);
 unsigned int writeFileo(const char* filename, const char* data, unsigned int size);
 unsigned int rando();
+unsigned int inputo(char* buffer, unsigned int size);
 
 #define printoW(string) printo(string, 0)
 

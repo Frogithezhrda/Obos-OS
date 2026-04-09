@@ -243,22 +243,30 @@ void mapUserPages()
         addr += PAGE_DIRECTORY_SIZE;
     }
     
-    unsigned long long codePhys = allocateFreeFrame();
-    if (codePhys == ERROR) kernelPanic("No code frame!");
-    memset((void*)(unsigned int)codePhys, 0, PAGE_SIZE);
-    mapPage(USER_SPACE_START, (unsigned int)codePhys, 0);
-    
+    unsigned int pages = ((PAGE_SIZE * 12) / PAGE_SIZE) + 1;
+
+    for (unsigned int i = 0; i < pages; i++)
+    {
+        unsigned int phys = allocateFreeFrame();
+        if (phys == ERROR) kernelPanic("No frame for user code!");
+
+        memset((void*)phys, 0, PAGE_SIZE);
+
+        mapPage(USER_SPACE_START + i * PAGE_SIZE, phys, 0);
+    }
+
     unsigned long long stackPhys = allocateFreeFrame(); 
     if (stackPhys == ERROR) kernelPanic("No stack frame!");
     memset((void*)(unsigned int)stackPhys, 0, PAGE_SIZE);
     mapPage(USER_STACK_TOP - PAGE_SIZE, (unsigned int)stackPhys, 0);
-
+    unsigned int d = 0;
     //a small user program in order to check for demand paging
-    unsigned char* code = (unsigned char*)codePhys;
+    unsigned char* code = (unsigned char*)USER_SPACE_START;
     int i = 0;
     //this is a small program that keeps everything alive
     code[i++] = 0xEB;
     code[i++] = 0xFE;
+
     // a small program that prints Hello from user mode!
 //         // mov eax, 0
     // code[i++] = 0xB8;
@@ -315,7 +323,7 @@ void initTSS()
     memset(&kernelTSS, 0, sizeof(TSS));
     
     kernelTSS.ss0 = 0x10;
-    kernelTSS.esp0 = VIRTUAL_KERNEL_STACK_TOP;
+    kernelTSS.esp0 = STACK_PHYSICAL_END;
     kernelTSS.cs = 0x08;
     kernelTSS.ss = 0x10;
     kernelTSS.ds = 0x10;
@@ -344,6 +352,16 @@ void initTSS()
 
 }
 
+static void loadUserProgram()
+{
+    extern unsigned char _binary_user_bin_start[];
+    extern unsigned char _binary_user_bin_end[];
+
+    unsigned int size = _binary_user_bin_end - _binary_user_bin_start;
+    printNumberW(size);
+    memcpy((void*)(unsigned int)USER_SPACE_START, _binary_user_bin_start, size);
+
+}
 
 void enterUserMode(void* userEntryPoint)
 {
@@ -359,23 +377,26 @@ void enterUserMode(void* userEntryPoint)
     printLine("", WHITE);
     printNumber(translateVirtualToPhysical(USER_STACK_TOP - 4), GREEN);
     printLine("", WHITE);
+    loadUserProgram();
     asm volatile(
-        "mov %0, %%ebx\n"        //save entry in ebx
-        "mov %1, %%ecx\n"        //save stack in ecx
-        
+        "mov %0, %%ebx\n"
+        "mov %1, %%ecx\n"
+
         "cli\n"
-        
-        "pushl $0x23\n"          // SS
-        "pushl %%ecx\n"          // ESP
-        
+
+        "pushl $0x23\n"
+        "pushl %%ecx\n"
+
         "pushfl\n"
         "popl %%eax\n"
         "orl  $0x200, %%eax\n"
-        "pushl %%eax\n"          // EFLAGS
-        
-        "pushl $0x1B\n"          // CS
-        "pushl %%ebx\n"          // EIP
-        
+        "pushl %%eax\n"
+
+        "pushl $0x1B\n"
+        "pushl %%ebx\n"
+
+        "sti\n"
+
         "iret\n"
         :
         : "r"(entry), "r"(stack)

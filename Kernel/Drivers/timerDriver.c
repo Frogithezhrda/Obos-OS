@@ -9,7 +9,6 @@ void timerISR(void)
 {
     tickCounter++;
     tick();
-
     if(!isGUIInitialized)
     {
         updateCursor();

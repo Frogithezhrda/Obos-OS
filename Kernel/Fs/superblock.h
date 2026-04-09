@@ -5,7 +5,7 @@
 #include "../SystemLib/obosMemory.h"
 
 #define TOTAL_BLOCKS 1024
-#define SUPERBLOCK_BLOCK 200
+#define SUPERBLOCK_BLOCK 400
 #define MAGIC_NUMBER 0x4F424653
 #define MAX_BLOCKS_PER_FILE 64 //32
 #define MAX_FILES 128
@@ -214,4 +214,5 @@ unsigned int getFreeBlocksCount();
 
 
 int getDirectoryEntries(FileEntry* outEntries, int maxEntries);
+
 #endif

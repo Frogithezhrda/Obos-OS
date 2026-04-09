@@ -7,6 +7,7 @@
 //current syscall numbers more will be added
 #define SYSCALL_PRINT      0
 #define SYSCALL_GET_TICKS  1
+#define SYSCALL_INPUT      2
 #define SYSCALL_MALLOC     5
 #define SYSCALL_FREE       6
 #define SYSCALL_SLEEP      7
