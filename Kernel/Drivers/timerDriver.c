@@ -8,12 +8,12 @@ static unsigned int rseed = 2463534242;
 void timerISR(void)
 {
     tickCounter++;
-    tick();
     if(!isGUIInitialized)
     {
         updateCursor();
     }
     endOfInterrupt(0); //IRQ0 is timer
+    tick();
 }
 
 void initializeTimer(void)

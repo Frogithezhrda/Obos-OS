@@ -12,7 +12,7 @@
 #include "../Drivers/soundDriver.h"
 #include "../Apps/audio.h"
 #include "../Graphics/gui.h"
-
+#include "../Memory/programRegistry.h"
 void obos_main();
 
 #endif  

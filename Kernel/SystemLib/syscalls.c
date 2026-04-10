@@ -35,6 +35,10 @@ unsigned int syscallHandler(const unsigned int syscallNumber, unsigned int arg1,
         case SYSCALL_FREE:
             ufree((void*)arg1);
             break;
+        case SYSCALL_EXIT:
+            // restoreKernelFrame();
+            
+            break;
         case SYSCALL_HOUR:
             if(arg1)
             {

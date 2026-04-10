@@ -459,6 +459,7 @@ void obos_main()
     enablePagingNow();
     initKernelHeap();
     initUserHeap();
+    initQueues();
     sleep(100);
     soundBlasterInit();
     generateFinish();
@@ -485,6 +486,15 @@ void obos_main()
     writeFile("users.dat", "omer&2882598092&526223844\nbarak&3721853714&1533733554", 54);
     clearScreen();
     printTitle();
+
+
+    createProcess(shell);
+    // createProcess(testProcess3);
+    loadFirstProcess();
+
+    // run("hello");
+
+    // printW("Back");
     // //add on presentation
     // // if(loginMenu() == ERROR)
     // // {
@@ -498,7 +508,8 @@ void obos_main()
     // shell();
 // 
     //minimal shutdown
-    enterUserMode((void*)USER_SPACE_START);
+    
+    // enterUserMode((void*)USER_SPACE_START);
     // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
     // unsigned int value = *ptr; //this will cause a page fault
     while (1);

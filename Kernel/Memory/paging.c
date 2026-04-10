@@ -3,6 +3,7 @@
 
 PageDirectory* kernelPageDirectory;
 TSS kernelTSS __attribute__((aligned(4)));
+InterruptFrame kernelFrame;
 
 extern char _kernel_physical_start;
 extern char _kernel_physical_end;
@@ -218,32 +219,32 @@ void mapUserPages()
     
     print("Setting up user space page tables...\n", GREEN);
     
-    int count = 0;
-    while (addr < USER_SPACE_END)
-    {
-        unsigned int pdIndex = addr >> 22;
+    // int count = 0;
+    // while (addr < USER_SPACE_END)
+    // {
+    //     unsigned int pdIndex = addr >> 22;
         
-        if (!kernelPageDirectory->entries[pdIndex].present)
-        {
-            unsigned long long ptPhys = allocateFreeFrame();
-            if (ptPhys == ERROR)
-                kernelPanic("No frame for page table!");
+    //     if (!kernelPageDirectory->entries[pdIndex].present)
+    //     {
+    //         unsigned long long ptPhys = allocateFreeFrame();
+    //         if (ptPhys == ERROR)
+    //             kernelPanic("No frame for page table!");
             
-            PageTable* pt = (PageTable*)(unsigned int)ptPhys;
-            memset(pt, 0, PAGE_SIZE);
+    //         PageTable* pt = (PageTable*)(unsigned int)ptPhys;
+    //         memset(pt, 0, PAGE_SIZE);
             
-            kernelPageDirectory->entries[pdIndex].present = 1;
-            kernelPageDirectory->entries[pdIndex].readWrite = READ_WRITE;
-            kernelPageDirectory->entries[pdIndex].userSupervisor = USER_SUPERVISOR;
-            kernelPageDirectory->entries[pdIndex].pageTableAddress = ptPhys / PAGE_SIZE;
+    //         kernelPageDirectory->entries[pdIndex].present = 1;
+    //         kernelPageDirectory->entries[pdIndex].readWrite = READ_WRITE;
+    //         kernelPageDirectory->entries[pdIndex].userSupervisor = USER_SUPERVISOR;
+    //         kernelPageDirectory->entries[pdIndex].pageTableAddress = ptPhys / PAGE_SIZE;
             
-            count++;
-        }
+    //         count++;
+    //     }
         
-        addr += PAGE_DIRECTORY_SIZE;
-    }
+    //     addr += PAGE_DIRECTORY_SIZE;
+    // }
     
-    unsigned int pages = ((PAGE_SIZE * 12) / PAGE_SIZE) + 1;
+    unsigned int pages = ((PAGE_SIZE * 1) / PAGE_SIZE) + 1;
 
     for (unsigned int i = 0; i < pages; i++)
     {
@@ -259,7 +260,6 @@ void mapUserPages()
     if (stackPhys == ERROR) kernelPanic("No stack frame!");
     memset((void*)(unsigned int)stackPhys, 0, PAGE_SIZE);
     mapPage(USER_STACK_TOP - PAGE_SIZE, (unsigned int)stackPhys, 0);
-    unsigned int d = 0;
     //a small user program in order to check for demand paging
     unsigned char* code = (unsigned char*)USER_SPACE_START;
     int i = 0;
@@ -268,51 +268,6 @@ void mapUserPages()
     code[i++] = 0xFE;
 
     // a small program that prints Hello from user mode!
-//         // mov eax, 0
-    // code[i++] = 0xB8;
-    // code[i++] = 0x00;
-    // code[i++] = 0x00;
-    // code[i++] = 0x00;
-    // code[i++] = 0x00;
-    // // mov ebx, USER_SPACE_START + 0x50
-    // code[i++] = 0xBB;
-    // addr = USER_SPACE_START + 0x50;
-    // code[i++] = (addr >> 0) & 0xFF;
-    // code[i++] = (addr >> 8) & 0xFF;
-    // code[i++] = (addr >> 16) & 0xFF;
-    // code[i++] = (addr >> 24) & 0xFF;
-
-    // // // int 0x80
-    // code[i++] = 0xCD;
-    // code[i++] = 0x80;
-
-    // // jmp $
-    // code[i++] = 0xEB;
-    // code[i++] = 0xFE;
-
-    // code[0x50] = 'H';
-    // code[0x51] = 'e';
-    // code[0x52] = 'l';
-    // code[0x53] = 'l';
-    // code[0x54] = 'o';
-    // code[0x55] = ' ';
-    // code[0x56] = 'f';
-    // code[0x57] = 'r';
-    // code[0x58] = 'o';
-    // code[0x59] = 'm';
-    // code[0x5A] = ' ';
-    // code[0x5B] = 'u';
-    // code[0x5C] = 's';
-    // code[0x5D] = 'e';
-    // code[0x5E] = 'r';
-    // code[0x5F] = ' ';
-    // code[0x60] = 'm';
-    // code[0x61] = 'o';
-    // code[0x62] = 'd';
-    // code[0x63] = 'e';
-    // code[0x64] = '!';
-    // code[0x65] = 0x00;
-    // int i = 0;
     // unsigned int addr;
     // Reserve space at 0x100 for ticks value (will be written by syscall)
     print("User space ready\n", CYAN);
@@ -352,32 +307,11 @@ void initTSS()
 
 }
 
-static void loadUserProgram()
-{
-    extern unsigned char _binary_user_bin_start[];
-    extern unsigned char _binary_user_bin_end[];
-
-    unsigned int size = _binary_user_bin_end - _binary_user_bin_start;
-    printNumberW(size);
-    memcpy((void*)(unsigned int)USER_SPACE_START, _binary_user_bin_start, size);
-
-}
-
-void enterUserMode(void* userEntryPoint)
+void enterUserMode(void* userEntryPoint, void* kernelPoint)
 {
     unsigned int entry = (unsigned int)userEntryPoint;
     unsigned int stack = USER_STACK_TOP;
-
-    print("Jumping to user mode: EIP=0x", GREEN);
-    printNumber(entry, GREEN);
-    print(", ESP=0x", GREEN);
-    printNumber(stack, GREEN);
-    printLine("", GREEN);
-    printNumber(translateVirtualToPhysical(USER_SPACE_START), GREEN);
-    printLine("", WHITE);
-    printNumber(translateVirtualToPhysical(USER_STACK_TOP - 4), GREEN);
-    printLine("", WHITE);
-    loadUserProgram();
+    // loadUserProgram();
     asm volatile(
         "mov %0, %%ebx\n"
         "mov %1, %%ecx\n"

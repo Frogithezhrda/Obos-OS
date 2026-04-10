@@ -101,6 +101,17 @@ void sleepo(unsigned int ms)
     );
 }
 
+void exit()
+{
+    asm volatile(
+        "mov $3, %%eax\n"
+        "int $0x80\n"
+        :
+        :
+        : "eax"
+    );
+}
+
 unsigned int createFileo(const char* filename)
 {
     int result;

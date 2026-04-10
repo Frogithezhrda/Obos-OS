@@ -29,6 +29,10 @@ objcopy -O binary $OUT_NAME.elf $OUT_NAME.bin
 echo "[4] Putting into kernel object..."
 ld -m elf_i386 -r -b binary $OUT_NAME.bin -o ${OUT_NAME}_bin.o
 
+USER_DIR="../Disk/User"
+mkdir -p $USER_DIR
+mv ${OUT_NAME}_bin.o $USER_DIR/
+
 echo "Done!"
 echo "Generated:"
 echo "  ${OUT_NAME}_bin.o(for kernel linking)"

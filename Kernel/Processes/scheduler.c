@@ -1,53 +1,55 @@
 #include "scheduler.h"
 
+void scheduler(){
+    PCB* old = currentProcess;
+    PCB* next = pop(&readyQueue);
 
-void initScheduler()
-{
-    initQueue(&readyQueue);
-    initQueue(&waitingQueue);
-    initQueue(&terminatedQueue);
-    currentProcess = NULL;
-}
-
-void nextProcess()
-{
-    PCB* previousProcess = currentProcess;
-    currentProcess = pop(&readyQueue);
-
-    if(!currentProcess) return;
-
-    currentProcess->state = Running;
-
-    //if the preivous process still alive need to save it in the context switch
-    if(previousProcess)
-    {
-        //TODO Context switc
+    if (next == NULL) return;
+    printLine("Switching!", WHITE);
+    if (old != NULL && old->state == Running){
+        old->state = Ready;
+        push(&readyQueue, old);
     }
-    else //still need to switch probably to a process so
-    {
-        //TODO Context switc
+
+    currentProcess = next;
+    next->state = Running;
+
+    if (old != NULL){
+        switch_to(&(old->esp), next->esp);
+    } else {
+        start_first_process(next->esp);
     }
 }
+void loadFirstProcess(){
+    // Pop the first process from the ready queue
+    PCB* first = pop(&readyQueue);
 
-void tick()
-{
-    if(!currentProcess) return;
+    if (first == NULL) return;
 
-    currentProcess->timeSlice--;
-    if(currentProcess->timeSlice <= 0)
-    {
-        yield(); 
+    currentProcess = first;
+    first->state = Running;
+
+    start_first_process(first->esp);
+}
+
+void tick(void){
+    if (currentProcess == NULL) return;
+
+    // Decrement the time slice of the current process
+    if (currentProcess->timeSlice > 0){
+        currentProcess->timeSlice--;
+    }
+
+    // If time slice is exhausted, schedule the next process
+    if (currentProcess->timeSlice <= 0){
+        currentProcess->timeSlice = TIME_SLICE; // Reset time slice
+        scheduler(); // Switch to the next process
     }
 }
 
-void yield()
-{
-    if(currentProcess)
-    {
-        currentProcess->state = Ready;
-        currentProcess->timeSlice = TIME_SLICE;
-        push(&readyQueue, currentProcess);
-    }
+void yield(void){
+    if (currentProcess == NULL) return;
 
-    nextProcess();
+    currentProcess->timeSlice = TIME_SLICE; // Reset time slice
+    scheduler(); // Switch to the next process
 }

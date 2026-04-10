@@ -4,6 +4,7 @@
 #include "memoryMap.h"
 #include "../SystemLib/obosMemory.h"
 #include "../SystemLib/errors.h"
+#include "programRegistry.h"
 
 #define PAGE_SIZE 4096 //4KB
 #define PAGE_TABLE_COUNT 1024 //each page table has 1024 entries
@@ -40,8 +41,8 @@
 #define STACK_PHYSICAL_END          0x00300000
 
 
-#define USER_HEAP_START             0x00600000
-#define USER_HEAP_END               0x00A00000
+#define USER_HEAP_START             0x40600000
+#define USER_HEAP_END               0x40A00000
 
 #define USER_STACK_TOP              0x41000000
 #define USER_STACK_SIZE             0x00004000
@@ -102,6 +103,14 @@ typedef struct TSS
     unsigned short iomap_base
 } __attribute__((packed)) TSS;
 
+typedef struct InterruptFrame
+{
+    unsigned int gs, fs, es, ds;
+
+    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;
+
+    unsigned int eip, cs, eflags, useresp, ss;
+} InterruptFrame;
 
 extern TSS kernelTSS;
 
@@ -167,6 +176,7 @@ void mapPage(unsigned int virtualAddr, unsigned int physicalAddr, unsigned int i
 PageTable* getOrCreatePageTable(unsigned int virtualAddr, unsigned int isKernel);
 void mapUserPages(void);
 void initTSS(void);
-void enterUserMode(void* userEntryPoint);
+void enterUserMode(void* userEntryPoint, void* kernelPoint);
+void restoreKernelFrame();
 
 #endif  
