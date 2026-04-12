@@ -117,6 +117,11 @@ void shutdown()
     outw(0x604, 0x2000);
 }
 
+// void idleProcess() 
+// {
+//     while(1) asm volatile("sti; hlt");
+// }
+
 void shell()
 {
     char* string = kmalloc(100);
@@ -489,7 +494,7 @@ void obos_main()
 
 
     createProcess(shell);
-    // createProcess(testProcess3);
+    // createProcess(idleProcess);
     loadFirstProcess();
 
     // run("hello");

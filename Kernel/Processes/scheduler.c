@@ -5,7 +5,6 @@ void scheduler(){
     PCB* next = pop(&readyQueue);
 
     if (next == NULL) return;
-    printLine("Switching!", WHITE);
     if (old != NULL && old->state == Running){
         old->state = Ready;
         push(&readyQueue, old);
