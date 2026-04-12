@@ -56,3 +56,27 @@ void yield(void){
     currentProcess->timeSlice = TIME_SLICE; // Reset time slice
     scheduler(); // Switch to the next process
 }
+
+
+void wakeupProcess(PCB* process) {
+    if (!process) return;
+
+    // Move the process from waiting to ready state
+    process->state = Ready;
+
+    // Push it back to the ready queue
+    push(&readyQueue, process);
+
+    remove(&waitingQueue, process);
+}
+
+void toWaiting() {
+    if (!process) return;
+
+    // Move the process from running/ready to waiting state
+    currentProcess->state = Waiting;
+
+    push(&waitingQueue, currentProcess);
+
+    scheduler(); // Switch to the next process
+}

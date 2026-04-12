@@ -13,4 +13,7 @@ void loadFirstProcess();
 void tick(void);
 void yield(void);
 
+void wakeupProcess(PCB* process);
+void toWaiting();
+
 #endif
