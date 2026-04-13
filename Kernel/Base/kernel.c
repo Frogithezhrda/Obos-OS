@@ -117,6 +117,11 @@ void shutdown()
     outw(0x604, 0x2000);
 }
 
+// void idleProcess() 
+// {
+//     while(1) asm volatile("sti; hlt");
+// }
+
 void shell()
 {
     char* string = kmalloc(100);
@@ -129,6 +134,10 @@ void shell()
         if(cmd == NULL)
         {
             continue;
+        }
+        else if(!strcmp(cmd, "gui"))
+        {
+            initalizeWindowGUI();
         }
         else if(!strcmp(cmd, "dns"))
         {
@@ -427,7 +436,7 @@ void printTitle()
     printLine("   \\ \\_______\\ \\_______\\ \\_______\\____\\_\\  \\ ",GREEN);
     printLine("    \\|_______|\\|_______|\\|_______|\\_________\\", GREEN);
     printLine("                                 \\|_________|", GREEN);
-    printLine("Version: 0.7", LIGHT_BLUE);
+    printLine("Version: 0.8", LIGHT_BLUE);
     printLine("Made By: Omer saban and Baraksh", LIGHT_BLUE);
 }
 
@@ -437,7 +446,7 @@ void obos_main()
     clearScreen();
     disableInterrupts();
     setupIDT();
-    printLine("IDT Setup Complete...", LIGHT_BLUE);
+    printLine("\nIDT Setup Complete...", LIGHT_BLUE);
     initalizeException();
     printLine("Exception Handling Initialized...", LIGHT_BLUE);
     initializePIC();
@@ -446,15 +455,16 @@ void obos_main()
     printLine("IDT Loaded...", LIGHT_BLUE);
     initializeTimer();
     printLine("Timer Initialized...", LIGHT_BLUE);
-    // maskAllInterrupts(); //no need to maksk interrupts here
+    // // maskAllInterrupts(); //no need to maksk interrupts here
     enableInterrupts();
-    clearScreen();
+    // clearScreen();
     initializeMemoryManager();
     // printMemoryManagerInfo();
     initializePaging();
     enablePagingNow();
     initKernelHeap();
     initUserHeap();
+    initQueues();
     sleep(100);
     soundBlasterInit();
     generateFinish();
@@ -466,7 +476,7 @@ void obos_main()
     sleep(100);
     arpRequest(gateway);
     loadSuperBlock();
-
+    mouseInit();
     //default arp cache entry for the gateway so we can have some sort of network without waiting for an arp request from the gateway
     // arpRequest(QEMU_GATEWAY);
     // arpCacheInsert(QEMU_GATEWAY, arpLookup(QEMU_GATEWAY));
@@ -481,21 +491,31 @@ void obos_main()
     writeFile("users.dat", "omer&2882598092&526223844\nbarak&3721853714&1533733554", 54);
     clearScreen();
     printTitle();
-    //add on presentation
-    // if(loginMenu() == ERROR)
-    // {
-    //     printLineW("Failed to login after 3 attempts, shutting down...");
-    //     sleep(2000);
-    //     shutdown();
-    //     return;
-    // }
-    //username: omer, password: saban1254, salt: 2882598092, hash: 526223844
-    //username: barak, password: baraksh123, salt: 3721853714, hash: 1533733554
-    shell();
 
+
+    createProcess(shell);
+    // createProcess(idleProcess);
+    loadFirstProcess();
+
+    // run("hello");
+
+    // printW("Back");
+    // //add on presentation
+    // // if(loginMenu() == ERROR)
+    // // {
+    // //     printLineW("Failed to login after 3 attempts, shutting down...");
+    // //     sleep(2000);
+    // //     shutdown();
+    // //     return;
+    // // }
+    // //username: omer, password: saban1254, salt: 2882598092, hash: 526223844
+    // //username: barak, password: baraksh123, salt: 3721853714, hash: 1533733554
+    // shell();
+// 
     //minimal shutdown
+    
     // enterUserMode((void*)USER_SPACE_START);
-    // // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
+    // unsigned int* ptr = (unsigned int*)0xDEADBEEF;
     // unsigned int value = *ptr; //this will cause a page fault
     while (1);
 }

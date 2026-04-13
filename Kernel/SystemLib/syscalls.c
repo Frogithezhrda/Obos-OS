@@ -9,9 +9,23 @@ unsigned int syscallHandler(const unsigned int syscallNumber, unsigned int arg1,
             if(arg2 == 0)
                 printLineW((const char*)arg1);
             else
-                printLine((const char*)arg1, arg2);
+            {
+                Color color = {255, 255, 255};
+                print((const char*)arg1, color);
+            }
             return SUCCESS;
             break;
+        case SYSCALL_INPUT:
+            if (arg1 && arg2)
+            {
+                char c = keybosChar();
+                if (c == 0) return 0; //nothing yet
+
+                ((char*)arg1)[0] = c;
+                // ((char*)arg1)[1] = '\0';
+                return SUCCESS;
+            }
+            return FAILED;
         case SYSCALL_GET_TICKS:
             return getTicks();
             break;
@@ -20,6 +34,10 @@ unsigned int syscallHandler(const unsigned int syscallNumber, unsigned int arg1,
             break;
         case SYSCALL_FREE:
             ufree((void*)arg1);
+            break;
+        case SYSCALL_EXIT:
+            // restoreKernelFrame();
+            
             break;
         case SYSCALL_HOUR:
             if(arg1)

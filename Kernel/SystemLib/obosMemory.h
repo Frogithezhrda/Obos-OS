@@ -11,4 +11,5 @@ char* strchr(const char* str, int c);
 unsigned int strlen(const char *str);
 int atoi(char *p);
 char* strcpy(char* destination, const char* source);
+char* strcat(char *a, char *b);
 #endif

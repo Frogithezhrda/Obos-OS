@@ -4,6 +4,7 @@
 #include "memoryMap.h"
 #include "../SystemLib/obosMemory.h"
 #include "../SystemLib/errors.h"
+#include "programRegistry.h"
 
 #define PAGE_SIZE 4096 //4KB
 #define PAGE_TABLE_COUNT 1024 //each page table has 1024 entries
@@ -40,8 +41,8 @@
 #define STACK_PHYSICAL_END          0x00300000
 
 
-#define USER_HEAP_START             0x00600000
-#define USER_HEAP_END               0x00A00000
+#define USER_HEAP_START             0x40600000
+#define USER_HEAP_END               0x40A00000
 
 #define USER_STACK_TOP              0x41000000
 #define USER_STACK_SIZE             0x00004000
@@ -52,17 +53,23 @@
 #define USER_MAPPING_MB 4  //how much memory we give to user space
 #define USER_MAPPING_PAGES ((USER_MAPPING_MB * MB) / PAGE_SIZE)
 
-#define E1000_MMIO_BASE 0xFEB00000
-#define E1000_MMIO_END  0xFEBFFFFF
+#define VBE_FRAMEBUFFER_START 0xFD000000
+#define VBE_FRAMEBUFFER_END   0xFDFFFFFF
 
 #define TSS_SELECTOR 0x28
 
-enum PermissionBits
+
+//user is 0 kernel is 1
+enum PageRW
 {
-    READ_WRITE = 1, // currently changed it did a bug
     READ_ONLY = 0,
-    USER_SUPERVISOR = 1,
-    SUPERVISOR_ONLY = 0
+    READ_WRITE = 1
+};
+
+enum PageUS
+{
+    SUPERVISOR_ONLY = 0,
+    USER_SUPERVISOR = 1
 };
 
 typedef struct TSS
@@ -96,6 +103,14 @@ typedef struct TSS
     unsigned short iomap_base
 } __attribute__((packed)) TSS;
 
+typedef struct InterruptFrame
+{
+    unsigned int gs, fs, es, ds;
+
+    unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;
+
+    unsigned int eip, cs, eflags, useresp, ss;
+} InterruptFrame;
 
 extern TSS kernelTSS;
 
@@ -161,6 +176,7 @@ void mapPage(unsigned int virtualAddr, unsigned int physicalAddr, unsigned int i
 PageTable* getOrCreatePageTable(unsigned int virtualAddr, unsigned int isKernel);
 void mapUserPages(void);
 void initTSS(void);
-void enterUserMode(void* userEntryPoint);
+void enterUserMode(void* userEntryPoint, void* kernelPoint);
+void restoreKernelFrame();
 
 #endif  

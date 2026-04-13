@@ -1,4 +1,6 @@
 #include "timerDriver.h"
+#include "consoleDriver.h"
+#include "../Graphics/gui.h"
 
 static unsigned int tickCounter = 0;
 static unsigned int rseed = 2463534242;
@@ -6,11 +8,12 @@ static unsigned int rseed = 2463534242;
 void timerISR(void)
 {
     tickCounter++;
-    tick();
-    if (tickCounter % 100 == 0) 
+    if(!isGUIInitialized)
     {
+        updateCursor();
     }
     endOfInterrupt(0); //IRQ0 is timer
+    tick();
 }
 
 void initializeTimer(void)
@@ -68,10 +71,11 @@ void rtcISR(void)
 Time getRTCTime(void)
 {
     Time t;
-    t.hours   = bcdToDec(readRTC(HOUR_REG)); 
+    t.hours = bcdToDec(readRTC(HOUR_REG)); 
     t.minutes = bcdToDec(readRTC(MINUTE_REG)); 
     t.seconds = bcdToDec(readRTC(SECOND_REG));
-
+    //israel hours change later
+    t.hours += 3;
     t.ms = 0;
     return t;
 }

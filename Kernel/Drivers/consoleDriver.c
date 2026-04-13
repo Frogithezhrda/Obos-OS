@@ -1,60 +1,157 @@
 #include "consoleDriver.h"
 
-static unsigned short position = 0;
+const Color BLACK = {0, 0, 0};
+const Color BLUE = {0, 0, 255};
+const Color GREEN = {0, 255, 0};
+const Color CYAN = {0, 255, 255};
+const Color RED = {255, 0, 0};
+const Color MAGENTA = {255, 0, 255};
+const Color BROWN = {165, 42, 42};
+const Color LIGHT_GREY = {211, 211, 211};
+const Color DARK_GREY = {169, 169, 169};
+const Color LIGHT_BLUE = {173, 216, 230};
+const Color LIGHT_GREEN = {144, 238, 144};
+const Color LIGHT_CYAN = {224, 255, 255};
+const Color LIGHT_RED = {255, 99, 71};
+const Color LIGHT_MAGENTA = {255, 0, 255};
+const Color YELLOW = {255, 255, 0};
+const Color WHITE = {255, 255, 255};
 
 
-void scrollIfNeeded()
+static unsigned int positionX = 0;
+static unsigned int positionY = 0;
+static unsigned int cursorBlinkingTicks = 0;
+static int isVisibleCursor = 0;
+
+static void scrollScreen()
 {
-    int maxPos = SCREEN_WIDTH * SCREEN_HEIGHT * 2;
-    if (position < maxPos) 
-        return;
-    
-    char* video = (char*)VIDEO_LOCATION;
-    int rowSize = SCREEN_WIDTH * 2;
-    
-    for (int i = 0; i < maxPos - rowSize; i++)
+    for (unsigned int y = 0; y < SCREEN_HEIGHT - (CHAR_H + 4); y++)
     {
-        video[i] = video[i + rowSize];
+        for (unsigned int x = 0; x < SCREEN_WIDTH; x++)
+        {
+            Pixel src = {x, y + (CHAR_H + 4), BLACK};
+            Color color = getPixelColor(src.x, src.y);
+            Pixel p = {x, y, color};
+            printPixel(p);
+        }
     }
-    
-    for (int i = maxPos - rowSize; i < maxPos; i += 2)
+
+    for (unsigned int y = SCREEN_HEIGHT - (CHAR_H + 4); y < SCREEN_HEIGHT; y++)
     {
-        video[i] = ' ';
-        video[i + 1] = WHITE;
+        for (unsigned int x = 0; x < SCREEN_WIDTH; x++)
+        {
+            Pixel p = {x, y, BLACK};
+            printPixel(p);
+        }
     }
-    
-    position = maxPos - rowSize;
+}
+
+static void eraseCursor()
+{
+    for (unsigned int row = 0; row < CHAR_H + 4; row++)
+    {
+        for (unsigned int col = 0; col < 2; col++)
+        {
+            Pixel p = {positionX * CHAR_W + col, positionY * (CHAR_H + 4) + row - 2, BLACK};
+            printPixel(p);
+        }
+    }
+}
+
+static void drawCursor(int visible)
+{
+    Color c = visible ? WHITE : BLACK;
+    for (unsigned int row = 0; row < CHAR_H + 4; row++)
+    {
+        for (unsigned int col = 0; col < 2; col++)
+        {
+            Pixel p = {positionX * CHAR_W + col, positionY * (CHAR_H + 4) + row - 2, c};
+            printPixel(p);
+        }
+    }
+}
+
+void updateCursor()
+{
+    cursorBlinkingTicks++;
+    if (cursorBlinkingTicks >= 30) //blinking every 30 ticks
+    {
+        isVisibleCursor = !isVisibleCursor;
+        drawCursor(isVisibleCursor);
+        cursorBlinkingTicks = 0;
+    }
 }
 
 void clearScreen()
 {
-    char* video = (char*)VIDEO_LOCATION;
-    char* blank = ' ';
-    for (int i = 0; i < SCREEN_WIDTH * SCREEN_HEIGHT * 2; i += 2) 
+    for(unsigned int y = 0; y < SCREEN_HEIGHT; y++)
     {
-        video[i] = blank;
-        video[i + 1] = WHITE;
+        for(unsigned int x = 0; x < SCREEN_WIDTH; x++)
+        {
+            Pixel p = {x, y, BLACK};
+            printPixel(p);
+        }
     }
-    position = 0;
-    updateCursor(position / 2);
+    positionX = 0;
+    positionY = 0;
 }
 
-void printChar(const char character, const int color)
+void printChar(const char character, const Color color)
 {
-    char buffer[2];
-    buffer[0] = character;
-    buffer[1] = '\0';
-    print(buffer, color);
+    if(isGUIInitialized) return;
+    eraseCursor();
+    if(character == '\n')
+    {
+        positionX = 0;
+        positionY++;
+        if(positionY >= ROWS)
+        {
+            scrollScreen();
+            positionY = ROWS - 1;
+        }
+        return;
+    }
+    else if (character == '\b')
+    {
+        if (positionX > 0)
+        {
+            positionX--;
+        }
+        else if (positionY > 0)
+        {
+            positionY--;
+            positionX = COLS - 1;
+        }
+        else
+        {
+            return;
+        }
+
+        // clear the entire character cell
+        for (unsigned int row = 0; row < CHAR_H; row++)
+        {
+            for (unsigned int col = 0; col < CHAR_W; col++)
+            {
+                Pixel p = {positionX * CHAR_W + col, positionY * (CHAR_H + 4) + row, BLACK};
+                printPixel(p);
+            }
+        }
+        return;
+    }
+    printCharVBE(character, positionX * CHAR_W, positionY * (CHAR_H + 4), color);
+    positionX++;
 }
 
-void printLine(const char* string, const int color)
+void printLine(const char* string, const Color color)
 {
-    print(string, color);  
-    print("\n", color); 
+    if(isGUIInitialized) return;
+    print(string, color);
+    printChar('\n', color);
 }
 
-void printNumber(int number, const int color)
+void printNumber(int number, const Color color)
 {
+    if(isGUIInitialized) return;
     int isNegative = 0;
     char buffer[12]; //enough for int
     int i = 0;
@@ -90,50 +187,22 @@ void printNumber(int number, const int color)
 }
 
 
-void print(const char* string, const int color)
+void print(const char* string, const Color color)
 {
-    char* video = (char*)VIDEO_LOCATION;
-    for (int i = 0; string[i] != '\0'; i++)
+    if(isGUIInitialized) return;
+    for(unsigned int i = 0; string[i] != '\0'; i++)
     {
-        if (string[i] == '\n') 
-        {
-            int currentChar = position / 2; 
-            int currentRow = currentChar / SCREEN_WIDTH;
-            int nextRow = currentRow + 1;
-            position = nextRow * SCREEN_WIDTH * 2;
-            scrollIfNeeded();
-            continue;
-        }
-        if (string[i] == '\b') 
-        {  
-            position -= 2;
-            video[position] = ' ';
-            video[position + 1] = color;     
-            continue;
-        }
-        video[position] = string[i];
-        video[position + 1] = color;         
-        position += 2;   
-        scrollIfNeeded();
+        printChar(string[i], color);
     }
-    updateCursor(position / 2);
 }
 
-void printHexNumber(unsigned int number, const int color)
+void printHexNumber(unsigned int number, const Color color)
 {
+    if(isGUIInitialized) return;
     char hexChars[] = "0123456789ABCDEF";
     for (int i = 7; i >= 0; i--)
     {
         unsigned char nibble = (number >> (i * 4)) & 0xF;
         printChar(hexChars[nibble], WHITE);
     }
-}
-
-void updateCursor(const int cursorPos)
-{
-    outb(VGA_COMMAND_PORT, 0x0E);
-    outb(VGA_DATA_PORT, (cursorPos >> 8) & 0xFF);
-
-    outb(VGA_COMMAND_PORT, 0x0F);
-    outb(VGA_DATA_PORT, cursorPos & 0xFF);
 }

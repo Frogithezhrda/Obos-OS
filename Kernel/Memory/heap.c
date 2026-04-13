@@ -94,7 +94,7 @@ void* umalloc(unsigned long size)
     HeapBlock* block = findFreeBlock(&userHeap, totalSize);
     if (!block)
     {
-        print("kmalloc failed: out of memory (requested ", RED);
+        print("umalloc failed: out of memory (requested ", RED);
         printNumber(size, RED);
         printLine(" bytes)", RED);
         return NULL;

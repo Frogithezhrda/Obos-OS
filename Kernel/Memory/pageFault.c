@@ -15,15 +15,6 @@ void pageFaultHandler(unsigned int errorCode)
     //     printLine("=== DOUBLE FAULT DETECTED ===", RED);
     //     while(1) asm volatile("hlt");
     // }
-    printLine("\n=== PAGE FAULT ===", RED);
-    
-    print("Faulting address: 0x", WHITE);
-    printHexNumber(faultAddr, WHITE);
-    printLine("", WHITE);
-    
-    print("Error code: ", WHITE);
-    printHexNumber(errorCode, WHITE);
-    printLine("", WHITE);
 
     //basic demand paging handler
     if(!(errorCode & PF_PRESENT) && faultAddr >= USER_SPACE_START && faultAddr < USER_SPACE_END)
@@ -43,6 +34,15 @@ void pageFaultHandler(unsigned int errorCode)
 
         return;
     }
+    printLine("\n=== PAGE FAULT ===", RED);
+    
+    print("Faulting address: 0x", WHITE);
+    printHexNumber(faultAddr, WHITE);
+    printLine("", WHITE);
+    
+    print("Error code: ", WHITE);
+    printHexNumber(errorCode, WHITE);
+    printLine("", WHITE);
 
     if (errorCode & PF_PRESENT)
     {
