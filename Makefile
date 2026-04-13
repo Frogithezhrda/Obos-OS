@@ -1,18 +1,24 @@
 # output directories
 DISK_DIR = Disk
 COMPONENTS_DIR = $(DISK_DIR)/Components
+USER_DIR = $(DISK_DIR)/User
 
 # output files
 DISK_IMAGE_FILE_PATH = $(DISK_DIR)/obos.img
 BOOT_BIN = $(COMPONENTS_DIR)/boot.bin
 KERNEL_BIN = $(COMPONENTS_DIR)/kernel.bin
 KERNEL_ASM_OBJ = $(COMPONENTS_DIR)/kernel_asm.o
-ISR_ASM_OBJ = $(COMPONENTS_DIR)/isr.o 
+ISR_ASM_OBJ = $(COMPONENTS_DIR)/isr.o
+SWITCH_ASM_OBJ = $(COMPONENTS_DIR)/switch.o 
+
+USER_OBJECTS = $(wildcard $(USER_DIR)/*.o)
+
 # source files
 ATA_SRC = Bootloader/ata.asm
 BOOT_SRC = Bootloader/boot.asm
 KERNEL_ASM = Kernel/Base/kernel.asm
 ISR_ASM = Kernel/Tables/isr.asm
+SWITCH_ASM = Kernel/Processes/switch.asm
 LINKER_SCRIPT = obosLinker.ld
 
 # automatically find all C files in Kernel directory
@@ -23,11 +29,11 @@ KERNEL_C_OBJECTS = $(patsubst %.c,$(COMPONENTS_DIR)/%.o,$(notdir $(KERNEL_C_SOUR
 CFLAGS = -m32 -ffreestanding -fno-pie -fno-stack-protector -nostdlib -nodefaultlibs -Wall -Wextra
 
 # search paths for source files
-vpath %.c Kernel/Base Kernel/Drivers Kernel/Tables Kernel/SystemLib Kernel/Memory Kernel/Processes Kernel/Fs Kernel/Network Kernel/Apps
+vpath %.c Kernel/Base Kernel/Drivers Kernel/Tables Kernel/SystemLib Kernel/Memory Kernel/Processes Kernel/Fs Kernel/Network Kernel/Apps Kernel/Graphics
 
 all: $(DISK_IMAGE_FILE_PATH)
 
-$(DISK_IMAGE_FILE_PATH): $(BOOT_BIN) $(KERNEL_BIN) $(ISR_ASM_OBJ)
+$(DISK_IMAGE_FILE_PATH): $(BOOT_BIN) $(KERNEL_BIN) $(ISR_ASM_OBJ) $(SWITCH_ASM_OBJ)
 	@echo "------ Creating/Updating image ------"
 	@mkdir -p $(DISK_DIR)
 	@if [ ! -f "$(DISK_IMAGE_FILE_PATH)" ]; then \
@@ -37,10 +43,8 @@ $(DISK_IMAGE_FILE_PATH): $(BOOT_BIN) $(KERNEL_BIN) $(ISR_ASM_OBJ)
 	@dd if=/dev/zero of=$(DISK_IMAGE_FILE_PATH) bs=512 count=512 conv=notrunc
 	@dd if=$(BOOT_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=0 conv=notrunc
 	@dd if=$(KERNEL_BIN) of=$(DISK_IMAGE_FILE_PATH) bs=512 seek=1 conv=notrunc
-	@ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(ISR_ASM_OBJ) $(KERNEL_C_OBJECTS)
-	@ld -m elf_i386 -T $(LINKER_SCRIPT) -Map=$(COMPONENTS_DIR)/kernel.map -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(ISR_ASM_OBJ) $(KERNEL_C_OBJECTS)
 
-$(BOOT_BIN): $(BOOT_SRC) $(ATA_SRC) 
+$(BOOT_BIN): $(BOOT_SRC) $(ATA_SRC)
 	@echo "------ Assembling bootloader ------"
 	@mkdir -p $(COMPONENTS_DIR)
 	nasm -f bin $(BOOT_SRC) -o $(BOOT_BIN)
@@ -48,25 +52,35 @@ $(BOOT_BIN): $(BOOT_SRC) $(ATA_SRC)
 $(ISR_ASM_OBJ): $(ISR_ASM)
 	@echo "------ Assembling ISR handlers ------"
 	@mkdir -p $(COMPONENTS_DIR)
-	@nasm -f elf32 $(ISR_ASM) -o $(ISR_ASM_OBJ)
+	nasm -f elf32 $(ISR_ASM) -o $(ISR_ASM_OBJ)
+
+$(SWITCH_ASM_OBJ): $(SWITCH_ASM)
+	@echo "------ Assembling process switcher ------"
+	@mkdir -p $(COMPONENTS_DIR)
+	@nasm -f elf32 $(SWITCH_ASM) -o $(SWITCH_ASM_OBJ)
 
 $(KERNEL_ASM_OBJ): $(KERNEL_ASM)
 	@echo "------ Assembling kernel entry ------"
 	@mkdir -p $(COMPONENTS_DIR)
-	@nasm -f elf32 $(KERNEL_ASM) -o $(KERNEL_ASM_OBJ)
+	nasm -f elf32 $(KERNEL_ASM) -o $(KERNEL_ASM_OBJ)
 
-# generic rule for compiling any C file
+# compile kernel C files
 $(COMPONENTS_DIR)/%.o: %.c
 	@echo "------ Compiling $< ------"
 	@mkdir -p $(COMPONENTS_DIR)
-	@gcc $(CFLAGS) -c $< -o $@
+	gcc $(CFLAGS) -c $< -o $@
 
-$(KERNEL_BIN): $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJECTS) $(LINKER_SCRIPT) $(ISR_ASM_OBJ)
-	@echo "------ Linking kernel ------"
+$(KERNEL_BIN): $(KERNEL_ASM_OBJ) $(ISR_ASM_OBJ) $(SWITCH_ASM_OBJ) $(KERNEL_C_OBJECTS) $(USER_OBJECTS) $(LINKER_SCRIPT)
+	@echo "------ Linking kernel (with user programs) ------"
 	@mkdir -p $(COMPONENTS_DIR)
-	@ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(ISR_ASM_OBJ) $(KERNEL_C_OBJECTS)
+	ld -m elf_i386 -T $(LINKER_SCRIPT) -o $(KERNEL_BIN) \
+		$(KERNEL_ASM_OBJ) $(ISR_ASM_OBJ) $(SWITCH_ASM_OBJ) $(USER_OBJECTS) $(KERNEL_C_OBJECTS)
+
+# 	ld -m elf_i386 -T $(LINKER_SCRIPT) -Map=$(COMPONENTS_DIR)/kernel.map -o $(KERNEL_BIN) \
+# 		$(KERNEL_ASM_OBJ) $(ISR_ASM_OBJ) $(USER_OBJECTS) $(KERNEL_C_OBJECTS)
+
 clean:
 	@echo "------ Cleaning up ------"
-	@rm -rf $(COMPONENTS_DIR)
+	rm -rf $(COMPONENTS_DIR)
 
 .PHONY: all clean

@@ -5,7 +5,7 @@
 #include "../SystemLib/obosMemory.h"
 
 #define TOTAL_BLOCKS 1024
-#define SUPERBLOCK_BLOCK 200
+#define SUPERBLOCK_BLOCK 400
 #define MAGIC_NUMBER 0x4F424653
 #define MAX_BLOCKS_PER_FILE 64 //32
 #define MAX_FILES 128
@@ -35,6 +35,13 @@ typedef struct DirectoryEntry
     unsigned int inodeNumber;
     char name[FILE_NAME_LENGTH];
 } DirectoryEntry;
+
+typedef struct FileEntry
+{
+    char name[64];
+    unsigned int inodeIdx;
+    Type type;
+} FileEntry;
 
 typedef struct SuperBlock
 {
@@ -204,5 +211,8 @@ int cd(const char* name);
 unsigned int getFreeBlocksCount();
 
 #define createFileF(name) createFile(name, File)
+
+
+int getDirectoryEntries(FileEntry* outEntries, int maxEntries);
 
 #endif

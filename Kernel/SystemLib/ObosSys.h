@@ -5,8 +5,13 @@
 /*
 a lib for syscalls a wrapper
 */
-#include "../Drivers/consoleDriver.h"
-#include "../Drivers/timerDriver.h"
+typedef struct Time
+{
+    unsigned int hours;
+    unsigned int minutes;
+    unsigned int seconds;
+    unsigned int ms;
+} Time;
 
 void printo(const char* string, unsigned int color);
 unsigned int getObosTicks(void);

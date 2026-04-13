@@ -6,6 +6,8 @@ extern rtcISR
 extern pageFaultHandler
 extern syscallHandler
 extern RTL8139ISRHandler
+extern mouseIRQHandler
+
 section .text
 %macro ISR_NOERR 1
 isr%1:
@@ -58,22 +60,60 @@ global isr40
 global pageFaultISR
 global syscallStub
 global e1000ISR
+global mouseISR
 
 isr32:
     cli
+    pusha
+
+    push ds
+    push es
+    push fs
+    push gs
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
     push byte 0
     push byte 32
     call timerISR
     add esp, 8
+    pop gs
+    pop fs
+    pop es
+    pop ds
+
+    popa
     sti
     iret
 
 isr33:
     cli
+    pusha
+
+    push ds
+    push es
+    push fs
+    push gs
+
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
     push byte 0
     push byte 33
     call keyboardISR
     add esp, 8
+    pop gs
+    pop fs
+    pop es
+    pop ds
+
+    popa
     sti
     iret
 
@@ -99,6 +139,12 @@ IsrCommon:
 e1000ISR:
     pusha
     call RTL8139ISRHandler
+    popa
+    iret
+
+mouseISR:
+    pusha
+    call mouseIRQHandler
     popa
     iret
 

@@ -98,3 +98,9 @@ char* strcpy(char* destination, const char* source) {
 
     return ptr;
 }
+char* strcat(char *a, char *b) {
+    while (*a++);
+    a--;
+    while (*a++ = *b++);
+    return a;
+}
