@@ -71,10 +71,10 @@ static void openTerminal()
     termApp.mainWin = termWin;
     // drawWindow(&termWin);
     //draw a border
-    Window border = {98, 98, 604, 404, DARK_GREY, VISIBLE};
+    Window border = {termWin.x - 2, termWin.y - 2, termWin.width + 4, termWin.height + 4, DARK_GREY, VISIBLE};
     // drawWindow(&border);
     termApp.border = border;
-    termApp.bar = appBar(100, 100, 600, "Terminal");
+    termApp.bar = appBar(termWin.x, termWin.y, termWin.width, "Terminal");
     termApp.id = appCounter;
     termApp.isDirty = 0;
     apps[appCounter++] = termApp;
@@ -89,15 +89,15 @@ void openFileManager()
     Window termWin = {400, 200, 600, 400, {239, 255, 172}, VISIBLE};
     fileApp.mainWin = termWin;
     //draw a border
-    Window border = {398, 198, 604, 404, DARK_GREY, VISIBLE};
+    Window border = {termWin.x - 2, termWin.y - 2, termWin.width + 4, termWin.height + 4, DARK_GREY, VISIBLE};
     fileApp.border = border;
-    fileApp.bar = appBar(400, 200, 600, "File System");
+    fileApp.bar = appBar(termWin.x, termWin.y, termWin.width, "File System");
         fileApp.id = appCounter;
     fileApp.isDirty = 0;
     apps[appCounter++] = fileApp;
 
     drawApp(&fileApp);
-    drawCreationIcon();
+    drawCreationIcon(&fileApp);
     drawFsFiles();
     // Label title = {{110, 100, 200, 20, LIGHT_GREY, VISIBLE}, "File Manager", BLACK};
     // drawLabel(&title);

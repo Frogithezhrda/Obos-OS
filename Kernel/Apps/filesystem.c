@@ -14,6 +14,7 @@ static char popupBuffer[64];
 static TextBox popupTextBox;
 static Label popupTitleLabel;
 int clickedFileIndex = -1;
+static App* openEditorApp = NULL;
 
 static void popupOnEnter(TextBox* tb)
 {
@@ -154,16 +155,17 @@ static void changeDir()
     openFileManager();
 }
 
-void drawCreationIcon()
+void drawCreationIcon(App* app)
 {
     //100, 100, 600, 400
-    Window fileWin = createWindow(660, 120, 40, 40, (Color){239, 255, 172}, VISIBLE);
+    openEditorApp = app;
+    Window fileWin = createWindow(app->mainWin.x + 560, app->mainWin.y + 20, 40, 40, (Color){239, 255, 172}, VISIBLE);
     fileIconFM = createIcon(&fileWin, file16, createFileGUI);
     drawIcon(&fileIconFM, 2);
-    Window folderWin = createWindow(630, 120, 40, 40, (Color){239, 255, 172}, VISIBLE);
+    Window folderWin = createWindow(app->mainWin.x + 530, app->mainWin.y + 20, 40, 40, (Color){239, 255, 172}, VISIBLE);
     folderIconFM = createIcon(&folderWin, folder16, createDirGUI);
     drawIcon(&folderIconFM, 2);
-    Window deleteWin = createWindow(600, 120, 20, 20, (Color){239, 255, 172}, VISIBLE);
+    Window deleteWin = createWindow(app->mainWin.x + 500, app->mainWin.y + 20, 20, 20, (Color){239, 255, 172}, VISIBLE);
     Label deleteLabel = createLabel(&deleteWin, "X", 3, RED);
     deleteIconFM = createButton(&deleteLabel, deleteGUI);
     drawButton(&deleteIconFM);
@@ -178,8 +180,8 @@ void drawFsFiles()
         int xDir = i / 6;
         int yDir = i % 6;
 
-        int baseX = 100 + xDir * 180;
-        int baseY = 140 + yDir * 60;
+        int baseX = openEditorApp->mainWin.x + xDir * 180;
+        int baseY = openEditorApp->mainWin.y + 40 + yDir * 60;
         
         unsigned char (*iconData)[16] = (fileEntries[i].type == Directory) ? folder16 : file16;
 
