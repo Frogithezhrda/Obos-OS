@@ -8,7 +8,6 @@ static Icon fileIcon;
 static Icon consoleIcon;
 static Icon powerIcon;
 static Icon paintIcon;
-Button exitButton;
 TextBox* focusedTextBox;
 
 static int isPointInWindow(Window* win, unsigned int x, unsigned int y)
@@ -84,34 +83,27 @@ void handleClick(unsigned int mouseX, unsigned int mouseY)
     {
         if (consoleIcon.onClick) consoleIcon.onClick();
     }
-
-    if (isPointInWindow(&fileIcon.window, mouseX, mouseY))
+    else if (isPointInWindow(&fileIcon.window, mouseX, mouseY))
     {
         if (fileIcon.onClick) fileIcon.onClick();
     }
-
-    if (isPointInWindow(&exitButton.label.window, mouseX, mouseY))
-    {
-        if (exitButton.onClick) exitButton.onClick();
-    }
-
-    if (isPointInWindow(&fileIconFM.window, mouseX, mouseY))
+    else if (isPointInWindow(&fileIconFM.window, mouseX, mouseY))
     {
         if (fileIconFM.onClick) fileIconFM.onClick();
     }
-    if (isPointInWindow(&folderIconFM.window, mouseX, mouseY))
+    else if (isPointInWindow(&folderIconFM.window, mouseX, mouseY))
     {
         if (folderIconFM.onClick) folderIconFM.onClick();
     }
-    if (isPointInWindow(&deleteIconFM.label.window, mouseX, mouseY))
+    else if (isPointInWindow(&deleteIconFM.label.window, mouseX, mouseY))
     {
         if (deleteIconFM.onClick) deleteIconFM.onClick();
     }
-    if (isPointInWindow(&powerIcon.window, mouseX, mouseY))
+    else if (isPointInWindow(&powerIcon.window, mouseX, mouseY))
     {
         if (powerIcon.onClick) powerIcon.onClick();
     }
-    if (isPointInWindow(&paintIcon.window, mouseX, mouseY))
+    else if (isPointInWindow(&paintIcon.window, mouseX, mouseY))
     {
         if (paintIcon.onClick) paintIcon.onClick();
     }
@@ -121,6 +113,22 @@ void handleClick(unsigned int mouseX, unsigned int mouseY)
         {
             clickedFileIndex = i;
             if (fileIcons[i].onClick) fileIcons[i].onClick();
+            break;
+        }
+    }
+    for(int i = 0; i < appCounter; i++)
+    {
+        App* app = &apps[i];
+        if (isPointInWindow(&app->bar.exit.label.window, mouseX, mouseY))
+        {
+            focusedTextBox = NULL;
+            //close app
+            for (int j = i; j < appCounter - 1; j++)
+            {
+                apps[j] = apps[j + 1];
+            }
+            appCounter--;
+            eraseWindow();
             break;
         }
     }
@@ -313,4 +321,8 @@ void eraseWindow()
     drawTimeLabel(getRTCTime());
     initializeApps(&fileIcon, &consoleIcon, &powerIcon, &paintIcon);
     redrawMouse();
+    for(int i = 0; i < appCounter; i++)
+    {
+        drawApp(&apps[i]);
+    }
 }

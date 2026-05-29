@@ -8,7 +8,7 @@ typedef struct InfoBar
 {
     Window bar;
     Label title;
-    Button* exit;
+    Button exit;
 } InfoBar;
 
 
@@ -17,8 +17,12 @@ typedef struct App
     InfoBar bar;
     Window border;
     Window mainWin;
+    char isDirty; //needs redraw
+    char id;
 } App;
 
+extern App apps[10];
+extern int appCounter;
 
 
 void initializeApps(Icon* fileIcon, Icon* consoleIcon, Icon* powerIcon, Icon* paintIcon);

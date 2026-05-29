@@ -3,11 +3,30 @@
 #include "../Apps/filesystem.h"
 #include "../Apps/paint.h"
 
+
+int appCounter = 0;
+App apps[10]; //max 10 apps at once we can increase this later if needed
+
+
 static void exitApp()
 {
     focusedTextBox = NULL;
+    for (int i = 0; i < appCounter; i++)
+    {
+        if (apps[i].bar.exit.onClick == exitApp) 
+        {
+            for (int j = i; j < appCounter - 1; j++)
+                apps[j] = apps[j + 1];
+            appCounter--;
+            break;
+        }
+    }
     eraseWindow();
     redrawMouse();
+    for (int i = 0; i < appCounter; i++)
+        drawApp(&apps[i]);
+        // apps[i].isDirty = 1;
+
 }
 
 static void powerOff()
@@ -24,10 +43,10 @@ InfoBar appBar(unsigned int x, unsigned int y, unsigned int width, char* title)
     Label titleLabel = createLabel(&titleWin, title, 1, BLACK);
     Window buttonWin = createWindow(x + width - 20, y - 5, 20, 20, LIGHT_GREY, VISIBLE);
     Label buttonLabel = createLabel(&buttonWin, "X", 1, RED);
-    exitButton = createButton(&buttonLabel, exitApp);
+    bar.exit = createButton(&buttonLabel, exitApp);
+    bar.exit.onClick = exitApp;
     bar.bar = barWin;
     bar.title = titleLabel;
-    bar.exit = &exitButton;
     // drawWindow(&bar);
     // drawLabel(&titleLabel);
     // drawButton(&exitButton);
@@ -41,7 +60,7 @@ void drawApp(App* app)
 
     drawWindow(&app->bar.bar);
     drawLabel(&app->bar.title);
-    drawButton(app->bar.exit);
+    drawButton(&app->bar.exit);
 }
 
 
@@ -56,21 +75,27 @@ static void openTerminal()
     // drawWindow(&border);
     termApp.border = border;
     termApp.bar = appBar(100, 100, 600, "Terminal");
+    termApp.id = appCounter;
+    termApp.isDirty = 0;
+    apps[appCounter++] = termApp;
 
     drawApp(&termApp);
-    terminalOpen(&termApp);
+    // terminalOpen(&termApp);
 }
 
 void openFileManager()
 {
     App fileApp;
-    Window termWin = {100, 100, 600, 400, {239, 255, 172}, VISIBLE};
+    Window termWin = {400, 200, 600, 400, {239, 255, 172}, VISIBLE};
     fileApp.mainWin = termWin;
     //draw a border
-    Window border = {98, 98, 604, 404, DARK_GREY, VISIBLE};
+    Window border = {398, 198, 604, 404, DARK_GREY, VISIBLE};
     fileApp.border = border;
-    fileApp.bar = appBar(100, 100, 600, "File System");
-    
+    fileApp.bar = appBar(400, 200, 600, "File System");
+        fileApp.id = appCounter;
+    fileApp.isDirty = 0;
+    apps[appCounter++] = fileApp;
+
     drawApp(&fileApp);
     drawCreationIcon();
     drawFsFiles();
@@ -85,7 +110,7 @@ void initializeApps(Icon* fileIcon, Icon* consoleIcon, Icon* powerIcon, Icon* pa
     paintIcon->onClick = openPaint;
     drawIcon(paintIcon, 5);
     
-    //filesystem icon
+    // //filesystem icon
     fileIcon->window = (Window){SCREEN_WIDTH - 240, SCREEN_HEIGHT - 80, 80, 80, {69, 174, 255}, VISIBLE};
     fileIcon->iconData = folder16;
     fileIcon->onClick = openFileManager;
