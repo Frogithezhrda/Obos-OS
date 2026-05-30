@@ -21,6 +21,6 @@ void keybos(char* string, const int maxLength);
 void keybosIndex(char* string, const int maxLength, int index);
 char keybosChar();
 void handleKeyRelease(void);
-void keybosGUI(TextBox* tb);
+// void keybosGUI(TextBox* tb);
 
 #endif

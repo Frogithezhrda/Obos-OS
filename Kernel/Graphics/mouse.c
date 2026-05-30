@@ -1,5 +1,5 @@
 #include "mouse.h"
-#include "../Apps/paint.h"
+// #include "../Apps/paint.h"
 
 int mouseCycle = 0;
 char mousePacket[3];
@@ -81,7 +81,7 @@ static void processMousePacket()
     int xMove = (signed char)mousePacket[1];
     int yMove = (signed char)mousePacket[2];
     int leftClick = mousePacket[0] & 0x01;
-    int rightClick = mousePacket[0] & 0x02;
+    int leftRelease = !(mousePacket[0] & 0x01);  //button not held then released
 
     prevMouseX = mouseX;
     prevMouseY = mouseY;
@@ -93,14 +93,22 @@ static void processMousePacket()
 
     if (mouseX < 0) mouseX = 0;
     if (mouseY < 0) mouseY = 0;
-    if (mouseX >= SCREEN_WIDTH) mouseX = SCREEN_WIDTH - 1;
+    if (mouseX >= SCREEN_WIDTH)  mouseX = SCREEN_WIDTH  - 1;
     if (mouseY >= SCREEN_HEIGHT) mouseY = SCREEN_HEIGHT - 1;
 
-    if (leftClick)
-    {
-        handleClick(mouseX, mouseY);
-        handlePaint(mouseX, mouseY);
-    } 
+    // //drag move
+    // handleMouseMove(mouseX, mouseY);
+
+    // if (leftClick)
+    // {
+    //     handleMousePress(mouseX, mouseY);
+    //     // handlePaint(mouseX, mouseY);
+    // }
+    // else
+    // {
+    //     handleMouseRelease();
+    // }
+
     mouseErased = 0;
     saveMouseBackground();
     drawMouse();

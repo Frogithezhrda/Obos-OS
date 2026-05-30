@@ -22,7 +22,7 @@ SWITCH_ASM = Kernel/Processes/switch.asm
 LINKER_SCRIPT = obosLinker.ld
 
 # automatically find all C files in Kernel directory
-KERNEL_C_SOURCES = $(shell find Kernel -name '*.c')
+KERNEL_C_SOURCES = $(shell find Kernel -name '*.c' ! -path '*/OldGUI/*' ! -path '*/GraphicApps/*')
 KERNEL_C_OBJECTS = $(patsubst %.c,$(COMPONENTS_DIR)/%.o,$(notdir $(KERNEL_C_SOURCES)))
 
 # compiler flags

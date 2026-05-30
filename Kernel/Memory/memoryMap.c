@@ -10,7 +10,7 @@ void initializeMemoryManager()
 {
 
 
-    frames = (Frame*)0x00400000;
+    frames = (Frame*)0x00600000;
     //entry amounts getting from the specified memory address
     unsigned short entryCount = *((unsigned short*)MEMORY_MAP_ENTTRY_COUNT_ADDRESS);
 
@@ -152,21 +152,21 @@ void reserveKernelRegions(void)
 
     // heap
     region.start  = 0x1A0000;
-    region.end    = 0x200000;
+    region.end    = 0x400000;
     region.type   = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
 
     // stack
-    region.start  = 0x200000;
-    region.end    = 0x300000;
+    region.start  = 0x400000;
+    region.end    = 0x500000;
     region.type   = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
 
     // paging structures
-    region.start  = 0x300000;
-    region.end    = 0x400000;
+    region.start  = 0x500000;
+    region.end    = 0x600000;
     region.type   = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
@@ -178,8 +178,8 @@ void reserveKernelRegions(void)
     memoryManager.regions[memoryManager.regionCount++] = region;
 
     // frames array
-    region.start  = 0x400000;
-    region.end    = 0x440000;
+    region.start  = 0x600000;
+    region.end    = 0x640000;
     region.type   = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;

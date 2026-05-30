@@ -143,52 +143,52 @@ void keybos(char* string, const int maxLength)
     keybosIndex(string, maxLength, 0);
 }
 
-void keybosGUI(TextBox* tb)
-{
-    if (lastScanCode == 0) return;  // nothing to process
+// void keybosGUI(TextBox* tb)
+// {
+//     if (lastScanCode == 0) return;  // nothing to process
 
-    unsigned char scanCode = lastScanCode;
-    lastScanCode = 0;
+//     unsigned char scanCode = lastScanCode;
+//     lastScanCode = 0;
 
-    if (scanCode & KEYPRESS_MASK)
-    {
-        if (scanCode == SHIFT_LEFT_RELEASE || scanCode == SHIFT_RIGHT_RELEASE)
-            shiftPressed = 0;
-        return;
-    }
+//     if (scanCode & KEYPRESS_MASK)
+//     {
+//         if (scanCode == SHIFT_LEFT_RELEASE || scanCode == SHIFT_RIGHT_RELEASE)
+//             shiftPressed = 0;
+//         return;
+//     }
 
-    if (scanCode == SHIFT_LEFT_PRESS || scanCode == SHIFT_RIGHT_PRESS)
-    {
-        shiftPressed = 1;
-        return;
-    }
+//     if (scanCode == SHIFT_LEFT_PRESS || scanCode == SHIFT_RIGHT_PRESS)
+//     {
+//         shiftPressed = 1;
+//         return;
+//     }
 
-    if (scanCode >= LAST_SCAN_CODE) return;
+//     if (scanCode >= LAST_SCAN_CODE) return;
 
-    unsigned char asciiChar = shiftPressed
-        ? scancodeToASCIIShift[scanCode]
-        : scancodeToASCII[scanCode];
+//     unsigned char asciiChar = shiftPressed
+//         ? scancodeToASCIIShift[scanCode]
+//         : scancodeToASCII[scanCode];
 
-    if (asciiChar == 0)   return;
-    if (asciiChar == '\n')
-    {
-        if (tb->onEnter) tb->onEnter(tb);
-        return;
-    }
+//     if (asciiChar == 0)   return;
+//     if (asciiChar == '\n')
+//     {
+//         if (tb->onEnter) tb->onEnter(tb);
+//         return;
+//     }
 
-    if (asciiChar == '\b')
-    {
-        if (tb->cursorPos > 0)
-        {
-            tb->cursorPos--;
-            tb->label.text[tb->cursorPos] = '\0';
-            drawTextBox(tb);
-        }
-    }
-    else if (tb->cursorPos < tb->maxSize - 1)
-    {
-        tb->label.text[tb->cursorPos++] = asciiChar;
-        tb->label.text[tb->cursorPos]   = '\0';
-        drawTextBox(tb);
-    }
-}
+//     if (asciiChar == '\b')
+//     {
+//         if (tb->cursorPos > 0)
+//         {
+//             tb->cursorPos--;
+//             tb->label.text[tb->cursorPos] = '\0';
+//             drawTextBox(tb);
+//         }
+//     }
+//     else if (tb->cursorPos < tb->maxSize - 1)
+//     {
+//         tb->label.text[tb->cursorPos++] = asciiChar;
+//         tb->label.text[tb->cursorPos]   = '\0';
+//         drawTextBox(tb);
+//     }
+// }

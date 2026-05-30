@@ -137,7 +137,8 @@ void shell()
         }
         else if(!strcmp(cmd, "gui"))
         {
-            initalizeWindowGUI();
+            // initalizeWindowGUI();
+            openGUI();
         }
         else if(!strcmp(cmd, "dns"))
         {
@@ -458,6 +459,7 @@ void obos_main()
     // // maskAllInterrupts(); //no need to maksk interrupts here
     enableInterrupts();
     // clearScreen();
+    
     initializeMemoryManager();
     // printMemoryManagerInfo();
     initializePaging();

@@ -29,5 +29,6 @@ void initializeApps(Icon* fileIcon, Icon* consoleIcon, Icon* powerIcon, Icon* pa
 void openFileManager();
 InfoBar appBar(unsigned int x, unsigned int y, unsigned int width, char* title);
 void drawApp(App* app);
+void moveApp(App* app, int newX, int newY);
 
 #endif

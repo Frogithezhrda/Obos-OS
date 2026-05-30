@@ -63,6 +63,24 @@ void drawApp(App* app)
     drawButton(&app->bar.exit);
 }
 
+DragState dragState = {0, 0, 0, -1};
+
+void moveApp(App* app, int newX, int newY)
+{
+    int barH = app->bar.bar.height;
+    int bord = 2;
+
+    app->bar.bar.x = newX;
+    app->bar.bar.y = newY - barH;
+    app->bar.title.window.x = newX + 4;
+    app->bar.title.window.y = newY - barH;
+    app->bar.exit.label.window.x = newX + app->mainWin.width - 20;
+    app->bar.exit.label.window.y = newY - barH;
+    app->mainWin.x = newX;
+    app->mainWin.y = newY;
+    app->border.x = newX - bord;
+    app->border.y = newY - barH - bord;
+}
 
 static void openTerminal()
 {
