@@ -56,7 +56,8 @@ extern const Color LIGHT_RED;
 extern const Color LIGHT_MAGENTA;
 extern const Color YELLOW;
 extern const Color WHITE;
-
+extern const Color GRAY;
+extern const Color DARK;
 void clearScreen();
 void print(const char* string, const Color color);
 void printChar(const char character, const Color color);

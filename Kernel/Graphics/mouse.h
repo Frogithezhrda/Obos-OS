@@ -8,7 +8,11 @@ void mouseIRQHandler();
 void mouseInit();
 void redrawMouse();
 void eraseMouse();
+void drawMouse();
 
 extern volatile int mouseErased;
+extern volatile int mouseLeft;
+extern int mouseX;
+extern int mouseY;
 
 #endif

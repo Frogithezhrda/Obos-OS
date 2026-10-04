@@ -8,6 +8,7 @@ int mouseY = SCREEN_HEIGHT / 2;
 int prevMouseX = SCREEN_WIDTH / 2;
 int prevMouseY = SCREEN_HEIGHT / 2;
 volatile int mouseErased = 0;
+volatile int mouseLeft = 0;
 
 Color mouseBuffer[8][8];
 
@@ -47,14 +48,15 @@ void eraseMouse()
         {
             if(shape[y][x])
             {
-                Pixel p = {prevMouseX + x, prevMouseY + y, mouseBuffer[y][x]};
-                printPixel(p);
+                // Pixel p = {prevMouseX + x, prevMouseY + y, mouseBuffer[y][x]};
+                // printPixel(p);
+                gfxPutPixel(prevMouseX + x, prevMouseY + y, mouseBuffer[y][x]);
             }
         }
     }
 }
 
-static void drawMouse()
+void drawMouse()
 {
     for(int y = 0; y < 8; y++)
     {
@@ -62,8 +64,9 @@ static void drawMouse()
         {
             if(shape[y][x])
             {
-                Pixel p = {mouseX + x, mouseY + y, {154, 154, 154}};
-                printPixel(p);
+                // Pixel p = {mouseX + x, mouseY + y, {154, 154, 154}};
+                // printPixel(p);
+                gfxPutPixel(mouseX + x, mouseY + y, (Color){154, 154, 154});
             }
         }
     }
@@ -80,13 +83,7 @@ static void processMousePacket()
 {
     int xMove = (signed char)mousePacket[1];
     int yMove = (signed char)mousePacket[2];
-    int leftClick = mousePacket[0] & 0x01;
-    int leftRelease = !(mousePacket[0] & 0x01);  //button not held then released
-
-    prevMouseX = mouseX;
-    prevMouseY = mouseY;
-    eraseMouse();
-    mouseErased = 1;
+    mouseLeft = mousePacket[0] & 0x01;
 
     mouseX += xMove;
     mouseY -= yMove;
@@ -95,23 +92,6 @@ static void processMousePacket()
     if (mouseY < 0) mouseY = 0;
     if (mouseX >= SCREEN_WIDTH)  mouseX = SCREEN_WIDTH  - 1;
     if (mouseY >= SCREEN_HEIGHT) mouseY = SCREEN_HEIGHT - 1;
-
-    // //drag move
-    // handleMouseMove(mouseX, mouseY);
-
-    // if (leftClick)
-    // {
-    //     handleMousePress(mouseX, mouseY);
-    //     // handlePaint(mouseX, mouseY);
-    // }
-    // else
-    // {
-    //     handleMouseRelease();
-    // }
-
-    mouseErased = 0;
-    saveMouseBackground();
-    drawMouse();
 }
 
 static void mouseWaitRead()

@@ -16,6 +16,8 @@ const Color LIGHT_RED = {255, 99, 71};
 const Color LIGHT_MAGENTA = {255, 0, 255};
 const Color YELLOW = {255, 255, 0};
 const Color WHITE = {255, 255, 255};
+const Color GRAY = {192, 192, 192};
+const Color DARK = {96, 96, 96};
 
 
 static unsigned int positionX = 0;

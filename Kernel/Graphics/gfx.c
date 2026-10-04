@@ -14,9 +14,9 @@ void gfxPutPixel(unsigned int x, unsigned int y, Color color)
     if (x >= SCREEN_WIDTH || y >= SCREEN_HEIGHT) return;
 
     unsigned int offset = (y * SCREEN_WIDTH + x) * 3;
-    backBuffer[offset] = color.r;
+    backBuffer[offset] = color.b;
     backBuffer[offset + 1] = color.g;
-    backBuffer[offset + 2] = color.b;
+    backBuffer[offset + 2] = color.r;
     // backBuffer[offset + 3] = 255; // alpha
 }
 
