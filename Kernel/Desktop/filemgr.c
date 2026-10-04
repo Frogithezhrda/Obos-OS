@@ -300,12 +300,12 @@ void filemgrDraw(int x, int y, int w, int h)
         char text[48];
         char num[12];
         strcpy(text, "Free: ");
-        utoa10((getFreeBlocksCount() * BLOCK_SIZE) / 1024, num);
+        utoa10((getFreeBlocksCount() * BLOCK_SIZE) / 1024 / 1024, num);
         strAppend(text, num);
-        strAppend(text, " of ");
-        utoa10((TOTAL_BLOCKS * BLOCK_SIZE) / 1024, num);
+        strAppend(text, " MB of ");
+        utoa10((TOTAL_BLOCKS * BLOCK_SIZE) / 1024 / 1024, num);
         strAppend(text, num);
-        strAppend(text, " KB");
+        strAppend(text, " MB");
         gfxDrawString(text, x + 4, y + h - FOOTER_H + 3, black);
     }
 }

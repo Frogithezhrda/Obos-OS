@@ -4,7 +4,7 @@
 #include "blockdevice.h"
 #include "../SystemLib/obosMemory.h"
 
-#define TOTAL_BLOCKS 1024
+#define TOTAL_BLOCKS 2048 * 100 //2048 - 1mb, so each block is 512 bytes, 
 #define SUPERBLOCK_BLOCK 400
 #define MAGIC_NUMBER 0x4F424653
 #define MAX_BLOCKS_PER_FILE 64 //32
@@ -125,7 +125,7 @@ int readFile(const char* name, char* buffer, unsigned int size);
  * Allocates new blocks if needed.
  * Stops immediately if allocation fails.
  */
-void writeFile(const char* name, const char* data, unsigned int size);
+int writeFile(const char* name, const char* data, unsigned int size);
 
 /**
  * Reads file data into buffer.

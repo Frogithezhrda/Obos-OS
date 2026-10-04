@@ -676,7 +676,7 @@ int readFile(const char* name, char* buffer, unsigned int size)
     return SUCCESS;
 }
 
-void writeFile(const char* name, const char* data, unsigned int size)
+int writeFile(const char* name, const char* data, unsigned int size)
 {
     int inodeIdx = findFile(name);
     if (inodeIdx == ERROR)
@@ -716,6 +716,7 @@ void writeFile(const char* name, const char* data, unsigned int size)
     inode->fileSize = bytesWritten;
     flushInodeTable();
     kfree(block);
+    return (bytesWritten == size) ? SUCCESS : ERROR;
 }
 
 int deleteFile(const char* name)
