@@ -5,6 +5,6 @@ int appCount(void);
 const char* appName(int i);
 unsigned char (*appIcon(int i))[16];
 void appLaunch(int i);
-
+void appLaunchByName(const char* name);
 
 #endif

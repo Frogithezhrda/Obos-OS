@@ -2,6 +2,8 @@
 #include "../Fs/superblock.h"
 #include "../Graphics/gfx.h"
 #include "../Drivers/timerDriver.h"
+#include "editor.h"
+#include "apps.h"
 
 #define MAX_ENTRIES 64
 #define TOOLBAR_H 20
@@ -9,7 +11,7 @@
 #define HEADER_H (TOOLBAR_H + PATH_H)
 #define FOOTER_H 14
 #define ROW_H 12
-#define BTN_COUNT 4
+#define BTN_COUNT 5
 
 static FileEntry raw[MAX_ENTRIES];
 static FileEntry entries[MAX_ENTRIES];
@@ -20,11 +22,15 @@ static int visibleRows = 0;
 static int lastClick = -1;
 static unsigned int lastTick = 0;
 static char path[128] = "/";
-static const char* btnLabel[BTN_COUNT] = {"Up", "Dir", "File", "Del"};
+static const char* btnLabel[BTN_COUNT] = {"Up", "Dir", "File", "Ren", "Del"};
 static const char* status = 0;
 static unsigned int statusUntil = 0;
 static int confirmIdx = -1;
 static unsigned int confirmUntil = 0;
+static int renaming = 0;
+static int renameLen = 0;
+static char renameBuf[FILE_NAME_LENGTH];
+static char renameOld[FILE_NAME_LENGTH];
 
 static int strLen(const char* s)
 {
@@ -100,6 +106,64 @@ static int findEntry(const char* name)
     return -1;
 }
 
+static void startRename(void)
+{
+    if (selected < 0 || selected >= count || strcmp(entries[selected].name, "..") == 0)
+    {
+        setStatus("Select something first");
+        return;
+    }
+    strcpy(renameOld, entries[selected].name);
+    strcpy(renameBuf, entries[selected].name);
+    renameLen = strLen(renameBuf);
+    renaming = 1;
+}
+static void finishRename(void)
+{
+    renaming = 0;
+    if (renameLen == 0)
+    {
+        setStatus("Name cannot be empty");
+        return;
+    }
+    if (strcmp(renameBuf, renameOld) == 0) return;
+    if (strcmp(renameBuf, ".") == 0 || strcmp(renameBuf, "..") == 0 || findEntry(renameBuf) >= 0)
+    {
+        setStatus("Name not allowed or taken");
+        return;
+    }
+    if (renameFile(renameOld, renameBuf) != SUCCESS)
+    {
+        setStatus("Rename failed");
+        return;
+    }
+    editorRenamed(renameOld, renameBuf);
+    refresh();
+    int i = findEntry(renameBuf);
+    if (i >= 0) selected = i;
+}
+
+void filemgrKey(int key)
+{
+    if (!renaming) return;
+    if (key == KEY_ESC)
+    {
+        renaming = 0;
+    }
+    else if (key == KEY_ENTER)
+    {
+        finishRename();
+    }
+    else if (key == KEY_BACKSPACE)
+    {
+        if (renameLen > 0) renameBuf[--renameLen] = 0;
+    }
+    else if (key >= 32 && key < 127 && key != '/' && renameLen < FILE_NAME_LENGTH - 1)
+    {
+        renameBuf[renameLen++] = (char)key;
+        renameBuf[renameLen] = 0;
+    }
+}
 static void goToRoot(void)
 {
     for (int guard = 64; currentDirINode != 0 && guard > 0; guard--) cd("..");
@@ -191,6 +255,9 @@ static void doToolbar(int i)
             createEntry(0);
             break;
         case 3:
+            startRename();
+            break;
+        case 4:
             deleteSelected();
             break;
     }
@@ -198,6 +265,11 @@ static void doToolbar(int i)
 
 void filemgrClick(int lx, int ly)
 {
+    if (renaming)
+    {
+        renaming = 0;
+        return;
+    }
     if (ly < TOOLBAR_H)
     {
         for (int i = 0; i < BTN_COUNT; i++)
@@ -226,6 +298,12 @@ void filemgrClick(int lx, int ly)
             char target[FILE_NAME_LENGTH];
             strcpy(target, entries[i].name);
             navigate(target);
+        }
+        else
+        {
+            const char* err = editorOpen(entries[i].name, entries[i].size);
+            if (err) setStatus(err);
+            else appLaunchByName("Editor");
         }
         lastClick = -1;
         return;
@@ -270,9 +348,22 @@ void filemgrDraw(int x, int y, int w, int h)
 
     gfxFillRect(x, y + TOOLBAR_H, w, PATH_H, strip);
     int maxChars = (w - 8) / 8;
-    int plen = strLen(path);
-    gfxDrawString(plen > maxChars ? path + (plen - maxChars) : path, x + 4, y + TOOLBAR_H + 2, black);
-
+    if (renaming)
+    {
+        char prompt[FILE_NAME_LENGTH + 16];
+        strcpy(prompt, "Rename: ");
+        strAppend(prompt, renameBuf);
+        if ((getTicks() / (TIMER_HZ / 2)) % 2 == 0) strAppend(prompt, "_");
+        int pl = strLen(prompt);
+        gfxFillRect(x, y + TOOLBAR_H, w, PATH_H, white);
+        gfxDrawString(pl > maxChars ? prompt + (pl - maxChars) : prompt, x + 4, y + TOOLBAR_H + 2, black);
+    }
+    else
+    {
+        int plen = strLen(path);
+        gfxDrawString(plen > maxChars ? path + (plen - maxChars) : path, x + 4, y + TOOLBAR_H + 2, black);
+    }
+    
     visibleRows = (h - HEADER_H - FOOTER_H) / ROW_H;
     if (visibleRows < 0) visibleRows = 0;
     for (int i = 0; i < count && i < visibleRows; i++)

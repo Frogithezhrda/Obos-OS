@@ -2,6 +2,12 @@
 
 unsigned char* backBuffer;
 
+static void (*yieldHook)(void) = 0;
+
+void gfxSetYield(void (*fn)(void))
+{
+    yieldHook = fn;
+}
 
 void gfxInit()
 {
@@ -24,6 +30,7 @@ void gfxFillRect(unsigned int x, unsigned int y, unsigned int width, unsigned in
 {
     for (unsigned int j = 0; j < height; j++)
     {
+        if (yieldHook) yieldHook();
         for (unsigned int i = 0; i < width; i++)
         {
             gfxPutPixel(x + i, y + j, color);
@@ -74,6 +81,7 @@ void gfxDrawString(const char* str, unsigned int x, unsigned int y, Color color)
     unsigned int origX = x;
     for (unsigned int i = 0; str[i] != '\0'; i++)
     {
+        if (yieldHook) yieldHook();
         if (str[i] == '\n')
         {
             y += 8 * FONT_SCALE;
@@ -89,5 +97,12 @@ void gfxDrawString(const char* str, unsigned int x, unsigned int y, Color color)
 
 void gfxFlush()
 {
-    memcpy((void*)FB_BASE, backBuffer, SCREEN_WIDTH * SCREEN_HEIGHT * 3);
+    unsigned int total = SCREEN_WIDTH * SCREEN_HEIGHT * 3;
+    unsigned int chunk = SCREEN_WIDTH * 3 * 16;
+    for (unsigned int off = 0; off < total; off += chunk)
+    {
+        unsigned int n = (total - off < chunk) ? (total - off) : chunk;
+        memcpy((unsigned char*)FB_BASE + off, backBuffer + off, n);
+        if (yieldHook) yieldHook();
+    }
 }

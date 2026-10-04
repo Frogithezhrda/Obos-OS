@@ -1,0 +1,10 @@
+#ifndef EDITOR_H
+#define EDITOR_H
+ 
+const char* editorOpen(const char* name, unsigned int size);
+void editorDraw(int x, int y, int w, int h);
+void editorClick(int lx, int ly);
+void editorKey(int key);
+ void editorRenamed(const char* oldName, const char* newName);
+
+#endif

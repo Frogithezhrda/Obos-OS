@@ -83,12 +83,12 @@ void snakeUpdate(const enum Direction dir)
         snake.body[i] = snake.body[i - 1];
     }
 
-    // 3. move head
+    //move head
     switch (dir)
     {
-        case UP:    snake.head = '^'; snake.body[0].y--; break;
-        case DOWN:  snake.head = 'v'; snake.body[0].y++; break;
-        case LEFT:  snake.head = '<'; snake.body[0].x--; break;
+        case UP: snake.head = '^'; snake.body[0].y--; break;
+        case DOWN: snake.head = 'v'; snake.body[0].y++; break;
+        case LEFT: snake.head = '<'; snake.body[0].x--; break;
         case RIGHT: snake.head = '>'; snake.body[0].x++; break;
     }
 

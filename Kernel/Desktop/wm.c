@@ -6,7 +6,7 @@
 #define CLOSE_PAD 2
 
 
-typedef struct { int x, y, w, h; const char* title; Color bg; int id; DrawFn draw; ClickFn click; } Window;
+typedef struct { int x, y, w, h; const char* title; Color bg; int id; DrawFn draw; ClickFn click; KeyFn key; } Window;
 
 static int clickConsumed = 0;
 static int nextId = 0;
@@ -153,3 +153,13 @@ void wmDraw()
 const char* wmTitle(int index) { return wins[index].title; }
 int  wmIsFocused(int index) { return index == winCount - 1; }
 void wmFocus(int index) { wmRaise(index); }
+void wmSetKey(int id, KeyFn fn)
+{
+    int i = wmIndexOfId(id);
+    if (i >= 0) wins[i].key = fn;
+}
+
+void wmKey(int key)
+{
+    if (winCount > 0 && wins[winCount - 1].key) wins[winCount - 1].key(key);
+}

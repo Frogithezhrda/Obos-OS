@@ -796,3 +796,33 @@ int getDirectoryEntries(FileEntry* outEntries, int maxEntries)
     kfree(block);
     return outCount;
 }
+
+int renameFile(const char* oldName, const char* newName)
+{
+    int inodeIdx = findFile(oldName);
+    if (inodeIdx == ERROR)
+    {
+        printLine("File not found!", RED);
+        return ERROR;
+    }
+
+    if (findFile(newName) != ERROR)
+    {
+        printLine("A file with the new name already exists!", RED);
+        return ERROR;
+    }
+
+    if (removeDirEntry(oldName) != SUCCESS)
+    {
+        printLine("Failed to remove old directory entry!", RED);
+        return ERROR;
+    }
+
+    if (addDirEntry(inodeIdx, newName) != SUCCESS)
+    {
+        printLine("Failed to add new directory entry!", RED);
+        return ERROR;
+    }
+
+    return SUCCESS;
+}

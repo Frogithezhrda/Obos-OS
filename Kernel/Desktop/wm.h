@@ -20,5 +20,8 @@ int wmIndexOfId(int id);
 int wmHitTest(int px, int py);
 int wmConsumedClick(void);
 void wmCloseId(int id);
+typedef void (*KeyFn)(int key);
+void wmSetKey(int id, KeyFn fn);
+void wmKey(int key);
 
 #endif

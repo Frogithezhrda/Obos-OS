@@ -3,6 +3,7 @@
 #include "../Graphics/gfx.h"
 #include "../Drivers/timerDriver.h"
 #include "filemgr.h"
+#include "editor.h"
 
 typedef struct App
 {
@@ -14,6 +15,7 @@ typedef struct App
     DrawFn draw;
     int winId;
     ClickFn click;
+    KeyFn key;
 } App;
 
 static unsigned char iconGeneric[16][16] = {
@@ -64,7 +66,8 @@ static App apps[] =
 {
     {"About",  iconGeneric, 280, 100, "About OBOS", {230, 230, 230}, drawAbout,  -1},
     {"System", iconGeneric, 260, 90,  "System", {255, 255, 255}, drawSystem, -1},
-    {"Files", iconGeneric, 320, 240, "File Manager", {255, 255, 255}, filemgrDraw, -1, filemgrClick},
+    {"Files", iconGeneric, 360, 260, "File Manager", {255, 255, 255}, filemgrDraw, -1, filemgrClick, filemgrKey},
+    {"Editor", iconGeneric, 420, 300, "Text Editor", {255, 255, 255}, editorDraw, -1, editorClick, editorKey},
 };
 
 
@@ -90,4 +93,18 @@ void appLaunch(int i)
     apps[i].winId = wmAddWindow(x, y, apps[i].w, apps[i].h, apps[i].title, apps[i].bg, apps[i].draw);
     if (apps[i].winId >= 0 && apps[i].click)
         wmSetClick(apps[i].winId, apps[i].click);
+
+    if (apps[i].winId >= 0 && apps[i].key) wmSetKey(apps[i].winId, apps[i].key);
+}
+
+void appLaunchByName(const char* name)
+{
+    for (int i = 0; i < appCount(); i++)
+    {
+        if (strcmp(apps[i].name, name) == 0)
+        {
+            appLaunch(i);
+            return;
+        }
+    }
 }

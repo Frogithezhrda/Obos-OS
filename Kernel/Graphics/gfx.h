@@ -6,7 +6,7 @@
 #include "../SystemLib/obosMemory.h"
 #include "icons.h"
 
-
+void gfxSetYield(void (*fn)(void));
 void gfxInit();
 void gfxFlush();
 void gfxPutPixel(unsigned int x, unsigned int y, Color color);

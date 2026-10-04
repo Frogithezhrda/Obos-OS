@@ -8,7 +8,7 @@ static const char scancodeToASCII[LAST_SCAN_CODE] =
     0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
     0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,
     '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    '7', '8', 'v', '-', '4', '>', '6', '<', '1', '2', 'V', '0', '.'
+    '7', '8', 'v', '-', '4', '<', '6', '>', '1', '2', 'V', '0', '.'
 };
 
 static const char scancodeToASCIIShift[LAST_SCAN_CODE] = 
@@ -23,6 +23,84 @@ static const char scancodeToASCIIShift[LAST_SCAN_CODE] =
 
 static volatile unsigned char shiftPressed = 0;
 static volatile unsigned char lastScanCode = 0;
+static int keyQueue[KEY_QUEUE_SIZE];
+static int keyHead = 0;
+static int keyTail = 0;
+static int extended = 0;
+static int ctrlPressed = 0;
+
+static void pushKey(int key)
+{
+    int next = (keyHead + 1) % KEY_QUEUE_SIZE;
+    if (next == keyTail) return;
+    keyQueue[keyHead] = key;
+    keyHead = next;
+}
+
+void keyboardPump(void)
+{
+    unsigned char sc = lastScanCode;
+    if (sc == 0) return;
+    lastScanCode = 0;
+    if (sc == 0xE0)
+    {
+        extended = 1;
+        return;
+    }
+    int isExtended = extended;
+    extended = 0;
+    int release = sc & KEYPRESS_MASK;
+    unsigned char code = sc & 0x7F;
+    if (isExtended && (code == 0x2A || code == 0x36)) return;
+    if (code == 0x1D)
+    {
+        ctrlPressed = !release;
+        return;
+    }
+    if (sc == SHIFT_LEFT_PRESS || sc == SHIFT_RIGHT_PRESS)
+    {
+        shiftPressed = 1;
+        return;
+    }
+    if (sc == SHIFT_LEFT_RELEASE || sc == SHIFT_RIGHT_RELEASE)
+    {
+        shiftPressed = 0;
+        return;
+    }
+    if (release) return;
+    if (isExtended)
+    {
+        switch (code)
+        {
+            case 0x48: pushKey(KEY_UP); break;
+            case 0x50: pushKey(KEY_DOWN); break;
+            case 0x4B: pushKey(KEY_LEFT); break;
+            case 0x4D: pushKey(KEY_RIGHT); break;
+            case 0x47: pushKey(KEY_HOME); break;
+            case 0x4F: pushKey(KEY_END); break;
+            case 0x53: pushKey(KEY_DELETE); break;
+            case 0x1C: pushKey(KEY_ENTER); break;
+        }
+        return;
+    }
+    if (ctrlPressed)
+    {
+        if (code == 0x1F) pushKey(KEY_SAVE);
+        return;
+    }
+    if (code > 57) return;
+    char ascii = shiftPressed ? scancodeToASCIIShift[code] : scancodeToASCII[code];
+    if (ascii != 0) pushKey((unsigned char)ascii);
+}
+
+int keyboardPoll(void)
+{
+    keyboardPump();
+    if (keyTail == keyHead) return 0;
+    int key = keyQueue[keyTail];
+    keyTail = (keyTail + 1) % KEY_QUEUE_SIZE;
+    return key;
+}
 
 void keyboardISR(void)
 {
