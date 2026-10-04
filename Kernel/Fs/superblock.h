@@ -38,9 +38,10 @@ typedef struct DirectoryEntry
 
 typedef struct FileEntry
 {
-    char name[64];
+    char name[FILE_NAME_LENGTH];
     unsigned int inodeIdx;
     Type type;
+    unsigned int size;
 } FileEntry;
 
 typedef struct SuperBlock
@@ -214,5 +215,7 @@ unsigned int getFreeBlocksCount();
 
 
 int getDirectoryEntries(FileEntry* outEntries, int maxEntries);
+
+extern unsigned int currentDirINode;
 
 #endif

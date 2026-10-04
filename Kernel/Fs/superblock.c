@@ -554,8 +554,13 @@ int createFile(const char* name, Type type)
     inodeTable->inodes[freeInodeIndex].fileSize = 0;
     inodeTable->inodes[freeInodeIndex].parentINode = currentDirINode;
 
+    if (addDirEntry(freeInodeIndex, name) != SUCCESS)
+    {
+        inodeTable->inodes[freeInodeIndex].isUsed = 0;
+        flushInodeTable();
+        return ERROR;
+    }
     flushInodeTable();
-    addDirEntry(freeInodeIndex, name);
     return freeInodeIndex;
 }
 
@@ -783,6 +788,7 @@ int getDirectoryEntries(FileEntry* outEntries, int maxEntries)
             strcpy(entry->name, name);
             entry->inodeIdx = inodeIdx;
             entry->type = inodeTable->inodes[inodeIdx].type;
+            entry->size = inodeTable->inodes[inodeIdx].fileSize;
         }
     }
 

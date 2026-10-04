@@ -15,6 +15,7 @@
 #define SECOND_REG 0x00
 #define MINUTE_REG 0x02
 #define HOUR_REG 0x04 
+#define TIMER_HZ 100
 
 typedef struct Time
 {

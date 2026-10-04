@@ -71,7 +71,7 @@ void taskbarUpdate(void)
             }
             slot++;
         }
-        // TODO: Start button click at inRect(mouseX, mouseY, 4, TASKBAR_Y + 4, START_W, BTN_H)
+        // TODO: start button click at inRect(mouseX, mouseY, 4, TASKBAR_Y + 4, START_W, BTN_H)
     }
     tbPrevLeft = mouseLeft;
 }
