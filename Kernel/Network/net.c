@@ -1,4 +1,5 @@
 #include "net.h"
+#include "tcp.h"
 
 static NetDevice* eth0;
 
@@ -13,5 +14,6 @@ void initializeNet()
     ipInit(eth0);
     icmpInit(eth0);
     udpInit(eth0);
+    tcpInit(eth0);
 }
 

@@ -5,6 +5,11 @@
 
 #define TCP_PROTOCOL 6
 
+#define TCP_FIN 0x01
+#define TCP_SYN 0x02
+#define TCP_RST 0x04
+#define TCP_PSH 0x08
+#define TCP_ACK 0x10
 
 
 /*
@@ -25,10 +30,21 @@ typedef struct TcpHeader
     unsigned short urgentPointer;
 } __attribute__((packed)) TcpHeader;
 
+typedef enum
+{
+    TCP_CLOSED, TCP_SYN_SENT, TCP_ESTABLISHED,
+    TCP_FIN_WAIT_1, TCP_FIN_WAIT_2, TCP_CLOSE_WAIT, TCP_LAST_ACK
+} TcpState;
+
+typedef void (*TcpDataCb)(const unsigned char* data, unsigned int len);
+typedef void (*TcpCloseCb)(void);
 
 void tcpInit(NetDevice* dev);
-void tcpSend(unsigned int srcIp, unsigned int dstIp, unsigned short srcPort, unsigned short dstPort, void* data, unsigned int length);
+int tcpConnect(unsigned int dstIp, unsigned short dstPort, TcpDataCb onData, TcpCloseCb onClose);
+int tcpSend(void* data, unsigned int length);
 void tcpReceive(NetDevice* dev, const void* buffer, unsigned int length);
-
+void tcpClose();
+void tcpTick();
+TcpState tcpGetState();
 
 #endif

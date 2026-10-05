@@ -1,5 +1,6 @@
 #include "ip.h"
 #include "icmp.h"
+#include "tcp.h"
 
 static NetDevice* ipDev = 0;
 
@@ -83,10 +84,8 @@ unsigned short checksum(void* data, unsigned int length)
  
 void ipSend(unsigned int dstIp, unsigned char protocol, void* data, unsigned int length)
 {
-    if (!ipDev)
-    {
-        return;
-    }
+    if (!ipDev) return;
+    if (IP_HEADER_SIZE + length > ETH_FRAME_MAX) return;
     unsigned char* dstMac = ipRoute(dstIp);
     if(!dstMac && protocol == (unsigned char)IP_PROTO_UDP)
     {
@@ -136,5 +135,9 @@ void ipReceive(void* data, unsigned int length)
     else if(hdr->protocol == IP_PROTO_UDP || hdr->protocol == IP_PROTO_DHCP)
     {
         udpReceive(ipDev, payload, paylen);
+    }
+    else if (hdr->protocol == TCP_PROTOCOL)
+    {
+        tcpReceive(ipDev, payload, paylen);
     }
 }
