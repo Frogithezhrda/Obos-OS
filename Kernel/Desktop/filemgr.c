@@ -22,7 +22,7 @@ static int visibleRows = 0;
 static int lastClick = -1;
 static unsigned int lastTick = 0;
 static char path[128] = "/";
-static const char* btnLabel[BTN_COUNT] = {"Up", "Dir", "File", "Ren", "Del", "Move", "X"};
+static const char* btnLabel[BTN_COUNT] = {"Up", "Dir", "File", "Ren", "Del", "Cut", "Cancel"};
 static const char* status = 0;
 static unsigned int statusUntil = 0;
 static int confirmIdx = -1;
@@ -36,6 +36,7 @@ static int moveIsDir = 0;
 static unsigned int moveSrcDir = 0;
 static char moveName[FILE_NAME_LENGTH];
 static char moveSrcPath[128];
+static int inputKind = 0;
 
 static int strLen(const char* s)
 {
@@ -186,6 +187,7 @@ static void startRename(void)
     strcpy(renameOld, entries[selected].name);
     strcpy(renameBuf, entries[selected].name);
     renameLen = strLen(renameBuf);
+    inputKind = 0;
     renaming = 1;
 }
 static void finishRename(void)
@@ -212,7 +214,34 @@ static void finishRename(void)
     int i = findEntry(renameBuf);
     if (i >= 0) selected = i;
 }
+static void startCreate(int isDir)
+{
+    renameBuf[0] = 0;
+    renameLen = 0;
+    inputKind = isDir ? 1 : 2;
+    renaming = 1;
+}
 
+static void finishCreate(void)
+{
+    renaming = 0;
+    if (renameLen == 0)
+    {
+        setStatus("Name cannot be empty");
+        return;
+    }
+    if (strcmp(renameBuf, ".") == 0 || strcmp(renameBuf, "..") == 0 || findEntry(renameBuf) >= 0)
+    {
+        setStatus("Name not allowed or taken");
+        return;
+    }
+    if (inputKind == 1) createDir(renameBuf);
+    else createFile(renameBuf, File);
+    refresh();
+    int i = findEntry(renameBuf);
+    if (i < 0) setStatus("Create failed");
+    else selected = i;
+}
 void filemgrKey(int key)
 {
     if (moving && key == KEY_ESC)
@@ -227,7 +256,8 @@ void filemgrKey(int key)
     }
     else if (key == KEY_ENTER)
     {
-        finishRename();
+        if (inputKind == 0) finishRename();
+        else finishCreate();
     }
     else if (key == KEY_BACKSPACE)
     {
@@ -311,7 +341,7 @@ static int btnCount(void)
 
 static const char* btnText(int i)
 {
-    if (i == 5 && moving) return "Here";
+    if (i == 5 && moving) return "Paste";
     return btnLabel[i];
 }
 
@@ -336,10 +366,10 @@ static void doToolbar(int i)
             if (currentDirINode != 0) navigate("..");
             break;
         case 1:
-            createEntry(1);
+            startCreate(1);
             break;
         case 2:
-            createEntry(0);
+            startCreate(0);
             break;
         case 3:
             startRename();
@@ -445,7 +475,10 @@ void filemgrDraw(int x, int y, int w, int h)
     if (renaming)
     {
         char prompt[FILE_NAME_LENGTH + 16];
-        strcpy(prompt, "Rename: ");
+        const char* label = "Rename: ";
+        if (inputKind == 1) label = "New folder: ";
+        if (inputKind == 2) label = "New file: ";
+        strcpy(prompt, label);
         strAppend(prompt, renameBuf);
         if ((getTicks() / (TIMER_HZ / 2)) % 2 == 0) strAppend(prompt, "_");
         int pl = strLen(prompt);

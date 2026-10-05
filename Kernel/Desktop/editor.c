@@ -15,10 +15,11 @@
 #define SAVEAS_W 64
 
 static char buf[EDITOR_MAX];
-static char fileName[FILE_NAME_LENGTH];
+static char fileName[FILE_NAME_LENGTH] = "Untitled";
+static int named = 0;
 static unsigned int fileDir = 0;
 static unsigned int savedDir = 0;
-static int hasFile = 0;
+static int hasFile = 1;
 static int len = 0;
 static int cursor = 0;
 static int wantCol = 0;
@@ -122,10 +123,17 @@ static void moveDown(void)
     int nextLen = lineEnd(nextStart) - nextStart;
     cursor = nextStart + (wantCol < nextLen ? wantCol : nextLen);
 }
+//forward dec
+static void startSaveAs(void);
 
 static void save(void)
 {
     if (!hasFile) return;
+    if (!named)
+    {
+        startSaveAs();
+        return;
+    }
     savedDir = currentDirINode;
     currentDirINode = fileDir;
     int result = writeFile(fileName, buf, len);
@@ -145,11 +153,18 @@ static void save(void)
 static void startSaveAs(void)
 {
     if (!hasFile) return;
-    strcpy(nameBuf, fileName);
+    if (named)
+    {
+        strcpy(nameBuf, fileName);
+    }
+    else
+    {
+        nameBuf[0] = 0;
+        fileDir = currentDirINode;
+    }
     nameLen = strLen(nameBuf);
     naming = 1;
 }
-
 static void finishSaveAs(void)
 {
     naming = 0;
@@ -158,7 +173,7 @@ static void finishSaveAs(void)
         setStatus("Name cannot be empty");
         return;
     }
-    if (strcmp(nameBuf, fileName) == 0)
+    if (named && strcmp(nameBuf, fileName) == 0)
     {
         save();
         return;
@@ -215,8 +230,8 @@ static void nameKey(int key)
 
 const char* editorOpen(const char* name, unsigned int size)
 {
-    if (hasFile && strcmp(fileName, name) == 0 && fileDir == currentDirINode) return 0;
-    if (hasFile && dirty) return "Save the open file first";
+    if (named && strcmp(fileName, name) == 0 && fileDir == currentDirINode) return 0;
+    if (dirty) return "Save the open file first";
     if (size > EDITOR_MAX) return "File too large (8 KB max)";
     if (size > 0 && readFile(name, buf, size) != SUCCESS) return "Read failed";
     strcpy(fileName, name);
@@ -228,6 +243,7 @@ const char* editorOpen(const char* name, unsigned int size)
     leftCol = 0;
     dirty = 0;
     hasFile = 1;
+    named = 1;
     return 0;
 }
 
@@ -351,12 +367,6 @@ void editorDraw(int x, int y, int w, int h)
     drawBtn(x + SAVE_X, by, SAVE_W, bh, "Save", hasFile ? BLACK : dark);
     drawBtn(x + SAVEAS_X, by, SAVEAS_W, bh, "Save As", hasFile ? BLACK : dark);
 
-    if (!hasFile)
-    {
-        gfxDrawString("No file open. Double-click a file in Files.", x + PAD, y + TOOLBAR_H + 8, BLACK);
-        return;
-    }
-
     char title[FILE_NAME_LENGTH + 4];
     title[0] = 0;
     if (dirty) strAppend(title, "* ");
@@ -436,10 +446,10 @@ void editorDraw(int x, int y, int w, int h)
 
 void editorRenamed(const char* oldName, const char* newName)
 {
-    if (hasFile && fileDir == currentDirINode && strcmp(fileName, oldName) == 0) strcpy(fileName, newName);
+    if (named && hasFile && fileDir == currentDirINode && strcmp(fileName, oldName) == 0) strcpy(fileName, newName);
 }
 
 void editorMoved(const char* name, unsigned int oldDir, unsigned int newDir)
 {
-    if (hasFile && fileDir == oldDir && strcmp(fileName, name) == 0) fileDir = newDir;
+    if (named && hasFile && fileDir == oldDir && strcmp(fileName, name) == 0) fileDir = newDir;
 }
