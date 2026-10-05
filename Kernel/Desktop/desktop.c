@@ -245,8 +245,7 @@ void desktopDraw(void)
             iconPos(i, &x, &y);
             gfxDrawIcon(x + (CELL_W - ICON_PX) / 2, y + 4, appIcon(i), ICON_SCALE);
             const char* name = appName(i);
-            int len = 0;
-            while (name[len]) len++;
+            int len = strLen(name);
             int lx = x + (CELL_W - len * 8) / 2;
             int ly = y + 4 + ICON_PX + 6;
             if (i == selected) gfxFillRect(lx - 2, ly - 2, len * 8 + 4, 12, hl);

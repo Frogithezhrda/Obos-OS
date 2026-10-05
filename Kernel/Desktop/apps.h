@@ -1,5 +1,6 @@
 #ifndef APPS_H
 #define APPS_H
+#include "../SystemLib/util.h"
 
 int appCount(void);
 const char* appName(int i);

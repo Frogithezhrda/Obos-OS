@@ -38,34 +38,6 @@ static char moveName[FILE_NAME_LENGTH];
 static char moveSrcPath[128];
 static int inputKind = 0;
 
-static int strLen(const char* s)
-{
-    int n = 0;
-    while (s[n]) n++;
-    return n;
-}
-
-static void strAppend(char* dst, const char* src)
-{
-    int n = strLen(dst);
-    while (*src) dst[n++] = *src++;
-    dst[n] = 0;
-}
-
-static void utoa10(unsigned int v, char* out)
-{
-    char tmp[12];
-    int n = 0;
-    if (v == 0) tmp[n++] = '0';
-    while (v)
-    {
-        tmp[n++] = '0' + v % 10;
-        v /= 10;
-    }
-    for (int i = 0; i < n; i++) out[i] = tmp[n - 1 - i];
-    out[n] = 0;
-}
-
 static void setStatus(const char* msg)
 {
     status = msg;
@@ -111,16 +83,7 @@ static int findEntry(const char* name)
         if (strcmp(entries[i].name, name) == 0) return i;
     return -1;
 }
-static int startsWith(const char* s, const char* prefix)
-{
-    while (*prefix)
-    {
-        if (*s != *prefix) return 0;
-        s++;
-        prefix++;
-    }
-    return 1;
-}
+
 
 static void startMove(void)
 {

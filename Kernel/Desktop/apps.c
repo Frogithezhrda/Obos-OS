@@ -19,6 +19,8 @@ typedef struct App
     Color titleColor;
 } App;
 
+#define APP(...) {.winId = -1, __VA_ARGS__}
+
 static unsigned char iconGeneric[16][16] = {
     {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
     {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
@@ -38,14 +40,6 @@ static unsigned char iconGeneric[16][16] = {
     {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 };
 
-static void utoa10(unsigned int v, char* out)
-{
-    char tmp[12]; int n = 0;
-    if (v == 0) tmp[n++] = '0';
-    while (v) { tmp[n++] = '0' + v % 10; v /= 10; }
-    for (int i = 0; i < n; i++) out[i] = tmp[n - 1 - i];
-    out[n] = 0;
-}
 
 // ---- app window contents (called every frame) ----
 static void drawAbout(int x, int y, int w, int h)
@@ -63,19 +57,18 @@ static void drawSystem(int x, int y, int w, int h)
     gfxDrawString("Screen: 1024x768x24", x + 8, y + 24, BLACK);
 }
 
-static App apps[] = 
+static App apps[] =
 {
-    {"About",  iconGeneric, 280, 100, "About OBOS", {230, 230, 230}, drawAbout,  -1},
-    {"System", iconGeneric, 260, 90,  "System", {255, 255, 255}, drawSystem, -1},
-    {"Files", iconGeneric, 360, 260, "File Manager", {255, 255, 255}, filemgrDraw, -1, filemgrClick, filemgrKey, .titleColor = {255, 212, 0}},
-    {"Editor", iconGeneric, 420, 300, "Text Editor", {255, 255, 255}, editorDraw, -1, editorClick, editorKey},
+    APP(.name = "About", .w = 280, .h = 100, .title = "About OBOS", .bg = {230, 230, 230}, .draw = drawAbout),
+    APP(.name = "System", .w = 260, .h = 90, .draw = drawSystem),
+    APP(.name = "Files", .w = 360, .h = 260, .title = "File Manager", .draw = filemgrDraw, .click = filemgrClick, .key = filemgrKey, .titleColor = {255, 212, 0}),
+    APP(.name = "Editor", .w = 420, .h = 300, .title = "Text Editor", .draw = editorDraw, .click = editorClick, .key = editorKey),
 };
-
 
 
 int appCount(void) { return sizeof(apps) / sizeof(apps[0]); }
 const char* appName(int i) { return apps[i].name; }
-unsigned char (*appIcon(int i))[16] { return apps[i].icon; }
+unsigned char (*appIcon(int i))[16] { return apps[i].icon ? apps[i].icon : iconGeneric; }
 
 void appLaunch(int i)
 {
@@ -91,7 +84,13 @@ void appLaunch(int i)
     int x = 140 + cascade * 28, y = 40 + cascade * 28;
     cascade = (cascade + 1) % 8;
 
-    apps[i].winId = wmAddWindow(x, y, apps[i].w, apps[i].h, apps[i].title, apps[i].bg, apps[i].draw);
+    int w = apps[i].w ? apps[i].w : 300;
+    int h = apps[i].h ? apps[i].h : 200;
+    const char* title = apps[i].title ? apps[i].title : apps[i].name;
+    Color bg = apps[i].bg;
+    if (!bg.r && !bg.g && !bg.b) bg = (Color){255, 255, 255};
+    apps[i].winId = wmAddWindow(x, y, w, h, title, bg, apps[i].draw);
+
     if (apps[i].winId >= 0 && apps[i].click)
         wmSetClick(apps[i].winId, apps[i].click);
 

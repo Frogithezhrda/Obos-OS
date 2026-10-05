@@ -1,6 +1,7 @@
 #ifndef EDITOR_H
 #define EDITOR_H
- 
+ #include "../SystemLib/util.h"
+
 const char* editorOpen(const char* name, unsigned int size);
 void editorDraw(int x, int y, int w, int h);
 void editorClick(int lx, int ly);

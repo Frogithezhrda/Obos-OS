@@ -2,6 +2,7 @@
 #define WM_H
 #include "../Graphics/gui.h"
 #include "../Graphics/mouse.h"
+#include "../SystemLib/util.h"
 
 #define FRAME_TICKS 2
 
