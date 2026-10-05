@@ -12,4 +12,5 @@
 #define KEY_DELETE 0x106
 #define KEY_SAVE 0x107
 #define KEY_ESC 0x108
+#define KEY_SAVE_AS 0x109
 #endif

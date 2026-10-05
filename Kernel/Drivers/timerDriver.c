@@ -74,8 +74,6 @@ Time getRTCTime(void)
     t.hours = bcdToDec(readRTC(HOUR_REG)); 
     t.minutes = bcdToDec(readRTC(MINUTE_REG)); 
     t.seconds = bcdToDec(readRTC(SECOND_REG));
-    //israel hours change later
-    t.hours += 3;
     t.ms = 0;
     return t;
 }

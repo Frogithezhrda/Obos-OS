@@ -216,6 +216,8 @@ unsigned int getFreeBlocksCount();
 
 int getDirectoryEntries(FileEntry* outEntries, int maxEntries);
 
+int moveFile(const char* name, unsigned int destDirINode);
+
 extern unsigned int currentDirINode;
 
 #endif

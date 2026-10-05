@@ -11,7 +11,7 @@
 #define HEADER_H (TOOLBAR_H + PATH_H)
 #define FOOTER_H 14
 #define ROW_H 12
-#define BTN_COUNT 5
+#define BTN_COUNT 7
 
 static FileEntry raw[MAX_ENTRIES];
 static FileEntry entries[MAX_ENTRIES];
@@ -22,7 +22,7 @@ static int visibleRows = 0;
 static int lastClick = -1;
 static unsigned int lastTick = 0;
 static char path[128] = "/";
-static const char* btnLabel[BTN_COUNT] = {"Up", "Dir", "File", "Ren", "Del"};
+static const char* btnLabel[BTN_COUNT] = {"Up", "Dir", "File", "Ren", "Del", "Move", "X"};
 static const char* status = 0;
 static unsigned int statusUntil = 0;
 static int confirmIdx = -1;
@@ -31,6 +31,11 @@ static int renaming = 0;
 static int renameLen = 0;
 static char renameBuf[FILE_NAME_LENGTH];
 static char renameOld[FILE_NAME_LENGTH];
+static int moving = 0;
+static int moveIsDir = 0;
+static unsigned int moveSrcDir = 0;
+static char moveName[FILE_NAME_LENGTH];
+static char moveSrcPath[128];
 
 static int strLen(const char* s)
 {
@@ -105,6 +110,71 @@ static int findEntry(const char* name)
         if (strcmp(entries[i].name, name) == 0) return i;
     return -1;
 }
+static int startsWith(const char* s, const char* prefix)
+{
+    while (*prefix)
+    {
+        if (*s != *prefix) return 0;
+        s++;
+        prefix++;
+    }
+    return 1;
+}
+
+static void startMove(void)
+{
+    if (selected < 0 || selected >= count || strcmp(entries[selected].name, "..") == 0)
+    {
+        setStatus("Select something first");
+        return;
+    }
+    strcpy(moveName, entries[selected].name);
+    strcpy(moveSrcPath, path);
+    moveIsDir = entries[selected].type == Directory;
+    moveSrcDir = currentDirINode;
+    moving = 1;
+}
+
+static void finishMove(void)
+{
+    unsigned int dest = currentDirINode;
+    if (dest == moveSrcDir)
+    {
+        setStatus("Already in this folder");
+        return;
+    }
+    if (findEntry(moveName) >= 0)
+    {
+        setStatus("Name exists in this folder");
+        return;
+    }
+    if (moveIsDir)
+    {
+        char full[256];
+        strcpy(full, moveSrcPath);
+        if (strLen(full) > 1) strAppend(full, "/");
+        strAppend(full, moveName);
+        int n = strLen(full);
+        if (startsWith(path, full) && (path[n] == 0 || path[n] == '/'))
+        {
+            setStatus("Cannot move a folder into itself");
+            return;
+        }
+    }
+    currentDirINode = moveSrcDir;
+    int result = moveFile(moveName, dest);
+    currentDirINode = dest;
+    moving = 0;
+    if (result != SUCCESS)
+    {
+        setStatus("Move failed");
+        return;
+    }
+    editorMoved(moveName, moveSrcDir, dest);
+    refresh();
+    int i = findEntry(moveName);
+    if (i >= 0) selected = i;
+}
 
 static void startRename(void)
 {
@@ -145,6 +215,11 @@ static void finishRename(void)
 
 void filemgrKey(int key)
 {
+    if (moving && key == KEY_ESC)
+    {
+        moving = 0;
+        return;
+    }
     if (!renaming) return;
     if (key == KEY_ESC)
     {
@@ -229,9 +304,20 @@ static void deleteSelected(void)
     refresh();
 }
 
+static int btnCount(void)
+{
+    return moving ? 7 : 6;
+}
+
+static const char* btnText(int i)
+{
+    if (i == 5 && moving) return "Here";
+    return btnLabel[i];
+}
+
 static int btnW(int i)
 {
-    return strLen(btnLabel[i]) * 8 + 8;
+    return strLen(btnText(i)) * 8 + 8;
 }
 
 static int btnX(int i)
@@ -243,6 +329,7 @@ static int btnX(int i)
 
 static void doToolbar(int i)
 {
+    if (moving && i != 0 && i != 5 && i != 6) return;
     switch (i)
     {
         case 0:
@@ -260,11 +347,19 @@ static void doToolbar(int i)
         case 4:
             deleteSelected();
             break;
+        case 5:
+            if (moving) finishMove();
+            else startMove();
+            break;
+        case 6:
+            moving = 0;
+            break;
     }
 }
 
 void filemgrClick(int lx, int ly)
 {
+
     if (renaming)
     {
         renaming = 0;
@@ -272,7 +367,7 @@ void filemgrClick(int lx, int ly)
     }
     if (ly < TOOLBAR_H)
     {
-        for (int i = 0; i < BTN_COUNT; i++)
+        for (int i = 0; i < btnCount(); i++)
         {
             if (lx >= btnX(i) && lx < btnX(i) + btnW(i) && ly >= 2 && ly < TOOLBAR_H - 2)
             {
@@ -299,7 +394,7 @@ void filemgrClick(int lx, int ly)
             strcpy(target, entries[i].name);
             navigate(target);
         }
-        else
+        else if (!moving)
         {
             const char* err = editorOpen(entries[i].name, entries[i].size);
             if (err) setStatus(err);
@@ -334,17 +429,16 @@ void filemgrDraw(int x, int y, int w, int h)
         refresh();
         loaded = 1;
     }
-    Color black = {0, 0, 0};
-    Color white = {255, 255, 255};
-    Color gray = {192, 192, 192};
     Color dark = {96, 96, 96};
     Color strip = {230, 230, 230};
     Color hl = {0, 0, 128};
-    Color red = {200, 0, 0};
 
-    gfxFillRect(x, y, w, TOOLBAR_H, gray);
-    for (int i = 0; i < BTN_COUNT; i++)
-        drawBtn(x + btnX(i), y + 2, btnW(i), TOOLBAR_H - 4, btnLabel[i], (i == 0 && currentDirINode == 0) ? dark : black);
+    gfxFillRect(x, y, w, TOOLBAR_H, GRAY);
+    for (int i = 0; i < btnCount(); i++)
+    {
+        int off = (i == 0 && currentDirINode == 0) || (moving && i != 0 && i != 5 && i != 6);
+        drawBtn(x + btnX(i), y + 2, btnW(i), TOOLBAR_H - 4, btnText(i), off ? dark : BLACK);
+    }
 
     gfxFillRect(x, y + TOOLBAR_H, w, PATH_H, strip);
     int maxChars = (w - 8) / 8;
@@ -355,21 +449,21 @@ void filemgrDraw(int x, int y, int w, int h)
         strAppend(prompt, renameBuf);
         if ((getTicks() / (TIMER_HZ / 2)) % 2 == 0) strAppend(prompt, "_");
         int pl = strLen(prompt);
-        gfxFillRect(x, y + TOOLBAR_H, w, PATH_H, white);
-        gfxDrawString(pl > maxChars ? prompt + (pl - maxChars) : prompt, x + 4, y + TOOLBAR_H + 2, black);
+        gfxFillRect(x, y + TOOLBAR_H, w, PATH_H, WHITE);
+        gfxDrawString(pl > maxChars ? prompt + (pl - maxChars) : prompt, x + 4, y + TOOLBAR_H + 2, BLACK);
     }
     else
     {
         int plen = strLen(path);
-        gfxDrawString(plen > maxChars ? path + (plen - maxChars) : path, x + 4, y + TOOLBAR_H + 2, black);
+        gfxDrawString(plen > maxChars ? path + (plen - maxChars) : path, x + 4, y + TOOLBAR_H + 2, BLACK);
     }
-    
+
     visibleRows = (h - HEADER_H - FOOTER_H) / ROW_H;
     if (visibleRows < 0) visibleRows = 0;
     for (int i = 0; i < count && i < visibleRows; i++)
     {
         int ry = y + HEADER_H + i * ROW_H;
-        Color c = (i == selected) ? white : black;
+        Color c = (i == selected) ? WHITE : BLACK;
         if (i == selected) gfxFillRect(x, ry, w, ROW_H, hl);
         gfxDrawString(entries[i].type == Directory ? "[D]" : "   ", x + 4, ry + 2, c);
         gfxDrawString(entries[i].name, x + 4 + 4 * 8, ry + 2, c);
@@ -381,10 +475,18 @@ void filemgrDraw(int x, int y, int w, int h)
         }
     }
 
-    gfxFillRect(x, y + h - FOOTER_H, w, FOOTER_H, gray);
+    gfxFillRect(x, y + h - FOOTER_H, w, FOOTER_H, GRAY);
     if (status && getTicks() < statusUntil)
     {
-        gfxDrawString(status, x + 4, y + h - FOOTER_H + 3, red);
+        gfxDrawString(status, x + 4, y + h - FOOTER_H + 3, RED);
+    }    
+    else if (moving)
+    {
+        char text[FILE_NAME_LENGTH + 16];
+        strcpy(text, "Moving: ");
+        strAppend(text, moveName);
+        int tl = strLen(text);
+        gfxDrawString(tl > maxChars ? text + (tl - maxChars) : text, x + 4, y + h - FOOTER_H + 3, hl);
     }
     else
     {
@@ -397,6 +499,19 @@ void filemgrDraw(int x, int y, int w, int h)
         utoa10((TOTAL_BLOCKS * BLOCK_SIZE) / 1024 / 1024, num);
         strAppend(text, num);
         strAppend(text, " MB");
-        gfxDrawString(text, x + 4, y + h - FOOTER_H + 3, black);
+        gfxDrawString(text, x + 4, y + h - FOOTER_H + 3, BLACK);
+    }
+}
+void filemgrRefresh(void)
+{
+    if (!loaded) return;
+    char keep[FILE_NAME_LENGTH];
+    int had = selected >= 0 && selected < count;
+    if (had) strcpy(keep, entries[selected].name);
+    refresh();
+    if (had)
+    {
+        int i = findEntry(keep);
+        if (i >= 0) selected = i;
     }
 }

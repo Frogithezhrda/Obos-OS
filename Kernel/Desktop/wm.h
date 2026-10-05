@@ -23,5 +23,6 @@ void wmCloseId(int id);
 typedef void (*KeyFn)(int key);
 void wmSetKey(int id, KeyFn fn);
 void wmKey(int key);
+void wmSetTitleColor(int id, Color c);
 
 #endif

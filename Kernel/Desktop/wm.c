@@ -6,7 +6,7 @@
 #define CLOSE_PAD 2
 
 
-typedef struct { int x, y, w, h; const char* title; Color bg; int id; DrawFn draw; ClickFn click; KeyFn key; } Window;
+typedef struct { int x, y, w, h; const char* title; Color bg; int id; DrawFn draw; ClickFn click; KeyFn key; Color titleColor;} Window;
 
 static int clickConsumed = 0;
 static int nextId = 0;
@@ -138,12 +138,23 @@ void wmUpdate()
 
 void wmDraw()
 {
-    Color titleCol = {40, 90, 200}, white = {255, 255, 255};
+    Color titleCol = {40, 90, 200};
+    Color white = {255, 255, 255};
+    Color black = {0, 0, 0};
     for (int i = 0; i < winCount; i++)
     {
         Window* w = &wins[i];
-        gfxFillRect(w->x, w->y, w->w, TITLE_H, titleCol);
-        gfxDrawString(w->title, w->x + 4, w->y + 4, white);
+        Color bar = titleCol;
+        Color text = white;
+        Color tc = w->titleColor;
+        if (tc.r || tc.g || tc.b)
+        {
+            bar = tc;
+            int lum = (tc.r * 299 + tc.g * 587 + tc.b * 114) / 1000;
+            if (lum > 140) text = black;
+        }
+        gfxFillRect(w->x, w->y, w->w, TITLE_H, bar);
+        gfxDrawString(w->title, w->x + 4, w->y + 4, text);
         drawCloseButton(w);
         gfxFillRect(w->x, w->y + TITLE_H, w->w, w->h, w->bg);
         if (w->draw) w->draw(w->x, w->y + TITLE_H, w->w, w->h);
@@ -162,4 +173,9 @@ void wmSetKey(int id, KeyFn fn)
 void wmKey(int key)
 {
     if (winCount > 0 && wins[winCount - 1].key) wins[winCount - 1].key(key);
+}
+void wmSetTitleColor(int id, Color c)
+{
+    int i = wmIndexOfId(id);
+    if (i >= 0) wins[i].titleColor = c;
 }

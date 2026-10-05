@@ -16,6 +16,7 @@ typedef struct App
     int winId;
     ClickFn click;
     KeyFn key;
+    Color titleColor;
 } App;
 
 static unsigned char iconGeneric[16][16] = {
@@ -66,7 +67,7 @@ static App apps[] =
 {
     {"About",  iconGeneric, 280, 100, "About OBOS", {230, 230, 230}, drawAbout,  -1},
     {"System", iconGeneric, 260, 90,  "System", {255, 255, 255}, drawSystem, -1},
-    {"Files", iconGeneric, 360, 260, "File Manager", {255, 255, 255}, filemgrDraw, -1, filemgrClick, filemgrKey},
+    {"Files", iconGeneric, 360, 260, "File Manager", {255, 255, 255}, filemgrDraw, -1, filemgrClick, filemgrKey, .titleColor = {255, 212, 0}},
     {"Editor", iconGeneric, 420, 300, "Text Editor", {255, 255, 255}, editorDraw, -1, editorClick, editorKey},
 };
 
@@ -94,7 +95,8 @@ void appLaunch(int i)
     if (apps[i].winId >= 0 && apps[i].click)
         wmSetClick(apps[i].winId, apps[i].click);
 
-    if (apps[i].winId >= 0 && apps[i].key) wmSetKey(apps[i].winId, apps[i].key);
+    if (apps[i].winId >= 0 && apps[i].key) wmSetKey(apps[i].winId, apps[i].key);\
+    if (apps[i].winId >= 0) wmSetTitleColor(apps[i].winId, apps[i].titleColor);
 }
 
 void appLaunchByName(const char* name)

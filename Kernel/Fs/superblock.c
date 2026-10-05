@@ -826,3 +826,94 @@ int renameFile(const char* oldName, const char* newName)
 
     return SUCCESS;
 }
+
+int moveFile(const char* name, unsigned int destDirINode)
+{
+    unsigned int srcDir = currentDirINode;
+    int inodeIdx = findFile(name);
+    if (inodeIdx == ERROR)
+    {
+        printLine("File not found!", RED);
+        return ERROR;
+    }
+    if (inodeIdx == 0 || !strcmp(name, ".") || !strcmp(name, ".."))
+    {
+        printLine("Cannot move this entry!", RED);
+        return ERROR;
+    }
+    if (destDirINode >= MAX_FILES)
+    {
+        printLine("Invalid destination!", RED);
+        return ERROR;
+    }
+    INode* destDir = &inodeTable->inodes[destDirINode];
+    if (!destDir->isUsed || destDir->type != Directory)
+    {
+        printLine("Destination is not a valid directory!", RED);
+        return ERROR;
+    }
+    if (destDirINode == srcDir)
+    {
+        printLine("Already in that directory!", RED);
+        return ERROR;
+    }
+    if (inodeTable->inodes[inodeIdx].type == Directory)
+    {
+        unsigned int d = destDirINode;
+        while (1)
+        {
+            if (d == (unsigned int)inodeIdx)
+            {
+                printLine("Cannot move a directory into itself!", RED);
+                return ERROR;
+            }
+            if (d == 0) break;
+            d = inodeTable->inodes[d].parentINode;
+        }
+    }
+
+    currentDirINode = destDirINode;
+    int clash = findFile(name);
+    currentDirINode = srcDir;
+    if (clash != ERROR)
+    {
+        printLine("Name already exists in destination!", RED);
+        return ERROR;
+    }
+
+    currentDirINode = destDirINode;
+    int added = addDirEntry(inodeIdx, name);
+    currentDirINode = srcDir;
+    if (added != SUCCESS)
+    {
+        printLine("Failed to add entry to destination!", RED);
+        return ERROR;
+    }
+
+    if (removeDirEntry(name) != SUCCESS)
+    {
+        currentDirINode = destDirINode;
+        removeDirEntry(name);
+        currentDirINode = srcDir;
+        printLine("Failed to remove entry from source!", RED);
+        return ERROR;
+    }
+
+    INode* moved = &inodeTable->inodes[inodeIdx];
+    moved->parentINode = destDirINode;
+    if (moved->type == Directory && moved->blocks[0] != 0)
+    {
+        Block* block = (Block*)kmalloc(sizeof(Block));
+        if (block)
+        {
+            if (readBlock(moved->blocks[0], block) == SUCCESS)
+            {
+                *((unsigned int*)(block->block + DIR_ENTRY_SIZE)) = destDirINode;
+                writeBlock(moved->blocks[0], block);
+            }
+            kfree(block);
+        }
+    }
+    flushInodeTable();
+    return SUCCESS;
+}

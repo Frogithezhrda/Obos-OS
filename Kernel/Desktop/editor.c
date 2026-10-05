@@ -11,6 +11,8 @@
 #define PAD 4
 #define SAVE_X 4
 #define SAVE_W 40
+#define SAVEAS_X (SAVE_X + SAVE_W + 4)
+#define SAVEAS_W 64
 
 static char buf[EDITOR_MAX];
 static char fileName[FILE_NAME_LENGTH];
@@ -27,6 +29,9 @@ static int visibleRows = 1;
 static int visibleCols = 1;
 static const char* status = 0;
 static unsigned int statusUntil = 0;
+static int naming = 0;
+static int nameLen = 0;
+static char nameBuf[FILE_NAME_LENGTH];
 
 static int strLen(const char* s)
 {
@@ -129,10 +134,82 @@ static void save(void)
     {
         dirty = 0;
         setStatus("Saved");
+        if (fileDir == currentDirINode) filemgrRefresh();
     }
     else
     {
         setStatus("Save failed");
+    }
+}
+
+static void startSaveAs(void)
+{
+    if (!hasFile) return;
+    strcpy(nameBuf, fileName);
+    nameLen = strLen(nameBuf);
+    naming = 1;
+}
+
+static void finishSaveAs(void)
+{
+    naming = 0;
+    if (nameLen == 0)
+    {
+        setStatus("Name cannot be empty");
+        return;
+    }
+    if (strcmp(nameBuf, fileName) == 0)
+    {
+        save();
+        return;
+    }
+    if (strcmp(nameBuf, ".") == 0 || strcmp(nameBuf, "..") == 0)
+    {
+        setStatus("Name not allowed");
+        return;
+    }
+    savedDir = currentDirINode;
+    currentDirINode = fileDir;
+    int created = createFile(nameBuf, File);
+    int result = ERROR;
+    if (created != ERROR) result = writeFile(nameBuf, buf, len);
+    currentDirINode = savedDir;
+    if (created == ERROR)
+    {
+        setStatus("Name taken or cannot create");
+        return;
+    }
+    strcpy(fileName, nameBuf);
+    if (result == SUCCESS)
+    {
+        dirty = 0;
+        setStatus("Saved as new file");
+    }
+    else
+    {
+        setStatus("Save failed");
+    }
+    if (fileDir == currentDirINode) filemgrRefresh();
+}
+
+static void nameKey(int key)
+{
+    if (key == KEY_ESC)
+    {
+        naming = 0;
+    }
+    else if (key == KEY_ENTER)
+    {
+        finishSaveAs();
+    }
+    else if (key == KEY_BACKSPACE)
+    {
+        if (nameLen > 0) nameBuf[--nameLen] = 0;
+    }
+    else if (key >= 32 && key < 127 && key != '/' && nameLen < FILE_NAME_LENGTH - 1)
+    {
+        nameBuf[nameLen++] = (char)key;
+        nameBuf[nameLen] = 0;
     }
 }
 
@@ -157,6 +234,11 @@ const char* editorOpen(const char* name, unsigned int size)
 void editorKey(int key)
 {
     if (!hasFile) return;
+    if (naming)
+    {
+        nameKey(key);
+        return;
+    }
     switch (key)
     {
         case KEY_LEFT:
@@ -203,6 +285,9 @@ void editorKey(int key)
         case KEY_SAVE:
             save();
             break;
+        case KEY_SAVE_AS:
+            startSaveAs();
+            break;
         default:
             if (key >= 32 && key < 127)
             {
@@ -215,9 +300,18 @@ void editorKey(int key)
 
 void editorClick(int lx, int ly)
 {
+    if (naming)
+    {
+        naming = 0;
+        return;
+    }
     if (ly < TOOLBAR_H)
     {
-        if (lx >= SAVE_X && lx < SAVE_X + SAVE_W && ly >= 2 && ly < TOOLBAR_H - 2) save();
+        if (ly >= 2 && ly < TOOLBAR_H - 2)
+        {
+            if (lx >= SAVE_X && lx < SAVE_X + SAVE_W) save();
+            else if (lx >= SAVEAS_X && lx < SAVEAS_X + SAVEAS_W) startSaveAs();
+        }
         return;
     }
     if (!hasFile) return;
@@ -236,35 +330,42 @@ void editorClick(int lx, int ly)
     updateWantCol();
 }
 
+static void drawBtn(int x, int y, int w, int h, const char* label, Color textColor)
+{
+    Color dark = {96, 96, 96};
+    gfxFillRect(x, y, w, h, GRAY);
+    gfxFillRect(x, y, w, 1, WHITE);
+    gfxFillRect(x, y, 1, h, WHITE);
+    gfxFillRect(x, y + h - 1, w, 1, dark);
+    gfxFillRect(x + w - 1, y, 1, h, dark);
+    gfxDrawString(label, x + 4, y + (h - 8) / 2, textColor);
+}
+
 void editorDraw(int x, int y, int w, int h)
 {
-    Color black = {0, 0, 0};
-    Color gray = {192, 192, 192};
-    Color light = {255, 255, 255};
     Color dark = {96, 96, 96};
-    Color red = {200, 0, 0};
 
-    gfxFillRect(x, y, w, TOOLBAR_H, gray);
-    int bx = x + SAVE_X;
+    gfxFillRect(x, y, w, TOOLBAR_H, GRAY);
     int by = y + 2;
     int bh = TOOLBAR_H - 4;
-    gfxFillRect(bx, by, SAVE_W, bh, gray);
-    gfxFillRect(bx, by, SAVE_W, 1, light);
-    gfxFillRect(bx, by, 1, bh, light);
-    gfxFillRect(bx, by + bh - 1, SAVE_W, 1, dark);
-    gfxFillRect(bx + SAVE_W - 1, by, 1, bh, dark);
-    gfxDrawString("Save", bx + 4, by + (bh - 8) / 2, hasFile ? black : dark);
+    drawBtn(x + SAVE_X, by, SAVE_W, bh, "Save", hasFile ? BLACK : dark);
+    drawBtn(x + SAVEAS_X, by, SAVEAS_W, bh, "Save As", hasFile ? BLACK : dark);
 
     if (!hasFile)
     {
-        gfxDrawString("No file open. Double-click a file in Files.", x + PAD, y + TOOLBAR_H + 8, black);
+        gfxDrawString("No file open. Double-click a file in Files.", x + PAD, y + TOOLBAR_H + 8, BLACK);
         return;
     }
 
     char title[FILE_NAME_LENGTH + 4];
-    strcpy(title, fileName);
-    if (dirty) strAppend(title, " *");
-    gfxDrawString(title, bx + SAVE_W + 8, by + (bh - 8) / 2, black);
+    title[0] = 0;
+    if (dirty) strAppend(title, "* ");
+    strAppend(title, fileName);
+    int titleX = SAVEAS_X + SAVEAS_W + 8;
+    int maxTitle = (w - titleX - PAD) / 8;
+    if (maxTitle < 0) maxTitle = 0;
+    if (strLen(title) > maxTitle) title[maxTitle] = 0;
+    gfxDrawString(title, x + titleX, by + (bh - 8) / 2, BLACK);
 
     visibleRows = (h - TOOLBAR_H - FOOTER_H - 2) / LINE_H;
     if (visibleRows < 1) visibleRows = 1;
@@ -290,18 +391,28 @@ void editorDraw(int x, int y, int w, int h)
         {
             char ch = buf[pos + c];
             if (ch < 32 || ch > 126) ch = '?';
-            gfxDrawChar(x + PAD + (c - leftCol) * 8, ry, ch, black);
+            gfxDrawChar(x + PAD + (c - leftCol) * 8, ry, ch, BLACK);
         }
         pos = end + 1;
     }
 
-    if ((getTicks() / (TIMER_HZ / 2)) % 2 == 0)
-        gfxFillRect(x + PAD + (curCol - leftCol) * 8, y + TOOLBAR_H + 2 + (curLine - topLine) * LINE_H, 2, LINE_H - 1, black);
+    if (!naming && (getTicks() / (TIMER_HZ / 2)) % 2 == 0)
+        gfxFillRect(x + PAD + (curCol - leftCol) * 8, y + TOOLBAR_H + 2 + (curLine - topLine) * LINE_H, 2, LINE_H - 1, BLACK);
 
-    gfxFillRect(x, y + h - FOOTER_H, w, FOOTER_H, gray);
-    if (status && getTicks() < statusUntil)
+    gfxFillRect(x, y + h - FOOTER_H, w, FOOTER_H, GRAY);
+    int maxChars = (w - 2 * PAD) / 8;
+    if (naming)
     {
-        gfxDrawString(status, x + PAD, y + h - FOOTER_H + 3, red);
+        char prompt[FILE_NAME_LENGTH + 16];
+        strcpy(prompt, "Save as: ");
+        strAppend(prompt, nameBuf);
+        if ((getTicks() / (TIMER_HZ / 2)) % 2 == 0) strAppend(prompt, "_");
+        int pl = strLen(prompt);
+        gfxDrawString(pl > maxChars ? prompt + (pl - maxChars) : prompt, x + PAD, y + h - FOOTER_H + 3, BLUE);
+    }
+    else if (status && getTicks() < statusUntil)
+    {
+        gfxDrawString(status, x + PAD, y + h - FOOTER_H + 3, RED);
     }
     else
     {
@@ -319,11 +430,16 @@ void editorDraw(int x, int y, int w, int h)
         strAppend(text, "/");
         utoa10(EDITOR_MAX, num);
         strAppend(text, num);
-        gfxDrawString(text, x + PAD, y + h - FOOTER_H + 3, black);
+        gfxDrawString(text, x + PAD, y + h - FOOTER_H + 3, BLACK);
     }
 }
 
 void editorRenamed(const char* oldName, const char* newName)
 {
     if (hasFile && fileDir == currentDirINode && strcmp(fileName, oldName) == 0) strcpy(fileName, newName);
+}
+
+void editorMoved(const char* name, unsigned int oldDir, unsigned int newDir)
+{
+    if (hasFile && fileDir == oldDir && strcmp(fileName, name) == 0) fileDir = newDir;
 }

@@ -6,5 +6,5 @@ void editorDraw(int x, int y, int w, int h);
 void editorClick(int lx, int ly);
 void editorKey(int key);
  void editorRenamed(const char* oldName, const char* newName);
-
+void editorMoved(const char* name, unsigned int oldDir, unsigned int newDir);
 #endif

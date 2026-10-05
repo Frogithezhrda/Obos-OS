@@ -85,7 +85,7 @@ void keyboardPump(void)
     }
     if (ctrlPressed)
     {
-        if (code == 0x1F) pushKey(KEY_SAVE);
+        if (code == 0x1F) pushKey(shiftPressed ? KEY_SAVE_AS : KEY_SAVE);
         return;
     }
     if (code > 57) return;
