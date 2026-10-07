@@ -284,3 +284,9 @@ void tcpReceive(NetDevice* dev, const void* buffer, unsigned int length)
         }
     }
 }
+void tcpAbort()
+{
+    conn.state = TCP_CLOSED;
+    conn.ackPending = 0;
+    conn.closePending = 0;
+}

@@ -45,6 +45,7 @@ int tcpSend(void* data, unsigned int length);
 void tcpReceive(NetDevice* dev, const void* buffer, unsigned int length);
 void tcpClose();
 void tcpTick();
+void tcpAbort();
 TcpState tcpGetState();
 
 #endif

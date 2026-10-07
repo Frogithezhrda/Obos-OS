@@ -4,25 +4,22 @@ ProtectedModeEntry:
     mov ax, DATA_OFFSET
     mov ds, ax
     mov es, ax
-    mov fs, ax
-    mov ss, ax          
-    mov gs, ax
-    mov ebp, 0x9C00
-    mov esp, ebp
-    
-    mov bl, 254
+    mov ss, ax
+    mov esp, 0x9C00
+
     mov edi, KERNEL_START_ADDR
-    mov ecx, 1
+    push 1
+    pop ecx                 ; LBA = 1 (3 bytes instead of 5)
+    mov bl, 127             ; 127 sectors per call
+    push 4
+    pop esi                 ; 4 chunks = 508 sectors, same as before
+.load:
     call ataReadSectors
+    add edi, 127*512
+    add ecx, 127
+    dec esi
+    jnz .load
+
     jmp KERNEL_START_ADDR
-
-LoadError:
-    cli
-    hlt
-    jmp LoadError
-
-Halt:
-    hlt
-    jmp Halt
 
 %include "Bootloader/ata.asm"

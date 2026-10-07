@@ -2,6 +2,7 @@
 #include "wm.h"
 #include "../Graphics/gfx.h"
 #include "../Drivers/timerDriver.h"
+#include "browser.h"
 #include "filemgr.h"
 #include "editor.h"
 
@@ -63,6 +64,7 @@ static App apps[] =
     APP(.name = "System", .w = 260, .h = 90, .draw = drawSystem),
     APP(.name = "Files", .w = 360, .h = 260, .title = "File Manager", .draw = filemgrDraw, .click = filemgrClick, .key = filemgrKey, .titleColor = {255, 212, 0}),
     APP(.name = "Editor", .w = 420, .h = 300, .title = "Text Editor", .draw = editorDraw, .click = editorClick, .key = editorKey),
+    APP(.name = "Browser", .w = 560, .h = 380, .title = "Browser", .draw = browserDraw, .click = browserClick, .key = browserKey),
 };
 
 
