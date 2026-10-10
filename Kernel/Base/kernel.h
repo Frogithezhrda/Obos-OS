@@ -13,6 +13,7 @@
 #include "../Apps/audio.h"
 #include "../Graphics/gui.h"
 #include "../Memory/programRegistry.h"
+#include "../Crypto/tls.h"
 void obos_main();
 
 #endif  

@@ -135,6 +135,10 @@ void shell()
         {
             continue;
         }
+        else if(!strcmp(cmd, "tls"))
+        {
+
+        }
         else if(!strcmp(cmd, "http"))
         {
             httpGet(0x6814179A, "example.com", "/");

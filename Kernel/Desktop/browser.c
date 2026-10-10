@@ -2,6 +2,8 @@
 #include "../Graphics/gfx.h"
 #include "../Network/dns.h"
 #include "wm.h"
+#include "../Crypto/tls.h"
+
 enum
 {
     respMax = 65536,
@@ -87,6 +89,95 @@ static int curLink;
 static int lineUsed;
 static int gapped;
 static int needSpace;
+static unsigned char useTls;
+static unsigned char tlsRequestSent;
+static TlsConn conn;
+enum
+{
+    tlsRingSize = 16384,
+    tlsChunk = 512
+};
+static unsigned char tlsIn[tlsRingSize];
+static volatile unsigned int tlsHead;
+static volatile unsigned int tlsTail;
+static volatile unsigned char tlsOverflow;
+static unsigned int tlsRxTotal;
+static unsigned int tlsShownRx;
+
+static void onData(const unsigned char* data, unsigned int len);
+
+/*
+ * TCP receive callback. For https it only pushes the bytes into a ring buffer;
+ * the TLS engine is fed from browserPoll so we never send from inside the
+ * receive path. The ring has one writer (this callback) and one reader
+ * (browserPoll), so bytes that arrive while TLS is busy sending are kept.
+ */
+static void onTcpData(const unsigned char* data, unsigned int len)
+{
+    if (!useTls)
+    {
+        onData(data, len);
+        return;
+    }
+    for (unsigned int i = 0; i < len; i++)
+    {
+        unsigned int next = (tlsHead + 1) & (tlsRingSize - 1);
+        if (next == tlsTail)
+        {
+            tlsOverflow = 1;
+            return;
+        }
+        tlsIn[tlsHead] = data[i];
+        tlsHead = next;
+    }
+    tlsRxTotal += len;
+    lastActivity = lastTick;
+}
+
+static void tlsSendOut(void* user, const unsigned char* data, unsigned int len)
+{
+    tcpSend((void*)data, len);
+}
+
+static void tlsGotData(void* user, const unsigned char* data, unsigned int len)
+{
+    onData(data, len);
+}
+
+/* Timer + cycle counter mix. Gets connections working; NOT secure randomness. */
+static void fillRandom(unsigned char* out, unsigned int n)
+{
+    static unsigned int counter;
+    unsigned char pool[160];
+    unsigned char digest[32];
+    unsigned int len = 0;
+    unsigned int used = 0;
+    Sha256 c;
+    for (int i = 0; i < 32; i++)
+    {
+        unsigned int lo;
+        unsigned int hi;
+        for (volatile unsigned int spin = (getTicks() + i) & 63; spin > 0; spin--)
+        {
+        }
+        __asm__ volatile("rdtsc" : "=a"(lo), "=d"(hi));
+        pool[len++] = lo;
+        pool[len++] = lo >> 8;
+        pool[len++] = lo >> 16;
+        pool[len++] = hi;
+    }
+    while (used < n)
+    {
+        unsigned int take = n - used > 32 ? 32 : n - used;
+        sha256Init(&c);
+        sha256Update(&c, pool, len);
+        sha256Update(&c, &counter, sizeof(counter));
+        counter++;
+        sha256Final(&c, digest);
+        tlsCopy(out + used, digest, take);
+        used += take;
+    }
+}
 
 static Color toColor(unsigned int c)
 {
@@ -251,12 +342,18 @@ static void fail(const char* msg)
     state = brError;
 }
 
+static unsigned short defaultPort()
+{
+    return useTls ? 443 : 80;
+}
+
 static void buildOrigin(char* out, unsigned int max)
 {
     unsigned int n = 0;
-    brAppend(out, &n, max, "http://");
+    out[0] = '\0';
+    brAppend(out, &n, max, useTls ? "https://" : "http://");
     brAppend(out, &n, max, host);
-    if (port != 80)
+    if (port != defaultPort())
     {
         brAppend(out, &n, max, ":");
         brAppendNum(out, &n, max, port);
@@ -268,12 +365,13 @@ static int parseUrl(const char* url)
     unsigned int i = 0;
     unsigned int h = 0;
     unsigned int n = 0;
+    useTls = 0;
     if (brPrefix(url, "https://"))
     {
-        setStatus("https is not supported");
-        return 0;
+        useTls = 1;
+        i = 8;
     }
-    if (brPrefix(url, "http://"))
+    else if (brPrefix(url, "http://"))
     {
         i = 7;
     }
@@ -282,7 +380,7 @@ static int parseUrl(const char* url)
         host[h++] = url[i++];
     }
     host[h] = '\0';
-    port = 80;
+    port = defaultPort();
     if (url[i] == ':')
     {
         unsigned int p = 0;
@@ -316,6 +414,7 @@ static int resolveLink(const char* href, char* out)
     unsigned int n = 0;
     unsigned int i = 0;
     unsigned int last = 0;
+    out[0] = '\0';
     if (href[0] == '\0' || href[0] == '#')
     {
         return 0;
@@ -335,7 +434,7 @@ static int resolveLink(const char* href, char* out)
     }
     if (href[0] == '/' && href[1] == '/')
     {
-        brAppend(out, &n, urlMax, "http:");
+        brAppend(out, &n, urlMax, useTls ? "https:" : "http:");
         brAppend(out, &n, urlMax, href);
         return 1;
     }
@@ -413,6 +512,7 @@ static void onData(const unsigned char* data, unsigned int len)
     lastActivity = lastTick;
 }
 
+/* Builds the GET request and sends it over TLS or plain TCP. */
 static void sendRequest()
 {
     char req[384];
@@ -421,13 +521,20 @@ static void sendRequest()
     brAppend(req, &n, sizeof(req), path);
     brAppend(req, &n, sizeof(req), " HTTP/1.0\r\nHost: ");
     brAppend(req, &n, sizeof(req), host);
-    if (port != 80)
+    if (port != defaultPort())
     {
         brAppend(req, &n, sizeof(req), ":");
         brAppendNum(req, &n, sizeof(req), port);
     }
-    brAppend(req, &n, sizeof(req), "\r\nUser-Agent: obos/0.1\r\nAccept: text/html\r\nConnection: close\r\n\r\n");
-    tcpSend(req, n);
+    brAppend(req, &n, sizeof(req), "\r\nUser-Agent: obos/0.2\r\nAccept: text/html\r\nConnection: close\r\n\r\n");
+    if (useTls)
+    {
+        tlsWrite(&conn, (const unsigned char*)req, n);
+    }
+    else
+    {
+        tcpSend(req, n);
+    }
 }
 
 static void breakLine()
@@ -940,6 +1047,12 @@ static void startLoad(const char* url)
     urlLen = n;
     respLen = 0;
     resp[0] = '\0';
+    tlsHead = 0;
+    tlsTail = 0;
+    tlsOverflow = 0;
+    tlsRxTotal = 0;
+    tlsShownRx = 0;
+    tlsRequestSent = 0;
     lastActivity = lastTick;
     dnsTries = 0;
     setStatus("resolving...");
@@ -952,7 +1065,7 @@ static void finish()
     unsigned int i = 0;
     unsigned int hdrEnd;
     char value[urlMax];
-    char msg[24];
+    char msg[40];
     unsigned int n = 0;
     resp[respLen] = '\0';
     if (!brPrefix((const char*)resp, "HTTP/"))
@@ -1003,7 +1116,14 @@ static void finish()
     }
     scrollY = 0;
     layoutPage(viewW);
-    brAppend(msg, &n, sizeof(msg), "http ");
+    if (useTls)
+    {
+        brAppend(msg, &n, sizeof(msg), "https (unverified) ");
+    }
+    else
+    {
+        brAppend(msg, &n, sizeof(msg), "http ");
+    }
     brAppendNum(msg, &n, sizeof(msg), code);
     setStatus(msg);
     state = brDone;
@@ -1018,6 +1138,7 @@ void browserInit()
     urlLen = 0;
     urlText[0] = '\0';
     pageTitle[0] = '\0';
+    useTls = 0;
     setStatus("type a url and press enter");
     brAppend(urlText, &urlLen, urlMax, "http://");
 }
@@ -1032,6 +1153,69 @@ void browserOpen(const char* url)
     startLoad(url);
 }
 
+static void tlsFail(const char* what)
+{
+    char msg[64];
+    unsigned int n = 0;
+    brAppend(msg, &n, sizeof(msg), what);
+    brAppend(msg, &n, sizeof(msg), " rx=");
+    brAppendNum(msg, &n, sizeof(msg), tlsRxTotal);
+    brAppend(msg, &n, sizeof(msg), " st=");
+    brAppendNum(msg, &n, sizeof(msg), (unsigned int)tlsGetState(&conn));
+    brAppend(msg, &n, sizeof(msg), " al=");
+    brAppendNum(msg, &n, sizeof(msg), (unsigned int)conn.alertCode);
+    fail(msg);
+}
+
+static int pumpTls()
+{
+    unsigned char chunk[tlsChunk];
+    while (tlsTail != tlsHead)
+    {
+        unsigned int n = 0;
+        while (n < sizeof(chunk) && tlsTail != tlsHead)
+        {
+            chunk[n++] = tlsIn[tlsTail];
+            tlsTail = (tlsTail + 1) & (tlsRingSize - 1);
+        }
+        tlsFeed(&conn, chunk, n);
+        if (tlsGetState(&conn) == tlsFailed)
+        {
+            break;
+        }
+    }
+    if (tlsOverflow)
+    {
+        tcpAbort();
+        fail("tls receive buffer overflow");
+        return 0;
+    }
+    if (tlsGetState(&conn) == tlsFailed)
+    {
+        tcpAbort();
+        fail(tlsErrorText(&conn));
+        return 0;
+    }
+    if (tlsGetState(&conn) == tlsReady && !tlsRequestSent)
+    {
+        tlsRequestSent = 1;
+        sendRequest();
+        lastActivity = lastTick;
+        setStatus("loading...");
+    }
+    else if (!tlsRequestSent && tlsRxTotal != tlsShownRx)
+    {
+        char msg[48];
+        unsigned int n = 0;
+        tlsShownRx = tlsRxTotal;
+        brAppend(msg, &n, sizeof(msg), "tls handshake: ");
+        brAppendNum(msg, &n, sizeof(msg), tlsRxTotal);
+        brAppend(msg, &n, sizeof(msg), " bytes in");
+        setStatus(msg);
+    }
+    return 1;
+}
+
 void browserPoll(unsigned int ticks)
 {
     TcpState ts;
@@ -1044,7 +1228,7 @@ void browserPoll(unsigned int ticks)
         {
             return;
         }
-        if (tcpConnect(ip, port, onData, 0) != SUCCESS)
+        if (tcpConnect(ip, port, onTcpData, 0) != SUCCESS)
         {
             fail("tcp busy");
             return;
@@ -1067,9 +1251,20 @@ void browserPoll(unsigned int ticks)
     {
         if (ts == TCP_ESTABLISHED)
         {
-            sendRequest();
+            if (useTls)
+            {
+                unsigned char rnd[64];
+                fillRandom(rnd, 64);
+                tlsInit(&conn, host, rnd, tlsSendOut, tlsGotData, 0);
+                tlsStart(&conn);
+                setStatus("tls handshake...");
+            }
+            else
+            {
+                sendRequest();
+                setStatus("loading...");
+            }
             lastActivity = ticks;
-            setStatus("loading...");
             state = brLoading;
         }
         else if (ts == TCP_CLOSED)
@@ -1078,9 +1273,20 @@ void browserPoll(unsigned int ticks)
         }
         return;
     }
+    if (useTls && !pumpTls())
+    {
+        return;
+    }
     if (ts == TCP_CLOSED)
     {
-        finish();
+        if (useTls && respLen == 0)
+        {
+            tlsFail("tls closed early");
+        }
+        else
+        {
+            finish();
+        }
     }
     else if (ticks - lastActivity > timeoutTicks)
     {
@@ -1088,6 +1294,10 @@ void browserPoll(unsigned int ticks)
         if (respLen > 0)
         {
             finish();
+        }
+        else if (useTls)
+        {
+            tlsFail("tls timed out");
         }
         else
         {
