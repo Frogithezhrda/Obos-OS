@@ -5,6 +5,8 @@
 #include "browser.h"
 #include "filemgr.h"
 #include "editor.h"
+#include "mail.h"
+#include "paint.h"
 
 typedef struct App
 {
@@ -65,6 +67,8 @@ static App apps[] =
     APP(.name = "Files", .w = 360, .h = 260, .title = "File Manager", .draw = filemgrDraw, .click = filemgrClick, .key = filemgrKey, .titleColor = {255, 212, 0}),
     APP(.name = "Editor", .w = 420, .h = 300, .title = "Text Editor", .draw = editorDraw, .click = editorClick, .key = editorKey),
     APP(.name = "Browser", .w = 560, .h = 380, .title = "Browser", .draw = browserDraw, .click = browserClick, .key = browserKey),
+    APP(.name = "Mail", .w = 420, .h = 300, .title = "Mail", .draw = mailDraw, .key=mailKey , .click = mailClick, .titleColor = {0, 128, 0}),
+    APP(.name = "Paint", .w = 420, .h = 300, .title = "Paint", .draw = paintDraw, .key=paintKey , .click = paintClick, .titleColor = {128, 0, 0}),
 };
 
 

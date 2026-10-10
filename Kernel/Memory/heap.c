@@ -2,6 +2,7 @@
 
 static Heap kernelHeap;
 static Heap userHeap;
+extern char _kernel_physical_end;
 
 /*
 we must align the block to be divisable by 16
@@ -115,8 +116,13 @@ void ufree(void* ptr)
     mergeBlocks(&userHeap);
 }
 
+
 void initKernelHeap(void)
 {
+    if ((unsigned int)&_kernel_physical_end > KERNEL_PHYSICAL_END)
+    {
+        kernelPanic("Kernel image outgrew its region");
+    }
     kernelHeap.start = (void*)HEAP_PHYSICAL_START;
     kernelHeap.end = (void*)HEAP_PHYSICAL_END;
     kernelHeap.size = HEAP_PHYSICAL_END - HEAP_PHYSICAL_START;

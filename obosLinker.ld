@@ -34,4 +34,5 @@ SECTIONS
 
     . = ALIGN(1024);
     _kernel_physical_end = .;
+    ASSERT(_kernel_physical_end <= 0x400000, "kernel image outgrew its region")
 }

@@ -3,7 +3,31 @@
 unsigned char* backBuffer;
 
 static void (*yieldHook)(void) = 0;
-
+Color colorPalette[22] = 
+{
+    {0,0,0},        // 0
+    {71,28,10},     // 1
+    {255,249,189},  // 2
+    {255,194,89},   // 3
+    {235,175,80},   // 4
+    {199,131,22},   // 5
+    {245,184,93},   // 6
+    {255,202,117},  // 7
+    {196,152,47},   // 8
+    {179,129,14},   // 9
+    {240,167,58},   // 10
+    {214,151,62},   // 11
+    {255,255,255},  // 12
+    {1,1,1},        // 13
+    {128,128,128},  // 14
+    {90, 90, 90},  // 15 light gray
+    {160, 160, 160},  // 16 mid-light gray
+    {100,100,100},  // 17 dark gray
+    {220,220,255},  // 18 paper tint (subtle blue)
+    {180,180,220},  // 19 shadow tint
+    {240,240,240},  // 20 soft white
+    {80,80,80}      // 21 deep shadow
+};
 void gfxSetYield(void (*fn)(void))
 {
     yieldHook = fn;
@@ -49,7 +73,7 @@ void gfxDrawIcon(unsigned int x, unsigned int y, unsigned char data[16][16], uns
         for (int col = 0; col < 16; col++)
         {
             if (data[row][col] == 0) continue;
-            Color color = palette[data[row][col]];
+            Color color = colorPalette[data[row][col]];
             gfxFillRect(x + col * scale, y + row * scale, scale, scale, color);
         }
 }

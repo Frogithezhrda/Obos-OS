@@ -17,7 +17,8 @@
 //by using a bitmap or linked list
 #define TOTAL_FRAMES (64 * MB) / FRAME_SIZE //mapping only 32 MB of memory for now
 
-
+#define FRAMES_ARRAY_START 0x00600000
+#define FRAMES_ARRAY_END   0x00640000
 //the user addresses its a test it should work
 #define FIRST_USER_FRAME ((0x400000) / FRAME_SIZE)
 

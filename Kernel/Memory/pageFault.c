@@ -13,6 +13,10 @@ void pageFaultHandler(unsigned int errorCode)
     // {
     //     clearScreen();
     //     printLine("=== DOUBLE FAULT DETECTED ===", RED);
+    //     print("Faulting address: 0x", WHITE);
+    //     printHexNumber(faultAddr, WHITE);
+    //     printLine("", WHITE);
+
     //     while(1) asm volatile("hlt");
     // }
 

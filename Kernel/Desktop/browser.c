@@ -17,7 +17,9 @@ enum
     statusH = 14,
     timeoutTicks = 1000,
     dnsRetryTicks = 100,
-    dnsMaxTries = 4
+    dnsMaxTries = 4,
+    rulesMax = 48,
+    stackMax = 16
 };
 
 enum
@@ -48,8 +50,39 @@ typedef struct
     unsigned char kind;
     unsigned char bold;
     short link;
+    unsigned int color; /* 0 = default, otherwise 0x1000000 | rgb */
     const char* text;
 } Item;
+
+/* Result of resolving the (very small) CSS subset for one element. */
+typedef struct
+{
+    unsigned char hasColor;
+    unsigned char hasBg;
+    unsigned char bold;
+    unsigned char hidden;
+    unsigned char center;
+    unsigned int color;
+    unsigned int bg;
+} Style;
+
+typedef struct
+{
+    char tag[12];
+    char cls[16];
+    char id[16];
+    Style st;
+} CssRule;
+
+/* Remembers what an element changed so its closing tag can undo it. */
+typedef struct
+{
+    char name[12];
+    unsigned int color;
+    unsigned char center;
+    unsigned char addBold;
+    unsigned char addHidden;
+} StyleFrame;
 
 static BrState state = brIdle;
 static char urlText[urlMax];
@@ -92,6 +125,20 @@ static int needSpace;
 static unsigned char useTls;
 static unsigned char tlsRequestSent;
 static TlsConn conn;
+
+/* css / style state */
+static CssRule rules[rulesMax];
+static unsigned int ruleCount;
+static StyleFrame styleStack[stackMax];
+static unsigned int styleDepth;
+static unsigned int curColor;
+static unsigned char center;
+static int hidden;
+static unsigned int pageBg = colBg;
+static unsigned int lineStart;
+static unsigned char lineCenter;
+static char skipClose[16];
+
 enum
 {
     tlsRingSize = 16384,
@@ -537,8 +584,28 @@ static void sendRequest()
     }
 }
 
+/* Centers the words of the current line if it was started inside a centered element. */
+static void centerLine()
+{
+    int shift;
+    if (!lineCenter || !lineUsed)
+    {
+        return;
+    }
+    shift = (maxW - curX) / 2;
+    if (shift <= 0)
+    {
+        return;
+    }
+    for (unsigned int i = lineStart; i < itemCount; i++)
+    {
+        items[i].x += shift;
+    }
+}
+
 static void breakLine()
 {
+    centerLine();
     if (lineUsed)
     {
         curY += lineH;
@@ -575,6 +642,11 @@ static void flushWord()
         sp = 0;
     }
     curX += sp;
+    if (!lineUsed)
+    {
+        lineStart = itemCount;
+        lineCenter = center;
+    }
     if (itemCount < itemsMax && poolLen + wordLen + 1 < poolMax)
     {
         Item* it = &items[itemCount++];
@@ -584,6 +656,7 @@ static void flushWord()
         it->kind = 0;
         it->bold = bold || heading;
         it->link = curLink;
+        it->color = curColor;
         it->text = &textPool[poolLen];
         for (unsigned int i = 0; i <= wordLen; i++)
         {
@@ -648,6 +721,7 @@ static void addRule()
         it->kind = 1;
         it->bold = 0;
         it->link = -1;
+        it->color = 0;
         it->text = "";
     }
     curY += lineH;
@@ -699,6 +773,711 @@ static int attrValue(const char* t, unsigned int len, const char* name, char* ou
     return 0;
 }
 
+/* ------------------------------------------------------------------ */
+/* Tag lists                                                           */
+/* ------------------------------------------------------------------ */
+
+static const char* const voidTags[] = {"br", "hr", "img", "input", "meta", "link", "area", "base", "col", "embed", "param", "source", "track", "wbr", 0};
+
+/* content of these tags is never shown */
+static const char* const skipTags[] = {"svg", "template", "datalist", 0};
+
+/* tags that start a new paragraph-like block (blank gap before) */
+static const char* const blockTags[] = {"p", "ul", "ol", "table", "blockquote", "pre", "form", "dl", "fieldset", "figure", "address", "details", "textarea", "menu", "dir", 0};
+
+/* tags that only start a new line */
+static const char* const lineTags[] = {"div", "tr", "dt", "dd", "section", "article", "header", "footer", "nav", "main", "aside", "figcaption", "summary", "legend", "caption", "thead", "tbody", "tfoot", "center", "option", "optgroup", "hgroup", 0};
+
+/* tags that are often left unclosed; a new one ends the previous one's style */
+static const char* const autoCloseTags[] = {"p", "li", "dt", "dd", "th", "td", "tr", "option", 0};
+
+/* default bold elements */
+static const char* const boldTags[] = {"th", "dt", "caption", "legend", "summary", 0};
+
+typedef struct
+{
+    const char* tag;
+    unsigned int rgb;
+} TagColor;
+
+/* tiny built-in "user agent stylesheet" (we only have one font, so colour stands in for italics etc.) */
+static const TagColor tagColors[] = {
+    {"del", 0x808080}, {"s", 0x808080}, {"strike", 0x808080}, {"small", 0x606060},
+    {"code", 0x006400}, {"kbd", 0x006400}, {"samp", 0x006400}, {"tt", 0x006400},
+    {"em", 0x603060}, {"i", 0x603060}, {"cite", 0x603060}, {"dfn", 0x603060}, {"var", 0x603060},
+    {"mark", 0xB05000}, {"blockquote", 0x505050},
+    {0, 0}};
+
+typedef struct
+{
+    const char* name;
+    unsigned int rgb;
+} NamedColor;
+
+static const NamedColor namedColors[] = {
+    {"black", 0x000000}, {"white", 0xFFFFFF}, {"red", 0xFF0000}, {"green", 0x008000},
+    {"blue", 0x0000FF}, {"yellow", 0xFFFF00}, {"gray", 0x808080}, {"grey", 0x808080},
+    {"silver", 0xC0C0C0}, {"orange", 0xFFA500}, {"purple", 0x800080}, {"navy", 0x000080},
+    {"maroon", 0x800000}, {"teal", 0x008080}, {"lime", 0x00FF00}, {"olive", 0x808000},
+    {"aqua", 0x00FFFF}, {"cyan", 0x00FFFF}, {"fuchsia", 0xFF00FF}, {"magenta", 0xFF00FF},
+    {"brown", 0xA52A2A}, {"pink", 0xFFC0CB}, {"gold", 0xFFD700}, {"crimson", 0xDC143C},
+    {0, 0}};
+
+static int inList(const char* name, const char* const* list)
+{
+    for (unsigned int i = 0; list[i]; i++)
+    {
+        if (brEq(name, list[i]))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Simple CSS                                                          */
+/* Supported properties: color, background(-color) on body/html,      */
+/* font-weight, display:none, visibility:hidden, text-align:center.   */
+/* Selectors: tag, .class, #id and combinations like p.note.          */
+/* ------------------------------------------------------------------ */
+
+static void clearStyle(Style* s)
+{
+    s->hasColor = 0;
+    s->hasBg = 0;
+    s->bold = 0;
+    s->hidden = 0;
+    s->center = 0;
+    s->color = 0;
+    s->bg = 0;
+}
+
+static void mergeStyle(Style* d, const Style* s)
+{
+    if (s->hasColor)
+    {
+        d->hasColor = 1;
+        d->color = s->color;
+    }
+    if (s->hasBg)
+    {
+        d->hasBg = 1;
+        d->bg = s->bg;
+    }
+    if (s->bold)
+    {
+        d->bold = 1;
+    }
+    if (s->hidden)
+    {
+        d->hidden = 1;
+    }
+    if (s->center)
+    {
+        d->center = 1;
+    }
+}
+
+static int parseColor(const char* v, unsigned int* out)
+{
+    while (brIsSpace(*v))
+    {
+        v++;
+    }
+    if (*v == '#')
+    {
+        unsigned int d = 0;
+        unsigned int val = 0;
+        v++;
+        while (d < 6 && hexVal(v[d]) >= 0)
+        {
+            val = val * 16 + hexVal(v[d]);
+            d++;
+        }
+        if (d == 6)
+        {
+            *out = val;
+            return 1;
+        }
+        if (d == 3)
+        {
+            *out = ((((val >> 8) & 15) * 17) << 16) | ((((val >> 4) & 15) * 17) << 8) | ((val & 15) * 17);
+            return 1;
+        }
+        return 0;
+    }
+    if (brPrefix(v, "rgb"))
+    {
+        unsigned int comp[3];
+        while (*v && *v != '(')
+        {
+            v++;
+        }
+        if (*v != '(')
+        {
+            return 0;
+        }
+        v++;
+        for (int k = 0; k < 3; k++)
+        {
+            unsigned int num = 0;
+            while (*v == ' ' || *v == ',' || *v == '\t')
+            {
+                v++;
+            }
+            if (*v < '0' || *v > '9')
+            {
+                return 0;
+            }
+            while (*v >= '0' && *v <= '9')
+            {
+                if (num < 1000)
+                {
+                    num = num * 10 + (*v - '0');
+                }
+                v++;
+            }
+            if (*v == '%')
+            {
+                num = num * 255 / 100;
+                v++;
+            }
+            if (num > 255)
+            {
+                num = 255;
+            }
+            comp[k] = num;
+        }
+        *out = (comp[0] << 16) | (comp[1] << 8) | comp[2];
+        return 1;
+    }
+    if (brIsAlpha(*v))
+    {
+        char tok[12];
+        unsigned int n = 0;
+        while (brIsAlpha(*v) && n < sizeof(tok) - 1)
+        {
+            tok[n++] = brLower(*v++);
+        }
+        tok[n] = '\0';
+        for (unsigned int i = 0; namedColors[i].name; i++)
+        {
+            if (brEq(tok, namedColors[i].name))
+            {
+                *out = namedColors[i].rgb;
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+static void applyDecl(const char* prop, const char* val, Style* st)
+{
+    unsigned int c;
+    if (brEq(prop, "color"))
+    {
+        if (parseColor(val, &c))
+        {
+            st->hasColor = 1;
+            st->color = c;
+        }
+    }
+    else if (brEq(prop, "background-color") || brEq(prop, "background"))
+    {
+        if (parseColor(val, &c))
+        {
+            st->hasBg = 1;
+            st->bg = c;
+        }
+    }
+    else if (brEq(prop, "font-weight"))
+    {
+        if (brPrefix(val, "bold"))
+        {
+            st->bold = 1;
+        }
+        else if (val[0] >= '0' && val[0] <= '9')
+        {
+            unsigned int w = 0;
+            for (unsigned int i = 0; val[i] >= '0' && val[i] <= '9' && i < 5; i++)
+            {
+                w = w * 10 + (val[i] - '0');
+            }
+            if (w >= 600)
+            {
+                st->bold = 1;
+            }
+        }
+    }
+    else if (brEq(prop, "display"))
+    {
+        if (brPrefix(val, "none"))
+        {
+            st->hidden = 1;
+        }
+    }
+    else if (brEq(prop, "visibility"))
+    {
+        if (brPrefix(val, "hidden"))
+        {
+            st->hidden = 1;
+        }
+    }
+    else if (brEq(prop, "text-align"))
+    {
+        if (brPrefix(val, "center"))
+        {
+            st->center = 1;
+        }
+    }
+}
+
+/* Parses "prop: value; prop: value" between s and e. */
+static void parseDecls(const char* s, const char* e, Style* st)
+{
+    while (s < e)
+    {
+        char prop[24];
+        char val[40];
+        unsigned int pn = 0;
+        unsigned int vn = 0;
+        while (s < e && (brIsSpace(*s) || *s == ';'))
+        {
+            s++;
+        }
+        while (s < e && *s != ':' && *s != ';')
+        {
+            if (pn < sizeof(prop) - 1)
+            {
+                prop[pn++] = brLower(*s);
+            }
+            s++;
+        }
+        while (pn > 0 && brIsSpace(prop[pn - 1]))
+        {
+            pn--;
+        }
+        prop[pn] = '\0';
+        if (s >= e || *s == ';')
+        {
+            s++;
+            continue;
+        }
+        s++;
+        while (s < e && brIsSpace(*s))
+        {
+            s++;
+        }
+        while (s < e && *s != ';')
+        {
+            if (vn < sizeof(val) - 1)
+            {
+                val[vn++] = *s;
+            }
+            s++;
+        }
+        val[vn] = '\0';
+        s++;
+        applyDecl(prop, val, st);
+    }
+}
+
+static void addCssRule(const char* s, const char* e, const Style* st)
+{
+    CssRule* r;
+    unsigned int n = 0;
+    while (s < e && brIsSpace(*s))
+    {
+        s++;
+    }
+    while (e > s && brIsSpace(e[-1]))
+    {
+        e--;
+    }
+    if (s >= e || ruleCount >= rulesMax || *s == '*')
+    {
+        return;
+    }
+    r = &rules[ruleCount];
+    r->tag[0] = '\0';
+    r->cls[0] = '\0';
+    r->id[0] = '\0';
+    while (s < e && brIsAlnum(*s))
+    {
+        if (n < sizeof(r->tag) - 1)
+        {
+            r->tag[n++] = brLower(*s);
+            r->tag[n] = '\0';
+        }
+        s++;
+    }
+    while (s < e)
+    {
+        char kind = *s++;
+        char* dst;
+        n = 0;
+        if (kind == '.')
+        {
+            dst = r->cls;
+        }
+        else if (kind == '#')
+        {
+            dst = r->id;
+        }
+        else
+        {
+            return; /* descendant, pseudo, attribute selectors etc. are not supported */
+        }
+        while (s < e && (brIsAlnum(*s) || *s == '-' || *s == '_'))
+        {
+            if (n < 15)
+            {
+                dst[n++] = *s;
+                dst[n] = '\0';
+            }
+            s++;
+        }
+    }
+    if (!r->tag[0] && !r->cls[0] && !r->id[0])
+    {
+        return;
+    }
+    clearStyle(&r->st);
+    mergeStyle(&r->st, st);
+    ruleCount++;
+}
+
+/* Parses the text of a <style> block into the rule table. */
+static void parseCss(const char* s, const char* e)
+{
+    while (s < e)
+    {
+        const char* selStart;
+        const char* selEnd;
+        const char* declStart;
+        const char* a;
+        Style st;
+        while (s < e && brIsSpace(*s))
+        {
+            s++;
+        }
+        if (s + 1 < e && s[0] == '/' && s[1] == '*')
+        {
+            s += 2;
+            while (s + 1 < e && !(s[0] == '*' && s[1] == '/'))
+            {
+                s++;
+            }
+            s += 2;
+            continue;
+        }
+        if (s >= e)
+        {
+            break;
+        }
+        selStart = s;
+        while (s < e && *s != '{' && *s != ';')
+        {
+            s++;
+        }
+        if (s >= e)
+        {
+            break;
+        }
+        if (*s == ';')
+        {
+            s++;
+            continue;
+        }
+        selEnd = s;
+        s++;
+        if (*selStart == '@')
+        {
+            int depth = 1;
+            while (s < e && depth > 0)
+            {
+                if (*s == '{')
+                {
+                    depth++;
+                }
+                else if (*s == '}')
+                {
+                    depth--;
+                }
+                s++;
+            }
+            continue;
+        }
+        declStart = s;
+        while (s < e && *s != '}')
+        {
+            s++;
+        }
+        clearStyle(&st);
+        parseDecls(declStart, s, &st);
+        if (s < e)
+        {
+            s++;
+        }
+        a = selStart;
+        for (const char* c = selStart; c <= selEnd; c++)
+        {
+            if (c == selEnd || *c == ',')
+            {
+                addCssRule(a, c, &st);
+                a = c + 1;
+            }
+        }
+    }
+}
+
+static int hasClass(const char* list, const char* cls)
+{
+    unsigned int cl = brLen(cls);
+    while (*list)
+    {
+        unsigned int n = 0;
+        while (*list && brIsSpace(*list))
+        {
+            list++;
+        }
+        while (list[n] && !brIsSpace(list[n]))
+        {
+            n++;
+        }
+        if (n == cl && n > 0)
+        {
+            unsigned int k = 0;
+            while (k < n && list[k] == cls[k])
+            {
+                k++;
+            }
+            if (k == n)
+            {
+                return 1;
+            }
+        }
+        list += n;
+    }
+    return 0;
+}
+
+static int ruleMatches(const CssRule* r, const char* name, const char* cls, const char* id)
+{
+    if (r->tag[0] && !brEq(r->tag, name))
+    {
+        return 0;
+    }
+    if (r->cls[0] && !hasClass(cls, r->cls))
+    {
+        return 0;
+    }
+    if (r->id[0] && !brEq(r->id, id))
+    {
+        return 0;
+    }
+    return 1;
+}
+
+/* Works out the style of one element from defaults, attributes, <style> rules and style="". */
+static void computeStyle(const char* name, const char* t, unsigned int len, Style* st)
+{
+    char cls[64];
+    char id[32];
+    char val[160];
+    unsigned int c;
+    clearStyle(st);
+    cls[0] = '\0';
+    id[0] = '\0';
+    attrValue(t, len, "class", cls, sizeof(cls));
+    attrValue(t, len, "id", id, sizeof(id));
+
+    if (inList(name, boldTags))
+    {
+        st->bold = 1;
+    }
+    for (unsigned int i = 0; tagColors[i].tag; i++)
+    {
+        if (brEq(name, tagColors[i].tag))
+        {
+            st->hasColor = 1;
+            st->color = tagColors[i].rgb;
+        }
+    }
+    if (brEq(name, "center"))
+    {
+        st->center = 1;
+    }
+    if (attrValue(t, len, "align", val, sizeof(val)) && brPrefix(val, "center"))
+    {
+        st->center = 1;
+    }
+    if (brEq(name, "font") && attrValue(t, len, "color", val, sizeof(val)) && parseColor(val, &c))
+    {
+        st->hasColor = 1;
+        st->color = c;
+    }
+    if (brEq(name, "body"))
+    {
+        if (attrValue(t, len, "bgcolor", val, sizeof(val)) && parseColor(val, &c))
+        {
+            st->hasBg = 1;
+            st->bg = c;
+        }
+        if (attrValue(t, len, "text", val, sizeof(val)) && parseColor(val, &c))
+        {
+            st->hasColor = 1;
+            st->color = c;
+        }
+    }
+    for (int pass = 0; pass < 3; pass++)
+    {
+        for (unsigned int i = 0; i < ruleCount; i++)
+        {
+            const CssRule* r = &rules[i];
+            int level = r->id[0] ? 2 : (r->cls[0] ? 1 : 0);
+            if (level == pass && ruleMatches(r, name, cls, id))
+            {
+                mergeStyle(st, &r->st);
+            }
+        }
+    }
+    if (attrValue(t, len, "style", val, sizeof(val)))
+    {
+        parseDecls(val, val + brLen(val), st);
+    }
+}
+
+static void styleOpen(const char* name, const Style* st)
+{
+    StyleFrame* f;
+    unsigned int i = 0;
+    if (!st->hasColor && !st->bold && !st->hidden && !st->center)
+    {
+        return;
+    }
+    if (styleDepth >= stackMax)
+    {
+        return;
+    }
+    f = &styleStack[styleDepth++];
+    while (name[i] && i < sizeof(f->name) - 1)
+    {
+        f->name[i] = name[i];
+        i++;
+    }
+    f->name[i] = '\0';
+    f->color = curColor;
+    f->center = center;
+    f->addBold = st->bold;
+    f->addHidden = st->hidden;
+    if (st->hasColor)
+    {
+        curColor = st->color | 0x1000000;
+    }
+    if (st->center)
+    {
+        center = 1;
+    }
+    if (st->bold)
+    {
+        bold++;
+    }
+    if (st->hidden)
+    {
+        hidden++;
+    }
+}
+
+static void styleClose(const char* name)
+{
+    int k = (int)styleDepth - 1;
+    while (k >= 0 && !brEq(styleStack[k].name, name))
+    {
+        k--;
+    }
+    if (k < 0)
+    {
+        return;
+    }
+    while ((int)styleDepth > k)
+    {
+        StyleFrame* f = &styleStack[--styleDepth];
+        curColor = f->color;
+        center = f->center;
+        if (f->addBold && bold)
+        {
+            bold--;
+        }
+        if (f->addHidden && hidden)
+        {
+            hidden--;
+        }
+    }
+}
+
+static void openStyle(const char* name, const char* t, unsigned int len)
+{
+    Style st;
+    char tmp[4];
+    computeStyle(name, t, len, &st);
+    if ((brEq(name, "body") || brEq(name, "html")) && st.hasBg)
+    {
+        pageBg = st.bg;
+    }
+    if (brEq(name, "a") && !st.hasColor && attrValue(t, len, "href", tmp, sizeof(tmp)))
+    {
+        st.hasColor = 1;
+        st.color = colLink;
+    }
+    if (inList(name, autoCloseTags) && styleDepth > 0 && brEq(styleStack[styleDepth - 1].name, name))
+    {
+        styleClose(name);
+    }
+    styleOpen(name, &st);
+}
+
+/* Draws a form control as plain text, e.g. [____], [ok], [ ], ( ) */
+static void addInput(const char* t, unsigned int len)
+{
+    char type[12];
+    char val[24];
+    char buf[40];
+    unsigned int n = 0;
+    int isButton;
+    type[0] = '\0';
+    val[0] = '\0';
+    attrValue(t, len, "type", type, sizeof(type));
+    attrValue(t, len, "value", val, sizeof(val));
+    if (brPrefix(type, "hidden"))
+    {
+        return;
+    }
+    needSpace = 1;
+    if (brPrefix(type, "checkbox"))
+    {
+        addText("[ ]");
+    }
+    else if (brPrefix(type, "radio"))
+    {
+        addText("( )");
+    }
+    else if (brPrefix(type, "image"))
+    {
+        addText("[img]");
+    }
+    else
+    {
+        isButton = brPrefix(type, "submit") || brPrefix(type, "button") || brPrefix(type, "reset");
+        brAppend(buf, &n, sizeof(buf), "[");
+        brAppend(buf, &n, sizeof(buf), val[0] ? val : (isButton ? type : "____"));
+        brAppend(buf, &n, sizeof(buf), "]");
+        addText(buf);
+    }
+}
+
 static int handleTag(const char* t, unsigned int len)
 {
     char name[12];
@@ -717,6 +1496,46 @@ static int handleTag(const char* t, unsigned int len)
     }
     name[n] = '\0';
     flushWord();
+
+    if (brEq(name, "script"))
+    {
+        return closing ? 0 : 1;
+    }
+    if (brEq(name, "style"))
+    {
+        return closing ? 0 : 2;
+    }
+    if (brEq(name, "title"))
+    {
+        return closing ? 4 : 3;
+    }
+    if (!closing && inList(name, skipTags))
+    {
+        unsigned int k = 0;
+        skipClose[0] = '<';
+        skipClose[1] = '/';
+        while (name[k])
+        {
+            skipClose[2 + k] = name[k];
+            k++;
+        }
+        skipClose[2 + k] = '\0';
+        return 5;
+    }
+
+    if (closing)
+    {
+        styleClose(name);
+    }
+    else if (!inList(name, voidTags))
+    {
+        openStyle(name, t, len);
+    }
+    if (hidden)
+    {
+        return 0;
+    }
+
     if (name[0] == 'h' && name[1] >= '1' && name[1] <= '6' && name[2] == '\0')
     {
         blockBreak();
@@ -733,11 +1552,11 @@ static int handleTag(const char* t, unsigned int len)
             curY += lineH;
         }
     }
-    else if (brEq(name, "p") || brEq(name, "ul") || brEq(name, "ol") || brEq(name, "table") || brEq(name, "blockquote") || brEq(name, "pre") || brEq(name, "form"))
+    else if (inList(name, blockTags))
     {
         blockBreak();
     }
-    else if (brEq(name, "div") || brEq(name, "tr") || brEq(name, "dt") || brEq(name, "dd") || brEq(name, "section") || brEq(name, "article") || brEq(name, "header") || brEq(name, "footer"))
+    else if (inList(name, lineTags))
     {
         breakLine();
     }
@@ -784,25 +1603,62 @@ static int handleTag(const char* t, unsigned int len)
         needSpace = 1;
         addText("[img]");
     }
-    else if (brEq(name, "script"))
+    else if (brEq(name, "input"))
     {
-        return closing ? 0 : 1;
+        addInput(t, len);
     }
-    else if (brEq(name, "style"))
+    else if (brEq(name, "button"))
     {
-        return closing ? 0 : 2;
+        if (!closing)
+        {
+            needSpace = 1;
+        }
+        addText(closing ? "]" : "[");
     }
-    else if (brEq(name, "title"))
+    else if (brEq(name, "q"))
     {
-        return closing ? 4 : 3;
+        addText("\"");
     }
     return 0;
 }
 
+/* Maps a unicode code point to the closest printable ASCII char. */
+static char mapCode(unsigned int v)
+{
+    if (v >= 32 && v < 127)
+    {
+        return (char)v;
+    }
+    switch (v)
+    {
+    case 0xA0:
+        return ' ';
+    case 0xAB:
+    case 0xBB:
+    case 0x201C:
+    case 0x201D:
+        return '"';
+    case 0x2018:
+    case 0x2019:
+        return '\'';
+    case 0x2013:
+    case 0x2014:
+        return '-';
+    case 0x2022:
+    case 0xB7:
+        return '*';
+    case 0x2026:
+        return '.';
+    case 0xD7:
+        return 'x';
+    }
+    return '?';
+}
+
 static unsigned int entity(const char* p, const char* end, char* out)
 {
-    static const char* const names[] = {"amp;", "lt;", "gt;", "quot;", "nbsp;", "apos;"};
-    static const char vals[] = {'&', '<', '>', '"', ' ', '\''};
+    static const char* const names[] = {"amp;", "lt;", "gt;", "quot;", "nbsp;", "apos;", "laquo;", "raquo;", "ldquo;", "rdquo;", "lsquo;", "rsquo;", "ndash;", "mdash;", "bull;", "middot;", "hellip;", "times;"};
+    static const unsigned short vals[] = {'&', '<', '>', '"', 0xA0, '\'', 0xAB, 0xBB, 0x201C, 0x201D, 0x2018, 0x2019, 0x2013, 0x2014, 0x2022, 0xB7, 0x2026, 0xD7};
     if (p + 1 >= end)
     {
         return 0;
@@ -837,14 +1693,14 @@ static unsigned int entity(const char* p, const char* end, char* out)
         {
             i++;
         }
-        *out = (v >= 32 && v < 127) ? (char)v : '?';
+        *out = mapCode(v);
         return i;
     }
-    for (unsigned int k = 0; k < 6; k++)
+    for (unsigned int k = 0; k < sizeof(vals) / sizeof(vals[0]); k++)
     {
         if (brPrefix(p + 1, names[k]))
         {
-            *out = vals[k];
+            *out = mapCode(vals[k]);
             return brLen(names[k]) + 1;
         }
     }
@@ -875,6 +1731,14 @@ static void layoutPage(int width)
     lineUsed = 0;
     gapped = 1;
     needSpace = 0;
+    ruleCount = 0;
+    styleDepth = 0;
+    curColor = 0;
+    center = 0;
+    hidden = 0;
+    lineStart = 0;
+    lineCenter = 0;
+    pageBg = colBg;
     pageTitle[0] = '\0';
     while (p < end)
     {
@@ -905,7 +1769,9 @@ static void layoutPage(int width)
             }
             else if (action == 2)
             {
+                const char* css = p;
                 p = findNoCase(p, end, "</style");
+                parseCss(css, p);
             }
             else if (action == 3)
             {
@@ -914,6 +1780,10 @@ static void layoutPage(int width)
             else if (action == 4)
             {
                 inTitle = 0;
+            }
+            else if (action == 5)
+            {
+                p = findNoCase(p, end, skipClose);
             }
             continue;
         }
@@ -924,6 +1794,11 @@ static void layoutPage(int width)
                 pageTitle[titleLen++] = c;
                 pageTitle[titleLen] = '\0';
             }
+            p++;
+            continue;
+        }
+        if (hidden)
+        {
             p++;
             continue;
         }
@@ -958,6 +1833,7 @@ static void layoutPage(int width)
         p++;
     }
     flushWord();
+    centerLine();
     contentH = curY + (lineUsed ? lineH : 0) + lineH;
 }
 
@@ -1139,6 +2015,7 @@ void browserInit()
     urlText[0] = '\0';
     pageTitle[0] = '\0';
     useTls = 0;
+    pageBg = colBg;
     setStatus("type a url and press enter");
     brAppend(urlText, &urlLen, urlMax, "http://");
 }
@@ -1316,7 +2193,15 @@ static void drawStr(int x, int y, const char* s, unsigned int color)
 
 static void drawWord(int x, int y, const Item* it)
 {
-    unsigned int color = it->link >= 0 ? colLink : colText;
+    unsigned int color = colText;
+    if (it->color)
+    {
+        color = it->color & 0xFFFFFF;
+    }
+    else if (it->link >= 0)
+    {
+        color = colLink;
+    }
     for (unsigned int i = 0; it->text[i]; i++)
     {
         putChar(x + i * charW, y + 1, it->text[i], color);
@@ -1364,7 +2249,7 @@ void browserDraw(int x, int y, int w, int h)
     {
         scrollY = 0;
     }
-    putRect(x, y, w, h, colBg);
+    putRect(x, y, w, h, pageBg);
     for (unsigned int i = 0; i < itemCount; i++)
     {
         const Item* it = &items[i];

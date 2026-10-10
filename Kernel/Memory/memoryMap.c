@@ -132,59 +132,26 @@ Heap ->
 <- Stack
 0x200000
 */
-void reserveKernelRegions(void)
+static void reserveRegion(unsigned long long start, unsigned long long end)
 {
     MemoryRegion region;
-
-    // first 1MB - BIOS/bootloader
-    region.start  = 0x000000;
-    region.end    = 0x100000;
-    region.type   = MEMORY_TYPE_RESERVED;
-    region.isFree = FALSE;
-    memoryManager.regions[memoryManager.regionCount++] = region;
-
-    // kernel + BSS
-    region.start  = 0x100000;
-    region.end    = 0x1A0000;
-    region.type   = MEMORY_TYPE_RESERVED;
-    region.isFree = FALSE;
-    memoryManager.regions[memoryManager.regionCount++] = region;
-
-    // heap
-    region.start  = 0x1A0000;
-    region.end    = 0x400000;
-    region.type   = MEMORY_TYPE_RESERVED;
-    region.isFree = FALSE;
-    memoryManager.regions[memoryManager.regionCount++] = region;
-
-    // stack
-    region.start  = 0x400000;
-    region.end    = 0x500000;
-    region.type   = MEMORY_TYPE_RESERVED;
-    region.isFree = FALSE;
-    memoryManager.regions[memoryManager.regionCount++] = region;
-
-    // paging structures
-    region.start  = 0x500000;
-    region.end    = 0x600000;
-    region.type   = MEMORY_TYPE_RESERVED;
-    region.isFree = FALSE;
-    memoryManager.regions[memoryManager.regionCount++] = region;
-
-    region.start  = 0xFD000000;
-    region.end    = 0xFDFFFFFF;
-    region.type   = MEMORY_TYPE_RESERVED;
-    region.isFree = FALSE;
-    memoryManager.regions[memoryManager.regionCount++] = region;
-
-    // frames array
-    region.start  = 0x600000;
-    region.end    = 0x640000;
-    region.type   = MEMORY_TYPE_RESERVED;
+    region.start = start;
+    region.end = end;
+    region.type = MEMORY_TYPE_RESERVED;
     region.isFree = FALSE;
     memoryManager.regions[memoryManager.regionCount++] = region;
 }
 
+void reserveKernelRegions(void)
+{
+    reserveRegion(0x000000, KERNEL_PHYSICAL_START);
+    reserveRegion(KERNEL_PHYSICAL_START, KERNEL_PHYSICAL_END);
+    reserveRegion(STACK_PHYSICAL_START, STACK_PHYSICAL_END);
+    reserveRegion(PAGING_STRUCT_START, PAGING_STRUCT_START + 0x100000);
+    reserveRegion(FRAMES_ARRAY_START, FRAMES_ARRAY_END);
+    reserveRegion(HEAP_PHYSICAL_START, HEAP_PHYSICAL_END);
+    reserveRegion(0xFD000000, 0xFE000000);
+}
 
 /*
 -------------------

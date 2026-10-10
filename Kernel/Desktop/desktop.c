@@ -146,6 +146,7 @@ static int targetCell(int i, int* outCol, int* outRow)
 void desktopUpdate(void)
 {
     browserPoll(getTicks());
+    mailPoll(getTicks());
     if (!placed) placeAll();
     if (mouseLeft && !prevLeft && mouseY < TASKBAR_Y && !wmConsumedClick())
     {
